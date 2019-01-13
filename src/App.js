@@ -83,12 +83,11 @@ class App extends Component {
     if (src != null && !src.isDeleted()) src.delete();
 
   }
-  drawFilteredContours=(src)=>{
+  trackBall=(src)=>{
     const ballNum = this.state.ballNum
     let dst = cv.Mat.zeros(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
-    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-    cv.threshold(src, src, 100, 255, cv.THRESH_BINARY_INV );//+ cv.THRESH_OTSU
-  
+    //cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+    //cv.threshold(src, src, 255, 0, cv.THRESH_BINARY_INV );//+ cv.THRESH_OTSU
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
     cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
@@ -104,24 +103,50 @@ class App extends Component {
         maxContour = contour
       }
     }
-    const M = cv.moments(maxContour,false)
-    let cx = M.m10/M.m00
-    let cy = M.m01/M.m00
+    const circle = cv.minEnclosingCircle(maxContour)
+    console.log("circle", circle.center)
     let allPositions = this.state.positions
     if(!allPositions[ballNum]){
       allPositions[ballNum]={
         'x':[],
-        'y':[]
+        'y':[],
+        'r':[]
       }
     }
-    allPositions[ballNum]['x'].push(cx)
-    allPositions[ballNum]['y'].push(cy)
+    allPositions[ballNum]['x'].push(circle.center.x)
+    allPositions[ballNum]['y'].push(circle.center.y)
+    allPositions[ballNum]['r'].push(circle.radius)
+
     this.setState({
       positions : allPositions
     })
     src.delete();dst.delete(); contours.delete(); hierarchy.delete();
 
     return [dst,src];
+
+  }
+  drawTail =(ballNum)=>{
+    const xHistory = this.state.positions[ballNum]['x']
+    const lastX = xHistory[xHistory.length-1]
+    const yHistory = this.state.positions[ballNum]['y']
+    const lastY = yHistory[yHistory.length-1]
+    const rHistory = this.state.positions[ballNum]['r']
+    const lastR = rHistory[rHistory.length-1]
+    const context = this.canvasOutput.getContext("2d")
+    const radius = 70
+    context.beginPath();
+    context.arc(lastX, lastY, lastR, 0, 2 * Math.PI, false);
+    context.fillStyle = 'green';
+    context.fill();
+    context.lineWidth = 5;
+    context.strokeStyle = '#003300';
+    context.stroke();
+    /*
+    context.beginPath()
+    context.strokeStyle = 'rgba(0,255,100,1)';
+    context.moveTo(lastX,lastY)
+    context.lineTo(lastX+10,lastY+10)
+    context.stroke(); */
 
   }
   processVideo=()=> {
@@ -145,8 +170,14 @@ class App extends Component {
     const low = new cv.Mat(this.state.srcMat.rows, this.state.srcMat.cols, this.state.srcMat.type(), [this.state.lh, this.state.ls, this.state.lv, 0]);
     const high = new cv.Mat(this.state.srcMat.rows, this.state.srcMat.cols, this.state.srcMat.type(), [this.state.hh, this.state.hs, this.state.hv, 255]);
     cv.inRange(this.state.srcMat,low, high, dst);
-    let contourData = this.drawFilteredContours(this.state.srcMat.clone())
+    let contourData = this.trackBall(dst.clone())
+    let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
+    cv.dilate(dst,dst,kernel)
+    //cv.erode(dst,dst,kernel)
+    kernel.delete()
     cv.imshow('canvasOutput',dst)
+    this.drawTail(this.state.ballNum)
+
     low.delete();high.delete();dst.delete();
     var vidLength = 30 //seconds
     var fps = 24; 
@@ -164,7 +195,6 @@ class App extends Component {
     })
   }
   stopCamera=()=> {
-    console.log(this.state.positions)
     if (!this.state.streaming) return;
     this.stopVideoProcessing();
     document.getElementById("canvasOutput").getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
