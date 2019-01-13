@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import cv from 'opencv4nodejs';
-
+import cv from 'opencv.js';
+import utils from './utils'
 class App extends Component {
 
   state = {
@@ -26,6 +26,8 @@ class App extends Component {
     hv:30,
     upsideDownMode:false,
     ballNum : 1,
+    hsvValues : [],
+    calibrating : true
   }
 
   startCamera=()=> {
@@ -88,30 +90,31 @@ class App extends Component {
 
     canvasOutputCtx.drawImage(this.video, 0, 0, videoWidth, videoHeight);
     let imageData = canvasOutputCtx.getImageData(0, 0, videoWidth, videoHeight);
+    document.getElementById("canvasOutput").getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
+
     this.state.srcMat.data.set(imageData.data);
     cv.flip(this.state.srcMat, this.state.srcMat,1)
     let dst = new cv.Mat();
+    const lowHSV = utils.RGBtoHSV(this.state.lh, this.state.ls, this.state.lv)
+    lowHSV.push(0)
+    const highHSV = utils.RGBtoHSV(this.state.hh, this.state.hs, this.state.hv)
+    highHSV.push(255)
+
+    //const hsv = cv.cvtColor(this.state.srcMat, this.state.srcMat,cv.COLOR_BGR2HSV)
     const low = new cv.Mat(this.state.srcMat.rows, this.state.srcMat.cols, this.state.srcMat.type(), [this.state.lh, this.state.ls, this.state.lv, 0]);
     const high = new cv.Mat(this.state.srcMat.rows, this.state.srcMat.cols, this.state.srcMat.type(), [this.state.hh, this.state.hs, this.state.hv, 255]);
-    const colored = cv.inRange(this.state.srcMat, low, high, dst);
-    cv.imshow('canvasOutput',colored)
-      
-    canvasOutputCtx.lineWidth = 6;
-    canvasOutputCtx.strokeStyle = 'rgba(255,255,255,0.7)';
-    canvasOutputCtx.strokeRect(Math.floor(videoWidth/2)-10, 0, 20, videoHeight);
-
+    cv.inRange(this.state.srcMat,low, high, dst);
+    cv.imshow('canvasOutput',dst)
+    low.delete();high.delete();dst.delete();
     var vidLength = 30 //seconds
-    var fps = 24;
+    var fps = 24; 
     var interval = 1000/fps;
     const delta = Date.now() - this.state.startTime;
-    
 
-    if (delta > interval) {
-      requestAnimationFrame(this.processVideo);
-      this.setState({
-        startTime : Date.now()
-      })
-    }
+    requestAnimationFrame(this.processVideo);
+    this.setState({
+      startTime : Date.now()
+    })
   }
   handleBallNum=(e)=>{
     this.setState({
@@ -170,25 +173,35 @@ class App extends Component {
       upsideDownMode : !this.state.upsideDownMode
     })
   }
+  handleToggleCalibrationMode=()=>{
+    this.setState({
+      calibrating : false
+    })
+  }
   render() {
-    
+    const sliders = 
+        this.state.calibrating ? 
+        <div className="sliders">
+          <label>Ball Number</label><input type="input" value={this.state.ballNum} onChange={this.handleBallNum}/>
+          <br/>
+          <label>Low R</label><input type="range" min={0} max={255} value={this.state.lh} onChange={this.handleLHChange}/>
+          <label>Low G</label><input type="range" min={0} max={255} value={this.state.ls} onChange={this.handleLSChange}/>
+          <label>Low B</label><input type="range" min={0} max={255} value={this.state.lv} onChange={this.handleLVChange}/>
+          <br/>
+          <label>High R</label><input type="range" min={0} max={255} value={this.state.hh} onChange={this.handleHHChange}/>
+          <label>High G</label><input type="range" min={0} max={255} value={this.state.hs} onChange={this.handleHSChange}/>
+          <label>High B</label><input type="range" min={0} max={255} value={this.state.hv} onChange={this.handleHVChange}/>
+        </div> : null
+      
     return (
       <div className="App">
         <button onClick={this.startCamera}>Start Video</button> 
         <button onClick={this.stopCamera}>Stop Video</button>      
-        <button onClick={this.handleUpsideDown}>Upside down mode</button>      
+        <button onClick={this.toggleCalibrationMode}>Finish Calibration</button>      
          <div id="container">
             <h3>Set color range</h3>
-            <div className="sliders">
-              <input type="range" min={0} max={255} value={this.state.ballNum} onChange={this.handleBallNum}/>
-              <input type="range" min={0} max={255} value={this.state.lh} onChange={this.handleLHChange}/>
-              <input type="range" min={0} max={255} value={this.state.ls} onChange={this.handleLSChange}/>
-              <input type="range" min={0} max={255} value={this.state.lv} onChange={this.handleLVChange}/>
-              <input type="range" min={0} max={255} value={this.state.hh} onChange={this.handleHHChange}/>
-              <input type="range" min={0} max={255} value={this.state.hs} onChange={this.handleHSChange}/>
-              <input type="range" min={0} max={255} value={this.state.hv} onChange={this.handleHVChange}/>
-            </div>
-            <video className="invisible" ref={ref => this.video = ref}></video>
+            {sliders}
+            <video hidden={true} className="invisible" ref={ref => this.video = ref}></video>
             <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
           </div>
         </div>
