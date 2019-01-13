@@ -18,17 +18,19 @@ class App extends Component {
     srcMat : null,
     net : null,
     startTime : Date.now(),
-    lh:5,
-    ls:5,
-    lv:5,
-    hh:30,
-    hs:30,
-    hv:30,
+    lh:0,
+    ls:0,
+    lv:0,
+    hh:255,
+    hs:255,
+    hv:255,
+    allBallColors : [],
     upsideDownMode:false,
     ballNum : 1,
     hsvValues : [],
     calibrating : true,
-    positions : []
+    positions : [],
+    numBalls : 3
   }
 
   startCamera=()=> {
@@ -103,23 +105,26 @@ class App extends Component {
         maxContour = contour
       }
     }
-    const circle = cv.minEnclosingCircle(maxContour)
-    console.log("circle", circle.center)
-    let allPositions = this.state.positions
-    if(!allPositions[ballNum]){
-      allPositions[ballNum]={
-        'x':[],
-        'y':[],
-        'r':[]
+    if(maxContour){
+      const circle = cv.minEnclosingCircle(maxContour)
+      console.log("circle", circle.center)
+      let allPositions = this.state.positions
+      if(!allPositions[ballNum]){
+        allPositions[ballNum]={
+          'x':[],
+          'y':[],
+          'r':[]
+        }
       }
-    }
-    allPositions[ballNum]['x'].push(circle.center.x)
-    allPositions[ballNum]['y'].push(circle.center.y)
-    allPositions[ballNum]['r'].push(circle.radius)
+      allPositions[ballNum]['x'].push(circle.center.x)
+      allPositions[ballNum]['y'].push(circle.center.y)
+      allPositions[ballNum]['r'].push(circle.radius)
 
-    this.setState({
-      positions : allPositions
-    })
+      this.setState({
+        positions : allPositions
+      })
+    }
+    
     src.delete();dst.delete(); contours.delete(); hierarchy.delete();
 
     return [dst,src];
@@ -127,27 +132,23 @@ class App extends Component {
   }
   drawTail =(ballNum)=>{
     const xHistory = this.state.positions[ballNum]['x']
-    const lastX = xHistory[xHistory.length-1]
     const yHistory = this.state.positions[ballNum]['y']
-    const lastY = yHistory[yHistory.length-1]
     const rHistory = this.state.positions[ballNum]['r']
-    const lastR = rHistory[rHistory.length-1]
-    const context = this.canvasOutput.getContext("2d")
-    const radius = 70
-    context.beginPath();
-    context.arc(lastX, lastY, lastR, 0, 2 * Math.PI, false);
-    context.fillStyle = 'green';
-    context.fill();
-    context.lineWidth = 5;
-    context.strokeStyle = '#003300';
-    context.stroke();
-    /*
-    context.beginPath()
-    context.strokeStyle = 'rgba(0,255,100,1)';
-    context.moveTo(lastX,lastY)
-    context.lineTo(lastX+10,lastY+10)
-    context.stroke(); */
 
+    const maxWindowSize = 10
+    const currentWindowSize = Math.min(xHistory.length, maxWindowSize)
+    for (let i=0; i < currentWindowSize; ++i){
+      const lastX = xHistory[xHistory.length - 1 - i]
+      const lastY = yHistory[yHistory.length - 1 - i]
+      const lastR = rHistory[rHistory.length - 1 - i]
+      const context = this.canvasOutput.getContext("2d")
+      context.beginPath();
+      context.arc(lastX, lastY, lastR*(1-(i/currentWindowSize)), 0, 2 * Math.PI, false);
+      context.fillStyle = 'green';
+      context.fill();
+      context.strokeStyle = 'green';
+      context.stroke();
+    }
   }
   processVideo=()=> {
     let canvasOutputCtx = this.canvasOutput.getContext("2d")
@@ -165,8 +166,6 @@ class App extends Component {
     lowHSV.push(0)
     const highHSV = utils.RGBtoHSV(this.state.hh, this.state.hs, this.state.hv)
     highHSV.push(255)
-
-    //const hsv = cv.cvtColor(this.state.srcMat, this.state.srcMat,cv.COLOR_BGR2HSV)
     const low = new cv.Mat(this.state.srcMat.rows, this.state.srcMat.cols, this.state.srcMat.type(), [this.state.lh, this.state.ls, this.state.lv, 0]);
     const high = new cv.Mat(this.state.srcMat.rows, this.state.srcMat.cols, this.state.srcMat.type(), [this.state.hh, this.state.hs, this.state.hv, 255]);
     cv.inRange(this.state.srcMat,low, high, dst);
@@ -175,7 +174,7 @@ class App extends Component {
     cv.dilate(dst,dst,kernel)
     //cv.erode(dst,dst,kernel)
     kernel.delete()
-    cv.imshow('canvasOutput',dst)
+    cv.imshow('canvasOutput',this.state.srcMat)
     this.drawTail(this.state.ballNum)
 
     low.delete();high.delete();dst.delete();
@@ -251,11 +250,32 @@ class App extends Component {
       calibrating : false
     })
   }
+  nextBall=()=>{
+    let colorRanges = this.state.allBallColors
+    let ballNum = this.state.ballNum
+    colorRanges[ballNum] = {
+      'lh' : this.state.lh,
+      'ls' : this.state.ls,
+      'lv' : this.state.lv,
+      'hh' : this.state.hh,
+      'hs' : this.state.hs,
+      'hv' : this.state.hv,
+    }
+    ballNum += 1 
+    if(ballNum%this.state.numBalls == 1 ){
+      ballNum = 1
+    }
+    this.setState({
+      ballNum
+    })
+    console.log(colorRanges)
+  }
   render() {
     const sliders = 
         this.state.calibrating ? 
         <div className="sliders">
           <label>Ball Number</label><input type="input" value={this.state.ballNum} onChange={this.handleBallNum}/>
+          <button onClick={this.nextBall}>Next Ball</button>
           <br/>
           <label>Low R</label><input type="range" min={0} max={255} value={this.state.lh} onChange={this.handleLHChange}/>
           <label>Low G</label><input type="range" min={0} max={255} value={this.state.ls} onChange={this.handleLSChange}/>
