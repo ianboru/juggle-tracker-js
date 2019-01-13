@@ -27,7 +27,8 @@ class App extends Component {
     upsideDownMode:false,
     ballNum : 1,
     hsvValues : [],
-    calibrating : true
+    calibrating : true,
+    positions : []
   }
 
   startCamera=()=> {
@@ -82,7 +83,47 @@ class App extends Component {
     if (src != null && !src.isDeleted()) src.delete();
 
   }
+  drawFilteredContours=(src)=>{
+    const ballNum = this.state.ballNum
+    let dst = cv.Mat.zeros(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
+    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+    cv.threshold(src, src, 100, 255, cv.THRESH_BINARY_INV );//+ cv.THRESH_OTSU
+  
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+    cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
+    let maxArea = 0
+    let largestContourIndex 
+    let maxContour
+    for (let i = 0; i < contours.size(); ++i) {
+      const contour = contours.get(i)
+      const area = cv.contourArea(contour, false)
+      if(area > maxArea){
+        maxArea = area
+        largestContourIndex = i
+        maxContour = contour
+      }
+    }
+    const M = cv.moments(maxContour,false)
+    let cx = M.m10/M.m00
+    let cy = M.m01/M.m00
+    let allPositions = this.state.positions
+    if(!allPositions[ballNum]){
+      allPositions[ballNum]={
+        'x':[],
+        'y':[]
+      }
+    }
+    allPositions[ballNum]['x'].push(cx)
+    allPositions[ballNum]['y'].push(cy)
+    this.setState({
+      positions : allPositions
+    })
+    src.delete();dst.delete(); contours.delete(); hierarchy.delete();
 
+    return [dst,src];
+
+  }
   processVideo=()=> {
     let canvasOutputCtx = this.canvasOutput.getContext("2d")
     let videoWidth = this.state.videoWidth
@@ -104,6 +145,7 @@ class App extends Component {
     const low = new cv.Mat(this.state.srcMat.rows, this.state.srcMat.cols, this.state.srcMat.type(), [this.state.lh, this.state.ls, this.state.lv, 0]);
     const high = new cv.Mat(this.state.srcMat.rows, this.state.srcMat.cols, this.state.srcMat.type(), [this.state.hh, this.state.hs, this.state.hv, 255]);
     cv.inRange(this.state.srcMat,low, high, dst);
+    let contourData = this.drawFilteredContours(this.state.srcMat.clone())
     cv.imshow('canvasOutput',dst)
     low.delete();high.delete();dst.delete();
     var vidLength = 30 //seconds
@@ -122,6 +164,7 @@ class App extends Component {
     })
   }
   stopCamera=()=> {
+    console.log(this.state.positions)
     if (!this.state.streaming) return;
     this.stopVideoProcessing();
     document.getElementById("canvasOutput").getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
@@ -203,6 +246,8 @@ class App extends Component {
             {sliders}
             <video hidden={true} className="invisible" ref={ref => this.video = ref}></video>
             <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
+            <canvas ref={ref => this.canvasTest = ref}  className="center-block" id="canvasTest" width={320} height={240}></canvas>
+
           </div>
         </div>
     );
