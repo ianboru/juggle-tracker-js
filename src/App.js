@@ -18,19 +18,19 @@ class App extends Component {
     srcMat : null,
     net : null,
     startTime : Date.now(),
-    lh:0,
-    ls:0,
-    lv:0,
-    hh:255,
-    hs:255,
-    hv:255,
+    lr : 0,
+    lg : 0,
+    lb : 50,
+    hr : 20,
+    hg : 50,
+    hb : 255,
     allBallColors : [{},{
-      'lh' : 0,
-      'ls' : 0,
-      'lv' : 0,
-      'hh' : 255,
-      'hs' : 255,
-      'hv' : 255,
+      lr : 0,
+      lg : 0,
+      lb : 50,
+      hr : 20,
+      hg : 50,
+      hb : 255,
     }],
     upsideDownMode:false,
     ballNum : 1,
@@ -94,8 +94,6 @@ class App extends Component {
   }
   trackBall=(src,ballNum)=>{
     let dst = cv.Mat.zeros(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
-    //cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-    //cv.threshold(src, src, 255, 0, cv.THRESH_BINARY_INV );//+ cv.THRESH_OTSU
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
     cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
@@ -136,9 +134,9 @@ class App extends Component {
     return (x + y)/2
   }
   calculateCurrentColor=(ballColorRange)=>{
-    const r = this.mean(ballColorRange['lh'],ballColorRange['hh'])
-    const g = this.mean(ballColorRange['ls'],ballColorRange['hs'])
-    const b = this.mean(ballColorRange['lv'],ballColorRange['hv'])
+    const r = this.mean(ballColorRange['lr'],ballColorRange['hr'])
+    const g = this.mean(ballColorRange['lg'],ballColorRange['hg'])
+    const b = this.mean(ballColorRange['lb'],ballColorRange['hb'])
     return "rgb(" + r + "," + g + "," + b + ",60)"
   }
   drawTails =(ballNum)=>{
@@ -150,7 +148,7 @@ class App extends Component {
         const rHistory = this.state.positions[ballNum]['r']
         const color = this.calculateCurrentColor(ballColors)
 
-        const maxWindowSize = 10
+        const maxWindowSize = 8
         const currentWindowSize = Math.min(xHistory.length, maxWindowSize)
         for (let i=0; i < currentWindowSize; ++i){
           const lastX = xHistory[xHistory.length - 1 - i]
@@ -171,14 +169,13 @@ class App extends Component {
     let dst
     this.state.allBallColors.forEach((ballColors,ballNum)=>{
       if(ballNum > 0){
-        console.log("filtering ",ballColors)
         dst = new cv.Mat();
-        const lowHSV = utils.RGBtoHSV(ballColors.lh, ballColors.ls, ballColors.lv)
+        const lowHSV = utils.RGBtoHSV(ballColors.lr, ballColors.lg, ballColors.lb)
         lowHSV.push(0)
-        const highHSV = utils.RGBtoHSV(ballColors.hh, ballColors.hs, ballColors.hv)
+        const highHSV = utils.RGBtoHSV(ballColors.hr, ballColors.hg, ballColors.hb)
         highHSV.push(255)
-        const low = new cv.Mat(src.rows, src.cols, src.type(), [ballColors.lh, ballColors.ls, ballColors.lv, 0]);
-        const high = new cv.Mat(src.rows, src.cols, src.type(), [ballColors.hh, ballColors.hs, ballColors.hv, 255]);
+        const low = new cv.Mat(src.rows, src.cols, src.type(), [ballColors.lr, ballColors.lg, ballColors.lb, 0]);
+        const high = new cv.Mat(src.rows, src.cols, src.type(), [ballColors.hr, ballColors.hg, ballColors.hb, 255]);
         cv.inRange(src,low, high, dst);
         this.trackBall(dst.clone(),ballNum)
         let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
@@ -198,10 +195,10 @@ class App extends Component {
     let canvasOutputCtx = this.canvasOutput.getContext("2d")
     let videoWidth = this.state.videoWidth
     let videoHeight = this.state.videoHeight
+    document.getElementById("canvasOutput").getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
 
     canvasOutputCtx.drawImage(this.video, 0, 0, videoWidth, videoHeight);
     let imageData = canvasOutputCtx.getImageData(0, 0, videoWidth, videoHeight);
-    document.getElementById("canvasOutput").getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
 
     this.state.srcMat.data.set(imageData.data);
     cv.flip(this.state.srcMat, this.state.srcMat,1)
@@ -214,7 +211,7 @@ class App extends Component {
     var fps = 24; 
     var interval = 1000/fps;
     const delta = Date.now() - this.state.startTime;
-
+    console.log(delta)
     requestAnimationFrame(this.processVideo);
     this.setState({
       startTime : Date.now()
@@ -241,46 +238,46 @@ class App extends Component {
     console.log('OpenCV.js is ready');
     this.startCamera();
   }
-  handleLHChange=(e)=>{
+  handleLRChange=(e)=>{
 
     this.setState({
-      lh : parseInt(e.target.value)
+      lr : parseInt(e.target.value)
     },()=>{
       this.setColorRange()
     })
   }
-  handleLSChange=(e)=>{
+  handleLGChange=(e)=>{
     this.setState({
-      ls : parseInt(e.target.value)
+      lg : parseInt(e.target.value)
     },()=>{
       this.setColorRange()
     })
   }
-  handleLVChange=(e)=>{
+  handleLBChange=(e)=>{
     this.setState({
-      lv : parseInt(e.target.value)
+      lb : parseInt(e.target.value)
     },()=>{
       this.setColorRange()
     })
   }
   
-  handleHHChange=(e)=>{
+  handleHRChange=(e)=>{
     this.setState({
-      hh : parseInt(e.target.value)
+      hr : parseInt(e.target.value)
     },()=>{
       this.setColorRange()
     })
   }
-  handleHSChange=(e)=>{
+  handleHGChange=(e)=>{
     this.setState({
-      hs : parseInt(e.target.value)
+      hg : parseInt(e.target.value)
     },()=>{
       this.setColorRange()
     })
   }
-  handleHVChange=(e)=>{
+  handleHBChange=(e)=>{
     this.setState({
-      hv : parseInt(e.target.value)
+      hb : parseInt(e.target.value)
     },()=>{
       this.setColorRange()
     })
@@ -294,17 +291,15 @@ class App extends Component {
   setColorRange=()=>{
     let colorRanges = this.state.allBallColors
     colorRanges[this.state.ballNum] = {
-      'lh' : this.state.lh,
-      'ls' : this.state.ls,
-      'lv' : this.state.lv,
-      'hh' : this.state.hh,
-      'hs' : this.state.hs,
-      'hv' : this.state.hv,
+      'lr' : this.state.lr,
+      'lg' : this.state.lg,
+      'lb' : this.state.lb,
+      'hr' : this.state.hr,
+      'hg' : this.state.hg,
+      'hb' : this.state.hb,
     }
     this.setState({
       allBallColors : colorRanges
-    },()=>{
-      console.log("set colors",this.state.allBallColors)
     })
   }
   nextBall=()=>{
@@ -317,12 +312,12 @@ class App extends Component {
     if(this.state.allBallColors[ballNum]){
       this.setState({
         ballNum,
-        lh : this.state.allBallColors[ballNum]['lh'],
-        ls : this.state.allBallColors[ballNum]['ls'],
-        lv : this.state.allBallColors[ballNum]['lv'],
-        hh : this.state.allBallColors[ballNum]['hh'],
-        hs : this.state.allBallColors[ballNum]['hs'],
-        hv : this.state.allBallColors[ballNum]['hv'],
+        lr : this.state.allBallColors[ballNum]['lr'],
+        lg : this.state.allBallColors[ballNum]['lg'],
+        lb : this.state.allBallColors[ballNum]['lb'],
+        hr : this.state.allBallColors[ballNum]['hr'],
+        hg : this.state.allBallColors[ballNum]['hg'],
+        hb : this.state.allBallColors[ballNum]['hb'],
       })
     }else{
       this.setState({
@@ -338,13 +333,13 @@ class App extends Component {
           <label>Ball Number</label><input type="input" value={this.state.ballNum} onChange={this.handleBallNum}/>
           <button onClick={this.nextBall}>Next Ball</button>
           <br/>
-          <label>Low R</label><input type="range" min={0} max={255} value={this.state.lh} onChange={this.handleLHChange}/>
-          <label>Low G</label><input type="range" min={0} max={255} value={this.state.ls} onChange={this.handleLSChange}/>
-          <label>Low B</label><input type="range" min={0} max={255} value={this.state.lv} onChange={this.handleLVChange}/>
+          <label>Low R</label><input type="range" min={0} max={255} value={this.state.lr} onChange={this.handleLRChange}/>
+          <label>Low G</label><input type="range" min={0} max={255} value={this.state.lg} onChange={this.handleLGChange}/>
+          <label>Low B</label><input type="range" min={0} max={255} value={this.state.lb} onChange={this.handleLBChange}/>
           <br/>
-          <label>High R</label><input type="range" min={0} max={255} value={this.state.hh} onChange={this.handleHHChange}/>
-          <label>High G</label><input type="range" min={0} max={255} value={this.state.hs} onChange={this.handleHSChange}/>
-          <label>High B</label><input type="range" min={0} max={255} value={this.state.hv} onChange={this.handleHVChange}/>
+          <label>High R</label><input type="range" min={0} max={255} value={this.state.hr} onChange={this.handleHRChange}/>
+          <label>High G</label><input type="range" min={0} max={255} value={this.state.hg} onChange={this.handleHGChange}/>
+          <label>High B</label><input type="range" min={0} max={255} value={this.state.hb} onChange={this.handleHBChange}/>
         </div> : null
       
     return (
