@@ -322,25 +322,29 @@ class App extends Component {
           <label>Ball Number</label><input type="input" value={this.state.ballNum} onChange={this.handleBallNum}/>
           <button onClick={this.nextBall}>Next Ball</button>
           <br/>
-          <button style={{"background-color":'red', 'color': 'white'}} name="red" onClick={this.setColor}>Red</button>
-          <button style={{"background-color":'green', 'color': 'white'}} name="green" onClick={this.setColor}>Green</button>
-          <button style={{"background-color":'blue', 'color': 'white'}} name="blue" onClick={this.setColor}>Blue</button>
+          <h3>Preset Colors</h3>
+          <button style={{"backgroundColor":'red', 'color': 'white','fontSize':'12pt'}} name="red" onClick={this.setColor}>Red</button>
+          <button style={{"backgroundColor":'green', 'color': 'white','fontSize':'12pt'}} name="green" onClick={this.setColor}>Green</button>
+          <button style={{"backgroundColor":'blue', 'color': 'white','fontSize':'12pt'}} name="blue" onClick={this.setColor}>Blue</button>
           <br/>
-          <label>Low R</label><input name="lr" type="range" min={0} max={255} value={this.state.lr} onChange={this.handleRGBChange}/>
-          <label>Low G</label><input name="lg" type="range" min={0} max={255} value={this.state.lg} onChange={this.handleRGBChange}/>
-          <label>Low B</label><input name="lb" type="range" min={0} max={255} value={this.state.lb} onChange={this.handleRGBChange}/>
+          <h3>Adjust Colors</h3>
+          <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.lr}</span><label>Low R</label><input name="lr" type="range" min={0} max={255} value={this.state.lr} onChange={this.handleRGBChange}/>
+          <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.lg}</span><label>Low G</label><input name="lg" type="range" min={0} max={255} value={this.state.lg} onChange={this.handleRGBChange}/>
+          <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.lb}</span><label>Low B</label><input name="lb" type="range" min={0} max={255} value={this.state.lb} onChange={this.handleRGBChange}/>
           <br/>
-          <label>High R</label><input name="hr" type="range" min={0} max={255} value={this.state.hr} onChange={this.handleRGBChange}/>
-          <label>High G</label><input name="hg" type="range" min={0} max={255} value={this.state.hg} onChange={this.handleRGBChange}/>
-          <label>High B</label><input name="hb" type="range" min={0} max={255} value={this.state.hb} onChange={this.handleRGBChange}/>
+          <br/>
+          <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.hr}</span><label>High R</label><input name="hr" type="range" min={0} max={255} value={this.state.hr} onChange={this.handleRGBChange}/>
+          <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.hg}</span><label>High G</label><input name="hg" type="range" min={0} max={255} value={this.state.hg} onChange={this.handleRGBChange}/>
+          <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.hb}</span><label>High B</label><input name="hb" type="range" min={0} max={255} value={this.state.hb} onChange={this.handleRGBChange}/>
         </div> : null
       
     return (
       <div className="App">
-        <button onClick={this.startCamera}>Start Video</button> 
-        <button onClick={this.stopCamera}>Stop Video</button>      
+        <br/>
+        <button style={{'fontSize':'12pt'}} onClick={this.startCamera}>Start Video</button> 
+        <button style={{'fontSize':'12pt'}} onClick={this.stopCamera}>Stop Video</button>      
          <div id="container">
-            <h3>Set color range</h3>
+            <h1>Set color range</h1>
             {sliders}
             <video hidden={true} className="invisible" ref={ref => this.video = ref}></video>
             <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
