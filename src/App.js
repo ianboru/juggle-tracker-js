@@ -13,7 +13,6 @@ class App extends Component {
     streaming : false,
     videoHeight : null,
     videoWidth : null,
-    srcMat : null,
     startTime : Date.now(),
     lr : 0,
     lg : 0,
@@ -75,10 +74,6 @@ class App extends Component {
     var fps = 24;
     if (!this.state.streaming) { console.warn("Please startup your webcam"); return; }
     this.stopVideoProcessing();
-    let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
-    this.setState({
-      srcMat
-    })
     requestAnimationFrame(this.processVideo);
   }
 
@@ -132,7 +127,7 @@ class App extends Component {
     const r = this.mean(ballColorRange['lr'],ballColorRange['hr'])
     const g = this.mean(ballColorRange['lg'],ballColorRange['hg'])
     const b = this.mean(ballColorRange['lb'],ballColorRange['hb'])
-    return "rgb(" + r + "," + g + "," + b + ",60)"
+    return "rgb(" + r + "," + g + "," + b + ",.7)"
   }
   drawTails =(ballNum)=>{
     const context = this.canvasOutput.getContext("2d")
@@ -187,6 +182,7 @@ class App extends Component {
     return dst
   }
   processVideo=()=> {
+    let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
     let canvasOutputCtx = this.canvasOutput.getContext("2d")
     let videoWidth = this.state.videoWidth
     let videoHeight = this.state.videoHeight
@@ -195,10 +191,10 @@ class App extends Component {
     canvasOutputCtx.drawImage(this.video, 0, 0, videoWidth, videoHeight);
     let imageData = canvasOutputCtx.getImageData(0, 0, videoWidth, videoHeight);
 
-    this.state.srcMat.data.set(imageData.data);
-    cv.flip(this.state.srcMat, this.state.srcMat,1)
-    const finalMat = this.colorFilter(this.state.srcMat.clone())
-    cv.imshow('canvasOutput',this.state.srcMat)
+    srcMat.data.set(imageData.data);
+    cv.flip(srcMat, srcMat,1)
+    const finalMat = this.colorFilter(srcMat.clone())
+    cv.imshow('canvasOutput',srcMat)
     finalMat.delete()
     this.drawTails()
 
@@ -207,6 +203,7 @@ class App extends Component {
     var interval = 1000/fps;
     const delta = Date.now() - this.state.startTime;
     requestAnimationFrame(this.processVideo);
+    srcMat.delete()
     this.setState({
       startTime : Date.now()
     })
@@ -235,7 +232,6 @@ class App extends Component {
   handleRGBChange=(e)=>{
     let state = this.state
     state[e.target.name] =parseInt(e.target.value)
-    console.log(state)
     this.setState({
       state
     },()=>{
@@ -269,7 +265,7 @@ class App extends Component {
         'lr' : 0,
         'lg' : 40,
         'lb' : 0,
-        'hr' : 30,
+        'hr' : 50,
         'hg' : 255,
         'hb' : 80,
       }
@@ -277,8 +273,8 @@ class App extends Component {
         'lr' : 0,
         'lg' : 0,
         'lb' : 40,
-        'hr' : 10,
-        'hg' : 80,
+        'hr' : 50,
+        'hg' : 100,
         'hb' : 255,
       }
     let state = this.state
