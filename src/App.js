@@ -7,16 +7,13 @@ class App extends Component {
 
   state = {
     canvasOutputCtx : null,
-    numFrames : 0,
     src : null,
     dst : null,
-    vc : null,
     stream : null,
     streaming : false,
     videoHeight : null,
     videoWidth : null,
     srcMat : null,
-    net : null,
     startTime : Date.now(),
     lr : 0,
     lg : 0,
@@ -32,9 +29,7 @@ class App extends Component {
       hg : 50,
       hb : 255,
     }],
-    upsideDownMode:false,
     ballNum : 1,
-    hsvValues : [],
     calibrating : true,
     positions : [],
     numBalls : 3
@@ -238,7 +233,6 @@ class App extends Component {
     this.startCamera();
   }
   handleRGBChange=(e)=>{
-    console.log("slider event",e.target.name)
     let state = this.state
     state[e.target.name] =parseInt(e.target.value)
     console.log(state)
