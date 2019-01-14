@@ -31,7 +31,8 @@ class App extends Component {
     ballNum : 1,
     calibrating : true,
     positions : [],
-    numBalls : 3
+    numBalls : 3,
+    showRaw : true,
   }
 
   startCamera=()=> {
@@ -123,11 +124,11 @@ class App extends Component {
   mean = (x,y)=>{
     return (x + y)/2
   }
-  calculateCurrentColor=(ballColorRange)=>{
+  calculateCurrentColor=(ballColorRange,opacity)=>{
     const r = this.mean(ballColorRange['lr'],ballColorRange['hr'])
     const g = this.mean(ballColorRange['lg'],ballColorRange['hg'])
     const b = this.mean(ballColorRange['lb'],ballColorRange['hb'])
-    return "rgb(" + r + "," + g + "," + b + ",.7)"
+    return "rgb(" + r + "," + g + "," + b + ","+opacity+")"
   }
   drawTails =(ballNum)=>{
     const context = this.canvasOutput.getContext("2d")
@@ -136,7 +137,6 @@ class App extends Component {
         const xHistory = this.state.positions[ballNum]['x']
         const yHistory = this.state.positions[ballNum]['y']
         const rHistory = this.state.positions[ballNum]['r']
-        const color = this.calculateCurrentColor(ballColors)
 
         const maxWindowSize = 8
         const currentWindowSize = Math.min(xHistory.length, maxWindowSize)
@@ -144,6 +144,8 @@ class App extends Component {
           const lastX = xHistory[xHistory.length - 1 - i]
           const lastY = yHistory[yHistory.length - 1 - i]
           const lastR = rHistory[rHistory.length - 1 - i]
+          const color = this.calculateCurrentColor(ballColors,(1-(i/currentWindowSize)))
+
           context.beginPath();
           context.arc(lastX, lastY, lastR*(1-(i/currentWindowSize)), 0, 2 * Math.PI, false);
           context.fillStyle = color;
@@ -168,6 +170,7 @@ class App extends Component {
         cv.inRange(src,low, high, dst);
         this.trackBall(dst.clone(),ballNum)
         let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
+        cv.dilate(dst,dst,kernel)
         cv.dilate(dst,dst,kernel)
         if(previousDst){
           cv.add(dst,previousDst,dst)
@@ -194,7 +197,12 @@ class App extends Component {
     srcMat.data.set(imageData.data);
     cv.flip(srcMat, srcMat,1)
     const finalMat = this.colorFilter(srcMat.clone())
-    cv.imshow('canvasOutput',srcMat)
+    if(this.state.showRaw){
+      cv.imshow('canvasOutput',srcMat)
+    }else{
+      context.fillStyle = 'rgba(0, 0, 0, 1)';
+      context.fillRect(0, 0, this.state.videoWidth, this.state.videoHeight);
+    }
     finalMat.delete();srcMat.delete()
     this.drawTails()
     requestAnimationFrame(this.processVideo);
@@ -315,6 +323,11 @@ class App extends Component {
     }
     
   }
+  toggleShowRaw=()=>{
+    this.setState({
+      showRaw : !this.state.showRaw
+    })
+  }
   render() {
     const sliders = 
         this.state.calibrating ? 
@@ -342,7 +355,8 @@ class App extends Component {
       <div className="App">
         <br/>
         <button style={{'fontSize':'12pt'}} onClick={this.startCamera}>Start Video</button> 
-        <button style={{'fontSize':'12pt'}} onClick={this.stopCamera}>Stop Video</button>      
+        <button style={{'fontSize':'12pt'}} onClick={this.stopCamera}>Stop Video</button>
+        <button style={{'fontSize':'12pt'}} onClick={this.toggleShowRaw}>Filtered/Raw Video</button>       
          <div id="container">
             <h1>Set color range</h1>
             {sliders}
