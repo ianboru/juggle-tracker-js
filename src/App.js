@@ -33,6 +33,7 @@ class App extends Component {
     positions : [],
     numBalls : 3,
     showRaw : true,
+    tailSize : 10
   }
 
   startCamera=()=> {
@@ -131,6 +132,14 @@ class App extends Component {
     const b = this.mean(ballColorRange['lb'],ballColorRange['hb'])
     return "rgb(" + r + "," + g + "," + b + ","+opacity+")"
   }
+  drawCircle = (context, x,y,r, color)=>{
+    context.beginPath();
+    context.arc(x, y, r, 0, 2 * Math.PI, false);
+    context.fillStyle = color;
+    context.fill();
+    context.strokeStyle = color;
+    context.stroke();
+  }
   drawTails =(ballNum)=>{
     const context = this.canvasOutput.getContext("2d")
     this.state.allBallColors.forEach((ballColors,ballNum)=>{
@@ -147,12 +156,16 @@ class App extends Component {
           const lastR = rHistory[rHistory.length - 1 - i]
           const color = this.calculateCurrentColor(ballColors,(1-(i/currentWindowSize)))
 
-          context.beginPath();
-          context.arc(lastX, lastY, lastR*(1-(i/currentWindowSize)), 0, 2 * Math.PI, false);
-          context.fillStyle = color;
-          context.fill();
-          context.strokeStyle = color;
-          context.stroke();
+          /*if(yHistory.length - 1 >= 1+i){
+            const prevX = xHistory[xHistory.length - 2 - i ]
+            const prevY = yHistory[yHistory.length - 2 - i ]
+            const prevR = rHistory[rHistory.length - 2 - i ]
+            if(prevY + prevR < 1.5 * (lastY-lastR)){
+              this.drawCircle(context,this.mean(lastX,prevX), this.mean(lastY,prevY), this.mean(lastR,prevR)*(1-(i/currentWindowSize)), color)
+            }
+          }*/
+          this.drawCircle(context,lastX, lastY, lastR*(1-(i/currentWindowSize)), color)
+          
         }
       }
     })
@@ -267,7 +280,7 @@ class App extends Component {
       }
     const green = {
         'lr' : 0,
-        'lg' : 40,
+        'lg' : 80,
         'lb' : 0,
         'hr' : 50,
         'hg' : 255,
@@ -276,9 +289,17 @@ class App extends Component {
     const blue = {
         'lr' : 0,
         'lg' : 0,
-        'lb' : 40,
+        'lb' : 60,
         'hr' : 50,
         'hg' : 100,
+        'hb' : 255,
+      }
+    const white = {
+        'lr' : 220,
+        'lg' : 225,
+        'lb' : 230,
+        'hr' : 255,
+        'hg' : 255,
         'hb' : 255,
       }
     let state = this.state
@@ -293,6 +314,9 @@ class App extends Component {
     }else if(e.target.name == "blue"){
       colorRanges[this.state.ballNum] = blue
       color = blue
+    }else if(e.target.name == "white"){
+      colorRanges[this.state.ballNum] = white
+      color = white
     }
     state.allBallColors = colorRanges
       state = Object.assign(state, color);
@@ -329,6 +353,18 @@ class App extends Component {
       showRaw : !this.state.showRaw
     })
   }
+  trimHistories=()=>{
+    let histories = []
+    this.state.positions.forEach((history, ballNum)=>{
+      history['x'] = history['x'][history['x'].length - 1 - this.state.tailSize]
+      history['y'] = history['y'][history['y'].length - 1 - this.state.tailSize]
+      history['r'] = history['r'][history['r'].length - 1 - this.state.tailSize]
+      histories[ballNum] = [history['x'],history['y'],history['r']]
+    })
+    this.setState({
+      positions : histories
+    })
+  }
   render() {
     const sliders = 
         this.state.calibrating ? 
@@ -340,6 +376,8 @@ class App extends Component {
           <button style={{"backgroundColor":'red', 'color': 'white','fontSize':'12pt'}} name="red" onClick={this.setColor}>Red</button>
           <button style={{"backgroundColor":'green', 'color': 'white','fontSize':'12pt'}} name="green" onClick={this.setColor}>Green</button>
           <button style={{"backgroundColor":'blue', 'color': 'white','fontSize':'12pt'}} name="blue" onClick={this.setColor}>Blue</button>
+          <button style={{"backgroundColor":'white', 'color': 'black','fontSize':'12pt'}} name="white" onClick={this.setColor}>White</button>
+
           <br/>
           <h3>Adjust Colors</h3>
           <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.lr}</span><label>Low R</label><input name="lr" type="range" min={0} max={255} value={this.state.lr} onChange={this.handleRGBChange}/>
