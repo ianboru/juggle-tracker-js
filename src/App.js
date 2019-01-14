@@ -38,7 +38,8 @@ class App extends Component {
   startCamera=()=> {
     let that = this
     if (this.state.streaming) return;
-      navigator.mediaDevices.getUserMedia({video: true, audio: false})
+
+      navigator.mediaDevices.getUserMedia({video: {width:320, height:240}, audio: false})
         .then(function(s) {
 
         that.setState({
@@ -358,12 +359,11 @@ class App extends Component {
         <button style={{'fontSize':'12pt'}} onClick={this.stopCamera}>Stop Video</button>
         <button style={{'fontSize':'12pt'}} onClick={this.toggleShowRaw}>Filtered/Raw Video</button>       
          <div id="container">
+            <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
+
             <h1>Set color range</h1>
             {sliders}
-            <video hidden={true} className="invisible" ref={ref => this.video = ref}></video>
-            <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
-            <canvas ref={ref => this.canvasTest = ref}  className="center-block" id="canvasTest" width={320} height={240}></canvas>
-
+            <video hidden={true} width={320} height={240} className="invisible" ref={ref => this.video = ref}></video>
           </div>
         </div>
     );
