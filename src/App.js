@@ -24,7 +24,14 @@ class App extends Component {
     hh:255,
     hs:255,
     hv:255,
-    allBallColors : [],
+    allBallColors : [{},{
+      'lh' : 0,
+      'ls' : 0,
+      'lv' : 0,
+      'hh' : 255,
+      'hs' : 255,
+      'hv' : 255,
+    }],
     upsideDownMode:false,
     ballNum : 1,
     hsvValues : [],
@@ -85,8 +92,7 @@ class App extends Component {
     if (src != null && !src.isDeleted()) src.delete();
 
   }
-  trackBall=(src)=>{
-    const ballNum = this.state.ballNum
+  trackBall=(src,ballNum)=>{
     let dst = cv.Mat.zeros(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
     //cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
     //cv.threshold(src, src, 255, 0, cv.THRESH_BINARY_INV );//+ cv.THRESH_OTSU
@@ -107,7 +113,6 @@ class App extends Component {
     }
     if(maxContour){
       const circle = cv.minEnclosingCircle(maxContour)
-      console.log("circle", circle.center)
       let allPositions = this.state.positions
       if(!allPositions[ballNum]){
         allPositions[ballNum]={
@@ -126,29 +131,68 @@ class App extends Component {
     }
     
     src.delete();dst.delete(); contours.delete(); hierarchy.delete();
-
-    return [dst,src];
-
   }
-  drawTail =(ballNum)=>{
-    const xHistory = this.state.positions[ballNum]['x']
-    const yHistory = this.state.positions[ballNum]['y']
-    const rHistory = this.state.positions[ballNum]['r']
+  mean = (x,y)=>{
+    return (x + y)/2
+  }
+  calculateCurrentColor=(ballColorRange)=>{
+    const r = this.mean(ballColorRange['lh'],ballColorRange['hh'])
+    const g = this.mean(ballColorRange['ls'],ballColorRange['hs'])
+    const b = this.mean(ballColorRange['lv'],ballColorRange['hv'])
+    return "rgb(" + r + "," + g + "," + b + ",60)"
+  }
+  drawTails =(ballNum)=>{
+    const context = this.canvasOutput.getContext("2d")
+    this.state.allBallColors.forEach((ballColors,ballNum)=>{
+      if(this.state.positions[ballNum]){
+        const xHistory = this.state.positions[ballNum]['x']
+        const yHistory = this.state.positions[ballNum]['y']
+        const rHistory = this.state.positions[ballNum]['r']
+        const color = this.calculateCurrentColor(ballColors)
 
-    const maxWindowSize = 10
-    const currentWindowSize = Math.min(xHistory.length, maxWindowSize)
-    for (let i=0; i < currentWindowSize; ++i){
-      const lastX = xHistory[xHistory.length - 1 - i]
-      const lastY = yHistory[yHistory.length - 1 - i]
-      const lastR = rHistory[rHistory.length - 1 - i]
-      const context = this.canvasOutput.getContext("2d")
-      context.beginPath();
-      context.arc(lastX, lastY, lastR*(1-(i/currentWindowSize)), 0, 2 * Math.PI, false);
-      context.fillStyle = 'green';
-      context.fill();
-      context.strokeStyle = 'green';
-      context.stroke();
-    }
+        const maxWindowSize = 10
+        const currentWindowSize = Math.min(xHistory.length, maxWindowSize)
+        for (let i=0; i < currentWindowSize; ++i){
+          const lastX = xHistory[xHistory.length - 1 - i]
+          const lastY = yHistory[yHistory.length - 1 - i]
+          const lastR = rHistory[rHistory.length - 1 - i]
+          context.beginPath();
+          context.arc(lastX, lastY, lastR*(1-(i/currentWindowSize)), 0, 2 * Math.PI, false);
+          context.fillStyle = color;
+          context.fill();
+          context.strokeStyle = color;
+          context.stroke();
+        }
+      }
+    })
+  }
+  colorFilter=(src)=>{
+    let previousDst 
+    let dst
+    this.state.allBallColors.forEach((ballColors,ballNum)=>{
+      if(ballNum > 0){
+        console.log("filtering ",ballColors)
+        dst = new cv.Mat();
+        const lowHSV = utils.RGBtoHSV(ballColors.lh, ballColors.ls, ballColors.lv)
+        lowHSV.push(0)
+        const highHSV = utils.RGBtoHSV(ballColors.hh, ballColors.hs, ballColors.hv)
+        highHSV.push(255)
+        const low = new cv.Mat(src.rows, src.cols, src.type(), [ballColors.lh, ballColors.ls, ballColors.lv, 0]);
+        const high = new cv.Mat(src.rows, src.cols, src.type(), [ballColors.hh, ballColors.hs, ballColors.hv, 255]);
+        cv.inRange(src,low, high, dst);
+        this.trackBall(dst.clone(),ballNum)
+        let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
+        cv.dilate(dst,dst,kernel)
+        if(previousDst){
+          cv.add(dst,previousDst,dst)
+          previousDst.delete()
+        }
+        previousDst = dst.clone()
+        kernel.delete();low.delete();high.delete();
+      }
+    })
+    src.delete()
+    return dst
   }
   processVideo=()=> {
     let canvasOutputCtx = this.canvasOutput.getContext("2d")
@@ -161,23 +205,11 @@ class App extends Component {
 
     this.state.srcMat.data.set(imageData.data);
     cv.flip(this.state.srcMat, this.state.srcMat,1)
-    let dst = new cv.Mat();
-    const lowHSV = utils.RGBtoHSV(this.state.lh, this.state.ls, this.state.lv)
-    lowHSV.push(0)
-    const highHSV = utils.RGBtoHSV(this.state.hh, this.state.hs, this.state.hv)
-    highHSV.push(255)
-    const low = new cv.Mat(this.state.srcMat.rows, this.state.srcMat.cols, this.state.srcMat.type(), [this.state.lh, this.state.ls, this.state.lv, 0]);
-    const high = new cv.Mat(this.state.srcMat.rows, this.state.srcMat.cols, this.state.srcMat.type(), [this.state.hh, this.state.hs, this.state.hv, 255]);
-    cv.inRange(this.state.srcMat,low, high, dst);
-    let contourData = this.trackBall(dst.clone())
-    let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
-    cv.dilate(dst,dst,kernel)
-    //cv.erode(dst,dst,kernel)
-    kernel.delete()
+    const finalMat = this.colorFilter(this.state.srcMat.clone())
     cv.imshow('canvasOutput',this.state.srcMat)
-    this.drawTail(this.state.ballNum)
+    finalMat.delete()
+    this.drawTails()
 
-    low.delete();high.delete();dst.delete();
     var vidLength = 30 //seconds
     var fps = 24; 
     var interval = 1000/fps;
@@ -210,50 +242,58 @@ class App extends Component {
     this.startCamera();
   }
   handleLHChange=(e)=>{
+
     this.setState({
       lh : parseInt(e.target.value)
+    },()=>{
+      this.setColorRange()
     })
   }
   handleLSChange=(e)=>{
     this.setState({
       ls : parseInt(e.target.value)
+    },()=>{
+      this.setColorRange()
     })
   }
   handleLVChange=(e)=>{
     this.setState({
       lv : parseInt(e.target.value)
+    },()=>{
+      this.setColorRange()
     })
   }
   
   handleHHChange=(e)=>{
     this.setState({
       hh : parseInt(e.target.value)
+    },()=>{
+      this.setColorRange()
     })
   }
   handleHSChange=(e)=>{
     this.setState({
       hs : parseInt(e.target.value)
+    },()=>{
+      this.setColorRange()
     })
   }
   handleHVChange=(e)=>{
     this.setState({
       hv : parseInt(e.target.value)
+    },()=>{
+      this.setColorRange()
     })
   }
-  handleUpsideDown=()=>{
-    this.setState({
-      upsideDownMode : !this.state.upsideDownMode
-    })
-  }
+
   handleToggleCalibrationMode=()=>{
     this.setState({
       calibrating : false
     })
   }
-  nextBall=()=>{
+  setColorRange=()=>{
     let colorRanges = this.state.allBallColors
-    let ballNum = this.state.ballNum
-    colorRanges[ballNum] = {
+    colorRanges[this.state.ballNum] = {
       'lh' : this.state.lh,
       'ls' : this.state.ls,
       'lv' : this.state.lv,
@@ -261,14 +301,35 @@ class App extends Component {
       'hs' : this.state.hs,
       'hv' : this.state.hv,
     }
+    this.setState({
+      allBallColors : colorRanges
+    },()=>{
+      console.log("set colors",this.state.allBallColors)
+    })
+  }
+  nextBall=()=>{
+    this.setColorRange()
+    let ballNum = this.state.ballNum
     ballNum += 1 
     if(ballNum%this.state.numBalls == 1 ){
       ballNum = 1
     }
-    this.setState({
-      ballNum
-    })
-    console.log(colorRanges)
+    if(this.state.allBallColors[ballNum]){
+      this.setState({
+        ballNum,
+        lh : this.state.allBallColors[ballNum]['lh'],
+        ls : this.state.allBallColors[ballNum]['ls'],
+        lv : this.state.allBallColors[ballNum]['lv'],
+        hh : this.state.allBallColors[ballNum]['hh'],
+        hs : this.state.allBallColors[ballNum]['hs'],
+        hv : this.state.allBallColors[ballNum]['hv'],
+      })
+    }else{
+      this.setState({
+        ballNum
+      })
+    }
+    
   }
   render() {
     const sliders = 
