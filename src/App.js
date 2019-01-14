@@ -256,6 +256,50 @@ class App extends Component {
       allBallColors : colorRanges
     })
   }
+  setColor=(e)=>{
+    const red = {
+        'lr' : 40,
+        'lg' : 0,
+        'lb' : 0,
+        'hr' : 255,
+        'hg' : 30,
+        'hb' : 60,
+      }
+    const green = {
+        'lr' : 0,
+        'lg' : 40,
+        'lb' : 0,
+        'hr' : 30,
+        'hg' : 255,
+        'hb' : 80,
+      }
+    const blue = {
+        'lr' : 0,
+        'lg' : 0,
+        'lb' : 40,
+        'hr' : 10,
+        'hg' : 80,
+        'hb' : 255,
+      }
+    let state = this.state
+    let color = {}
+    let colorRanges = this.state.allBallColors
+    if(e.target.name == "red"){
+      colorRanges[this.state.ballNum] = red
+      color = red
+    }else if(e.target.name == "green"){
+      colorRanges[this.state.ballNum] = green
+      color = green
+    }else if(e.target.name == "blue"){
+      colorRanges[this.state.ballNum] = blue
+      color = blue
+    }
+    state.allBallColors = colorRanges
+      state = Object.assign(state, color);
+      this.setState({
+        state
+      })
+  }
   nextBall=()=>{
     this.setColorRange()
     let ballNum = this.state.ballNum
@@ -286,6 +330,10 @@ class App extends Component {
         <div className="sliders">
           <label>Ball Number</label><input type="input" value={this.state.ballNum} onChange={this.handleBallNum}/>
           <button onClick={this.nextBall}>Next Ball</button>
+          <br/>
+          <button style={{"background-color":'red', 'color': 'white'}} name="red" onClick={this.setColor}>Red</button>
+          <button style={{"background-color":'green', 'color': 'white'}} name="green" onClick={this.setColor}>Green</button>
+          <button style={{"background-color":'blue', 'color': 'white'}} name="blue" onClick={this.setColor}>Blue</button>
           <br/>
           <label>Low R</label><input name="lr" type="range" min={0} max={255} value={this.state.lr} onChange={this.handleRGBChange}/>
           <label>Low G</label><input name="lg" type="range" min={0} max={255} value={this.state.lg} onChange={this.handleRGBChange}/>
