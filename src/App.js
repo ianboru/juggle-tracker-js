@@ -211,7 +211,6 @@ class App extends Component {
     var fps = 24; 
     var interval = 1000/fps;
     const delta = Date.now() - this.state.startTime;
-    console.log(delta)
     requestAnimationFrame(this.processVideo);
     this.setState({
       startTime : Date.now()
@@ -238,54 +237,15 @@ class App extends Component {
     console.log('OpenCV.js is ready');
     this.startCamera();
   }
-  handleLRChange=(e)=>{
-
+  handleRGBChange=(e)=>{
+    console.log("slider event",e.target.name)
+    let state = this.state
+    state[e.target.name] =parseInt(e.target.value)
+    console.log(state)
     this.setState({
-      lr : parseInt(e.target.value)
+      state
     },()=>{
       this.setColorRange()
-    })
-  }
-  handleLGChange=(e)=>{
-    this.setState({
-      lg : parseInt(e.target.value)
-    },()=>{
-      this.setColorRange()
-    })
-  }
-  handleLBChange=(e)=>{
-    this.setState({
-      lb : parseInt(e.target.value)
-    },()=>{
-      this.setColorRange()
-    })
-  }
-  
-  handleHRChange=(e)=>{
-    this.setState({
-      hr : parseInt(e.target.value)
-    },()=>{
-      this.setColorRange()
-    })
-  }
-  handleHGChange=(e)=>{
-    this.setState({
-      hg : parseInt(e.target.value)
-    },()=>{
-      this.setColorRange()
-    })
-  }
-  handleHBChange=(e)=>{
-    this.setState({
-      hb : parseInt(e.target.value)
-    },()=>{
-      this.setColorRange()
-    })
-  }
-
-  handleToggleCalibrationMode=()=>{
-    this.setState({
-      calibrating : false
     })
   }
   setColorRange=()=>{
@@ -333,20 +293,19 @@ class App extends Component {
           <label>Ball Number</label><input type="input" value={this.state.ballNum} onChange={this.handleBallNum}/>
           <button onClick={this.nextBall}>Next Ball</button>
           <br/>
-          <label>Low R</label><input type="range" min={0} max={255} value={this.state.lr} onChange={this.handleLRChange}/>
-          <label>Low G</label><input type="range" min={0} max={255} value={this.state.lg} onChange={this.handleLGChange}/>
-          <label>Low B</label><input type="range" min={0} max={255} value={this.state.lb} onChange={this.handleLBChange}/>
+          <label>Low R</label><input name="lr" type="range" min={0} max={255} value={this.state.lr} onChange={this.handleRGBChange}/>
+          <label>Low G</label><input name="lg" type="range" min={0} max={255} value={this.state.lg} onChange={this.handleRGBChange}/>
+          <label>Low B</label><input name="lb" type="range" min={0} max={255} value={this.state.lb} onChange={this.handleRGBChange}/>
           <br/>
-          <label>High R</label><input type="range" min={0} max={255} value={this.state.hr} onChange={this.handleHRChange}/>
-          <label>High G</label><input type="range" min={0} max={255} value={this.state.hg} onChange={this.handleHGChange}/>
-          <label>High B</label><input type="range" min={0} max={255} value={this.state.hb} onChange={this.handleHBChange}/>
+          <label>High R</label><input name="hr" type="range" min={0} max={255} value={this.state.hr} onChange={this.handleRGBChange}/>
+          <label>High G</label><input name="hg" type="range" min={0} max={255} value={this.state.hg} onChange={this.handleRGBChange}/>
+          <label>High B</label><input name="hb" type="range" min={0} max={255} value={this.state.hb} onChange={this.handleRGBChange}/>
         </div> : null
       
     return (
       <div className="App">
         <button onClick={this.startCamera}>Start Video</button> 
         <button onClick={this.stopCamera}>Stop Video</button>      
-        <button onClick={this.toggleCalibrationMode}>Finish Calibration</button>      
          <div id="container">
             <h3>Set color range</h3>
             {sliders}
