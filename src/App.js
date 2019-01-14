@@ -156,10 +156,9 @@ class App extends Component {
   }
   colorFilter=(src)=>{
     let previousDst 
-    let dst
+    let dst = new cv.Mat();
     this.state.allBallColors.forEach((ballColors,ballNum)=>{
       if(ballNum > 0){
-        dst = new cv.Mat();
         const lowHSV = utils.RGBtoHSV(ballColors.lr, ballColors.lg, ballColors.lb)
         lowHSV.push(0)
         const highHSV = utils.RGBtoHSV(ballColors.hr, ballColors.hg, ballColors.hb)
@@ -186,24 +185,20 @@ class App extends Component {
     let canvasOutputCtx = this.canvasOutput.getContext("2d")
     let videoWidth = this.state.videoWidth
     let videoHeight = this.state.videoHeight
-    document.getElementById("canvasOutput").getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
-
+    const context = document.getElementById("canvasOutput").getContext("2d")
+    context.fillStyle = 'rgba(255, 255, 255, .05)';
+    context.fillRect(0, 0, this.state.videoWidth, this.state.videoHeight);
+    context.clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
     canvasOutputCtx.drawImage(this.video, 0, 0, videoWidth, videoHeight);
     let imageData = canvasOutputCtx.getImageData(0, 0, videoWidth, videoHeight);
-
     srcMat.data.set(imageData.data);
     cv.flip(srcMat, srcMat,1)
     const finalMat = this.colorFilter(srcMat.clone())
     cv.imshow('canvasOutput',srcMat)
-    finalMat.delete()
+    finalMat.delete();srcMat.delete()
     this.drawTails()
-
-    var vidLength = 30 //seconds
-    var fps = 24; 
-    var interval = 1000/fps;
-    const delta = Date.now() - this.state.startTime;
     requestAnimationFrame(this.processVideo);
-    srcMat.delete()
+
     this.setState({
       startTime : Date.now()
     })
