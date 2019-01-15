@@ -3,6 +3,38 @@ import logo from './logo.svg';
 import './App.css';
 import cv from 'opencv.js';
 import utils from './utils'
+const red = {
+    'lr' : 40,
+    'lg' : 0,
+    'lb' : 0,
+    'hr' : 255,
+    'hg' : 30,
+    'hb' : 60,
+  }
+const green = {
+    'lr' : 0,
+    'lg' : 80,
+    'lb' : 0,
+    'hr' : 50,
+    'hg' : 255,
+    'hb' : 80,
+  }
+const blue = {
+    'lr' : 0,
+    'lg' : 0,
+    'lb' : 60,
+    'hr' : 50,
+    'hg' : 100,
+    'hb' : 255,
+  }
+const white = {
+    'lr' : 220,
+    'lg' : 225,
+    'lb' : 230,
+    'hr' : 255,
+    'hg' : 255,
+    'hb' : 255,
+  }
 class App extends Component {
 
   state = {
@@ -20,7 +52,7 @@ class App extends Component {
     hr : 20,
     hg : 50,
     hb : 255,
-    allBallColors : [{},{
+    allColors : [{},{
       lr : 0,
       lg : 0,
       lb : 50,
@@ -29,6 +61,7 @@ class App extends Component {
       hb : 255,
     }],
     ballNum : 1,
+    colorNum : 1,
     calibrating : true,
     positions : [],
     numBalls : 3,
@@ -85,6 +118,7 @@ class App extends Component {
     if (src != null && !src.isDeleted()) src.delete();
 
   }
+  
   trackBall=(src,ballNum)=>{
     let dst = cv.Mat.zeros(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
     let contours = new cv.MatVector();
@@ -142,7 +176,7 @@ class App extends Component {
   }
   drawTails =(ballNum)=>{
     const context = this.canvasOutput.getContext("2d")
-    this.state.allBallColors.forEach((ballColors,ballNum)=>{
+    this.state.allColors.forEach((ballColors,ballNum)=>{
       if(this.state.positions[ballNum]){
         const xHistory = this.state.positions[ballNum]['x']
         const yHistory = this.state.positions[ballNum]['y']
@@ -173,7 +207,7 @@ class App extends Component {
   colorFilter=(src)=>{
     let previousDst 
     let dst = new cv.Mat();
-    this.state.allBallColors.forEach((ballColors,ballNum)=>{
+    this.state.allColors.forEach((ballColors,ballNum)=>{
       if(ballNum > 0){
         const lowHSV = utils.RGBtoHSV(ballColors.lr, ballColors.lg, ballColors.lb)
         lowHSV.push(0)
@@ -199,15 +233,10 @@ class App extends Component {
   }
   processVideo=()=> {
     let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
-    let canvasOutputCtx = this.canvasOutput.getContext("2d")
-    let videoWidth = this.state.videoWidth
-    let videoHeight = this.state.videoHeight
     const context = document.getElementById("canvasOutput").getContext("2d")
-    context.fillStyle = 'rgba(255, 255, 255, .05)';
-    context.fillRect(0, 0, this.state.videoWidth, this.state.videoHeight);
     context.clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
-    canvasOutputCtx.drawImage(this.video, 0, 0, videoWidth, videoHeight);
-    let imageData = canvasOutputCtx.getImageData(0, 0, videoWidth, videoHeight);
+    context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
+    let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
     srcMat.data.set(imageData.data);
     cv.flip(srcMat, srcMat,1)
     const finalMat = this.colorFilter(srcMat.clone())
@@ -220,7 +249,6 @@ class App extends Component {
     finalMat.delete();srcMat.delete()
     this.drawTails()
     requestAnimationFrame(this.processVideo);
-
     this.setState({
       startTime : Date.now()
     })
@@ -256,7 +284,7 @@ class App extends Component {
     })
   }
   setColorRange=()=>{
-    let colorRanges = this.state.allBallColors
+    let colorRanges = this.state.allColors
     colorRanges[this.state.ballNum] = {
       'lr' : this.state.lr,
       'lg' : this.state.lg,
@@ -266,45 +294,14 @@ class App extends Component {
       'hb' : this.state.hb,
     }
     this.setState({
-      allBallColors : colorRanges
+      allColors : colorRanges
     })
   }
   setColor=(e)=>{
-    const red = {
-        'lr' : 40,
-        'lg' : 0,
-        'lb' : 0,
-        'hr' : 255,
-        'hg' : 30,
-        'hb' : 60,
-      }
-    const green = {
-        'lr' : 0,
-        'lg' : 80,
-        'lb' : 0,
-        'hr' : 50,
-        'hg' : 255,
-        'hb' : 80,
-      }
-    const blue = {
-        'lr' : 0,
-        'lg' : 0,
-        'lb' : 60,
-        'hr' : 50,
-        'hg' : 100,
-        'hb' : 255,
-      }
-    const white = {
-        'lr' : 220,
-        'lg' : 225,
-        'lb' : 230,
-        'hr' : 255,
-        'hg' : 255,
-        'hb' : 255,
-      }
+    
     let state = this.state
     let color = {}
-    let colorRanges = this.state.allBallColors
+    let colorRanges = this.state.allColors
     if(e.target.name == "red"){
       colorRanges[this.state.ballNum] = red
       color = red
@@ -318,7 +315,7 @@ class App extends Component {
       colorRanges[this.state.ballNum] = white
       color = white
     }
-    state.allBallColors = colorRanges
+    state.allColors = colorRanges
       state = Object.assign(state, color);
       this.setState({
         state
@@ -331,15 +328,15 @@ class App extends Component {
     if(ballNum%this.state.numBalls == 1 ){
       ballNum = 1
     }
-    if(this.state.allBallColors[ballNum]){
+    if(this.state.allColors[ballNum]){
       this.setState({
         ballNum,
-        lr : this.state.allBallColors[ballNum]['lr'],
-        lg : this.state.allBallColors[ballNum]['lg'],
-        lb : this.state.allBallColors[ballNum]['lb'],
-        hr : this.state.allBallColors[ballNum]['hr'],
-        hg : this.state.allBallColors[ballNum]['hg'],
-        hb : this.state.allBallColors[ballNum]['hb'],
+        lr : this.state.allColors[ballNum]['lr'],
+        lg : this.state.allColors[ballNum]['lg'],
+        lb : this.state.allColors[ballNum]['lb'],
+        hr : this.state.allColors[ballNum]['hr'],
+        hg : this.state.allColors[ballNum]['hg'],
+        hb : this.state.allColors[ballNum]['hb'],
       })
     }else{
       this.setState({
@@ -365,12 +362,17 @@ class App extends Component {
       positions : histories
     })
   }
+  handleNumObjects=()=>{
+
+  }
   render() {
     const sliders = 
         this.state.calibrating ? 
         <div className="sliders">
-          <label>Ball Number</label><input type="input" value={this.state.ballNum} onChange={this.handleBallNum}/>
-          <button onClick={this.nextBall}>Next Ball</button>
+          <label>Color Number</label><input type="input" value={this.state.ballNum} onChange={this.handleBallNum}/>
+          <button onClick={this.nextBall}>Next Color</button>
+          <label>Number of Objects</label><input type="input" value={this.state.numObjects} onChange={this.handleNumObjects}/>
+
           <br/>
           <h3>Preset Colors</h3>
           <button style={{"backgroundColor":'red', 'color': 'white','fontSize':'12pt'}} name="red" onClick={this.setColor}>Red</button>
@@ -399,7 +401,7 @@ class App extends Component {
          <div id="container">
             <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
 
-            <h1>Set color range</h1>
+            <h1>choose color range</h1>
             {sliders}
             <video hidden={true} width={320} height={240} className="invisible" ref={ref => this.video = ref}></video>
           </div>
