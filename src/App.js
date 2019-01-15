@@ -53,6 +53,7 @@ class App extends Component {
     hg : 50,
     hb : 255,
     allColors : [{},{
+      numObjects : 1,
       lr : 0,
       lg : 0,
       lb : 50,
@@ -65,6 +66,8 @@ class App extends Component {
     calibrating : true,
     positions : [],
     numBalls : 3,
+    numObjects : 1,
+
     showRaw : true,
     tailSize : 10
   }
@@ -118,38 +121,45 @@ class App extends Component {
     if (src != null && !src.isDeleted()) src.delete();
 
   }
-  
-  trackBall=(src,ballNum)=>{
+  sortContours = (contours)=>{
+    let contourAreas = []
+    for (let i = 0; i < contours.size(); ++i) {
+      contourAreas.push(cv.contourArea(contours.get(i), false))
+    }
+    const len = contourAreas.length
+    var indices = new Array(len);
+    for (let i = 0; i < len; ++i) indices[i] = i;
+    indices.sort(function (a, b) { return contourAreas[a] > contourAreas[b] ? -1 : contourAreas[a] > contourAreas[b] ? 1 : 0; });
+    return indices
+  }
+  trackBall=(src,colorNum)=>{
+    let allPositions = this.state.positions
+
+    //initialize contour finding data
     let dst = cv.Mat.zeros(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
     cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
-    let maxArea = 0
-    let largestContourIndex 
-    let maxContour
-    for (let i = 0; i < contours.size(); ++i) {
-      const contour = contours.get(i)
-      const area = cv.contourArea(contour, false)
-      if(area > maxArea){
-        maxArea = area
-        largestContourIndex = i
-        maxContour = contour
-      }
-    }
-    if(maxContour){
-      const circle = cv.minEnclosingCircle(maxContour)
-      let allPositions = this.state.positions
-      if(!allPositions[ballNum]){
-        allPositions[ballNum]={
-          'x':[],
-          'y':[],
-          'r':[]
+    
+    const sortedContourIndices = this.sortContours(contours)
+    console.log(sortedContourIndices)
+    if(sortedContourIndices.length > 0){
+      const numObjects = this.state.allColors[colorNum].numObjects
+      for(let i = 0; i < numObjects; ++i){
+        const ballNum = colorNum + i - 1
+        const circle = cv.minEnclosingCircle(contours.get(sortedContourIndices[i]))
+        if(!allPositions[ballNum]){
+          allPositions[ballNum]={
+            'x':[],
+            'y':[],
+            'r':[]
+          }
         }
+        allPositions[ballNum]['x'].push(circle.center.x)
+        allPositions[ballNum]['y'].push(circle.center.y)
+        allPositions[ballNum]['r'].push(circle.radius)
       }
-      allPositions[ballNum]['x'].push(circle.center.x)
-      allPositions[ballNum]['y'].push(circle.center.y)
-      allPositions[ballNum]['r'].push(circle.radius)
-
+      
       this.setState({
         positions : allPositions
       })
@@ -207,16 +217,17 @@ class App extends Component {
   colorFilter=(src)=>{
     let previousDst 
     let dst = new cv.Mat();
-    this.state.allColors.forEach((ballColors,ballNum)=>{
-      if(ballNum > 0){
-        const lowHSV = utils.RGBtoHSV(ballColors.lr, ballColors.lg, ballColors.lb)
+    this.state.allColors.forEach((colorRange,colorNum)=>{
+      if(colorNum > 0){
+        const lowHSV = utils.RGBtoHSV(colorRange.lr, colorRange.lg, colorRange.lb)
         lowHSV.push(0)
-        const highHSV = utils.RGBtoHSV(ballColors.hr, ballColors.hg, ballColors.hb)
+        const highHSV = utils.RGBtoHSV(colorRange.hr, colorRange.hg, colorRange.hb)
         highHSV.push(255)
-        const low = new cv.Mat(src.rows, src.cols, src.type(), [ballColors.lr, ballColors.lg, ballColors.lb, 0]);
-        const high = new cv.Mat(src.rows, src.cols, src.type(), [ballColors.hr, ballColors.hg, ballColors.hb, 255]);
+        const low = new cv.Mat(src.rows, src.cols, src.type(), [colorRange.lr, colorRange.lg, colorRange.lb, 0]);
+        const high = new cv.Mat(src.rows, src.cols, src.type(), [colorRange.hr, colorRange.hg, colorRange.hb, 255]);
         cv.inRange(src,low, high, dst);
-        this.trackBall(dst.clone(),ballNum)
+        console.log("color num", colorRange, colorNum)
+        this.trackBall(dst.clone(),colorNum)
         let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
         cv.dilate(dst,dst,kernel)
         cv.dilate(dst,dst,kernel)
@@ -286,6 +297,7 @@ class App extends Component {
   setColorRange=()=>{
     let colorRanges = this.state.allColors
     colorRanges[this.state.ballNum] = {
+      'numObjects' : parseInt(this.state.numObjects),
       'lr' : this.state.lr,
       'lg' : this.state.lg,
       'lb' : this.state.lb,
@@ -331,6 +343,7 @@ class App extends Component {
     if(this.state.allColors[ballNum]){
       this.setState({
         ballNum,
+        numObjects : 1,
         lr : this.state.allColors[ballNum]['lr'],
         lg : this.state.allColors[ballNum]['lg'],
         lb : this.state.allColors[ballNum]['lb'],
@@ -362,8 +375,13 @@ class App extends Component {
       positions : histories
     })
   }
-  handleNumObjects=()=>{
-
+  handleNumObjects=(e)=>{
+    console.log("num objects", e.target.value)
+    this.setState({
+      numObjects : e.target.value 
+    },()=>{
+      this.setColorRange()
+    })
   }
   render() {
     const sliders = 
