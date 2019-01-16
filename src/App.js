@@ -67,9 +67,9 @@ class App extends Component {
     positions : [],
     numBalls : 3,
     numObjects : 1,
-
     showRaw : true,
-    tailSize : 10
+    tailSize : 10,
+    connectSameColor : false,
   }
 
   startCamera=()=> {
@@ -146,8 +146,6 @@ class App extends Component {
       const numObjects = this.state.allColors[colorNum].numObjects
       for(let i = 0; i < Math.min(sortedContourIndices.length, numObjects); ++i){
         const ballNum = colorNum + i 
-        console.log("track ball" ,colorNum, ballNum, numObjects)
-
         const circle = cv.minEnclosingCircle(contours.get(sortedContourIndices[i]))
         if(!allPositions[ballNum]){
           allPositions[ballNum]={
@@ -190,8 +188,6 @@ class App extends Component {
     this.state.allColors.forEach((ballColors,colorNum)=>{
       for(let i = 0; i < ballColors.numObjects; ++i){
         const ballNum = colorNum + i 
-        console.log("track ball" ,colorNum, ballNum, ballColors)
-
         if(this.state.positions[ballNum] && ballNum > 0){
           const xHistory = this.state.positions[ballNum]['x']
           const yHistory = this.state.positions[ballNum]['y']
@@ -214,8 +210,25 @@ class App extends Component {
               }
             }*/
             this.drawCircle(context,lastX, lastY, lastR*(1-(i/currentWindowSize)), color)
-            
           }
+        }
+      }
+    })
+  }
+  drawConnections=(context)=>{
+    this.state.allColors.forEach((ballColors,colorNum)=>{
+      if(ballColors.numObjects > 1){
+        for(let i = 0; i < ballColors.numObjects; ++i){
+          const ballNum = colorNum + i 
+          console.log("drawing connections", ballNum, colorNum)
+          const xHistory = this.state.positions[ballNum]['x']
+          const yHistory = this.state.positions[ballNum]['y']
+          context.beginPath();
+          context.moveTo(xHistory[xHistory.length-2], yHistory[yHistory.length-2])
+          context.lineTo(xHistory[xHistory.length-1], yHistory[yHistory.length-1])
+          context.strokeStyle = this.calculateCurrentColor(ballColors, 1);
+          context.lineWidth = 10;
+          context.stroke();
         }
       }
     })
@@ -225,7 +238,6 @@ class App extends Component {
     let dst = new cv.Mat();
     this.state.allColors.forEach((colorRange,colorNum)=>{
       if(colorNum > 0){
-        console.log("color filter number" ,colorNum, colorRange)
         const lowHSV = utils.RGBtoHSV(colorRange.lr, colorRange.lg, colorRange.lb)
         lowHSV.push(0)
         const highHSV = utils.RGBtoHSV(colorRange.hr, colorRange.hg, colorRange.hb)
@@ -265,6 +277,9 @@ class App extends Component {
     }
     finalMat.delete();srcMat.delete()
     this.drawTails()
+    if(this.state.connectSameColor){
+      this.drawConnections(context)
+    }
     requestAnimationFrame(this.processVideo);
     this.setState({
       startTime : Date.now()
@@ -363,7 +378,6 @@ class App extends Component {
         colorNum
       })
     }
-    console.log(this.state.allColors)
   }
   toggleShowRaw=()=>{
     this.setState({
@@ -390,6 +404,12 @@ class App extends Component {
       this.setColorRange()
     })
   }
+  toggleConnectSameColor=()=>{
+    console.log("changing connect", this.state.connectSameColor, this.state.positions)
+    this.setState({
+      connectSameColor : !this.state.connectSameColor
+    })
+  }
   render() {
     const sliders = 
         this.state.calibrating ? 
@@ -398,7 +418,6 @@ class App extends Component {
           <button onClick={this.nextColor}>Next Color</button>
           <br/>
           <label>Number of Objects</label><input type="input" value={this.state.numObjects} onChange={this.handleNumObjects}/>
-
           <br/>
           <h3>Preset Colors</h3>
           <button style={{"backgroundColor":'red', 'color': 'white','fontSize':'12pt'}} name="red" onClick={this.setColor}>Red</button>
@@ -424,6 +443,8 @@ class App extends Component {
         <button style={{'fontSize':'12pt'}} onClick={this.startCamera}>Start Video</button> 
         <button style={{'fontSize':'12pt'}} onClick={this.stopCamera}>Stop Video</button>
         <button style={{'fontSize':'12pt'}} onClick={this.toggleShowRaw}>Filtered/Raw Video</button>       
+        <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>       
+
          <div id="container">
             <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
 
