@@ -142,11 +142,12 @@ class App extends Component {
     cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
     
     const sortedContourIndices = this.sortContours(contours)
-    console.log(sortedContourIndices)
     if(sortedContourIndices.length > 0){
       const numObjects = this.state.allColors[colorNum].numObjects
-      for(let i = 0; i < numObjects; ++i){
-        const ballNum = colorNum + i - 1
+      for(let i = 0; i < Math.min(sortedContourIndices.length, numObjects); ++i){
+        const ballNum = colorNum + i 
+        console.log("track ball" ,colorNum, ballNum, numObjects)
+
         const circle = cv.minEnclosingCircle(contours.get(sortedContourIndices[i]))
         if(!allPositions[ballNum]){
           allPositions[ballNum]={
@@ -184,32 +185,37 @@ class App extends Component {
     context.strokeStyle = color;
     context.stroke();
   }
-  drawTails =(ballNum)=>{
+  drawTails =(colorNum)=>{
     const context = this.canvasOutput.getContext("2d")
-    this.state.allColors.forEach((ballColors,ballNum)=>{
-      if(this.state.positions[ballNum]){
-        const xHistory = this.state.positions[ballNum]['x']
-        const yHistory = this.state.positions[ballNum]['y']
-        const rHistory = this.state.positions[ballNum]['r']
+    this.state.allColors.forEach((ballColors,colorNum)=>{
+      for(let i = 0; i < ballColors.numObjects; ++i){
+        const ballNum = colorNum + i 
+        console.log("track ball" ,colorNum, ballNum, ballColors)
 
-        const maxWindowSize = 8
-        const currentWindowSize = Math.min(xHistory.length, maxWindowSize)
-        for (let i=0; i < currentWindowSize; ++i){
-          const lastX = xHistory[xHistory.length - 1 - i]
-          const lastY = yHistory[yHistory.length - 1 - i]
-          const lastR = rHistory[rHistory.length - 1 - i]
-          const color = this.calculateCurrentColor(ballColors,(1-(i/currentWindowSize)))
+        if(this.state.positions[ballNum] && ballNum > 0){
+          const xHistory = this.state.positions[ballNum]['x']
+          const yHistory = this.state.positions[ballNum]['y']
+          const rHistory = this.state.positions[ballNum]['r']
 
-          /*if(yHistory.length - 1 >= 1+i){
-            const prevX = xHistory[xHistory.length - 2 - i ]
-            const prevY = yHistory[yHistory.length - 2 - i ]
-            const prevR = rHistory[rHistory.length - 2 - i ]
-            if(prevY + prevR < 1.5 * (lastY-lastR)){
-              this.drawCircle(context,this.mean(lastX,prevX), this.mean(lastY,prevY), this.mean(lastR,prevR)*(1-(i/currentWindowSize)), color)
-            }
-          }*/
-          this.drawCircle(context,lastX, lastY, lastR*(1-(i/currentWindowSize)), color)
-          
+          const maxWindowSize = 8
+          const currentWindowSize = Math.min(xHistory.length, maxWindowSize)
+          for (let i=0; i < currentWindowSize; ++i){
+            const lastX = xHistory[xHistory.length - 1 - i]
+            const lastY = yHistory[yHistory.length - 1 - i]
+            const lastR = rHistory[rHistory.length - 1 - i]
+            const color = this.calculateCurrentColor(ballColors,(1-(i/currentWindowSize)))
+
+            /*if(yHistory.length - 1 >= 1+i){
+              const prevX = xHistory[xHistory.length - 2 - i ]
+              const prevY = yHistory[yHistory.length - 2 - i ]
+              const prevR = rHistory[rHistory.length - 2 - i ]
+              if(prevY + prevR < 1.5 * (lastY-lastR)){
+                this.drawCircle(context,this.mean(lastX,prevX), this.mean(lastY,prevY), this.mean(lastR,prevR)*(1-(i/currentWindowSize)), color)
+              }
+            }*/
+            this.drawCircle(context,lastX, lastY, lastR*(1-(i/currentWindowSize)), color)
+            
+          }
         }
       }
     })
@@ -219,6 +225,7 @@ class App extends Component {
     let dst = new cv.Mat();
     this.state.allColors.forEach((colorRange,colorNum)=>{
       if(colorNum > 0){
+        console.log("color filter number" ,colorNum, colorRange)
         const lowHSV = utils.RGBtoHSV(colorRange.lr, colorRange.lg, colorRange.lb)
         lowHSV.push(0)
         const highHSV = utils.RGBtoHSV(colorRange.hr, colorRange.hg, colorRange.hb)
@@ -226,7 +233,6 @@ class App extends Component {
         const low = new cv.Mat(src.rows, src.cols, src.type(), [colorRange.lr, colorRange.lg, colorRange.lb, 0]);
         const high = new cv.Mat(src.rows, src.cols, src.type(), [colorRange.hr, colorRange.hg, colorRange.hb, 255]);
         cv.inRange(src,low, high, dst);
-        console.log("color num", colorRange, colorNum)
         this.trackBall(dst.clone(),colorNum)
         let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
         cv.dilate(dst,dst,kernel)
@@ -296,7 +302,7 @@ class App extends Component {
   }
   setColorRange=()=>{
     let colorRanges = this.state.allColors
-    colorRanges[this.state.ballNum] = {
+    colorRanges[this.state.colorNum] = {
       'numObjects' : parseInt(this.state.numObjects),
       'lr' : this.state.lr,
       'lg' : this.state.lg,
@@ -315,48 +321,49 @@ class App extends Component {
     let color = {}
     let colorRanges = this.state.allColors
     if(e.target.name == "red"){
-      colorRanges[this.state.ballNum] = red
+      colorRanges[this.state.colorNum] = red
       color = red
     }else if(e.target.name == "green"){
-      colorRanges[this.state.ballNum] = green
+      colorRanges[this.state.colorNum] = green
       color = green
     }else if(e.target.name == "blue"){
-      colorRanges[this.state.ballNum] = blue
+      colorRanges[this.state.colorNum] = blue
       color = blue
     }else if(e.target.name == "white"){
-      colorRanges[this.state.ballNum] = white
+      colorRanges[this.state.colorNum] = white
       color = white
     }
     state.allColors = colorRanges
-      state = Object.assign(state, color);
-      this.setState({
-        state
-      })
+    state = Object.assign(state, color);
+    this.setState({
+      state
+    })
   }
-  nextBall=()=>{
+  nextColor=()=>{
     this.setColorRange()
-    let ballNum = this.state.ballNum
-    ballNum += 1 
-    if(ballNum%this.state.numBalls == 1 ){
-      ballNum = 1
+    let colorNum = this.state.colorNum
+    colorNum += 1 
+    if(colorNum%this.state.numBalls == 1 ){
+      colorNum = 1
     }
-    if(this.state.allColors[ballNum]){
+    if(this.state.allColors[colorNum]){
       this.setState({
-        ballNum,
-        numObjects : 1,
-        lr : this.state.allColors[ballNum]['lr'],
-        lg : this.state.allColors[ballNum]['lg'],
-        lb : this.state.allColors[ballNum]['lb'],
-        hr : this.state.allColors[ballNum]['hr'],
-        hg : this.state.allColors[ballNum]['hg'],
-        hb : this.state.allColors[ballNum]['hb'],
+        colorNum,
+        numObjects : this.state.allColors[colorNum].numObjects,
+        lr : this.state.allColors[colorNum]['lr'],
+        lg : this.state.allColors[colorNum]['lg'],
+        lb : this.state.allColors[colorNum]['lb'],
+        hr : this.state.allColors[colorNum]['hr'],
+        hg : this.state.allColors[colorNum]['hg'],
+        hb : this.state.allColors[colorNum]['hb'],
       })
     }else{
       this.setState({
-        ballNum
+        numObjects : 1,
+        colorNum
       })
     }
-    
+    console.log(this.state.allColors)
   }
   toggleShowRaw=()=>{
     this.setState({
@@ -387,8 +394,9 @@ class App extends Component {
     const sliders = 
         this.state.calibrating ? 
         <div className="sliders">
-          <label>Color Number</label><input type="input" value={this.state.ballNum} onChange={this.handleBallNum}/>
-          <button onClick={this.nextBall}>Next Color</button>
+          <label>Color Number</label><input type="input" value={this.state.colorNum} onChange={this.handleColorNum}/>
+          <button onClick={this.nextColor}>Next Color</button>
+          <br/>
           <label>Number of Objects</label><input type="input" value={this.state.numObjects} onChange={this.handleNumObjects}/>
 
           <br/>
