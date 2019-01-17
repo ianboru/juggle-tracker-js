@@ -1,3 +1,5 @@
+import cv from 'opencv.js';
+
 function HSVtoRGB(h, s, v) {
     var r, g, b, i, f, p, q, t;
     if (arguments.length === 1) {
@@ -42,7 +44,30 @@ function RGBtoHSV(r, g, b) {
 
     return [h,s,v];
 }
+function calculateCurrentColor(ballColorRange,opacity){ 
+    const r = this.mean(ballColorRange['lr'],ballColorRange['hr'])
+    const g = this.mean(ballColorRange['lg'],ballColorRange['hg'])
+    const b = this.mean(ballColorRange['lb'],ballColorRange['hb'])
+    return "rgb(" + r + "," + g + "," + b + ","+opacity+")"
+}
+function sortContours(contours){
+    let contourAreas = []
+    for (let i = 0; i < contours.size(); ++i) {
+      contourAreas.push(cv.contourArea(contours.get(i), false))
+    }
+    const len = contourAreas.length
+    var indices = new Array(len);
+    for (let i = 0; i < len; ++i) indices[i] = i;
+    indices.sort(function (a, b) { return contourAreas[a] > contourAreas[b] ? -1 : contourAreas[a] > contourAreas[b] ? 1 : 0; });
+    return indices
+}
+function mean(x,y){
+    return (x + y)/2
+}
 export default { 
+    calculateCurrentColor,
+    mean,
+    sortContours,
     RGBtoHSV,
     HSVtoRGB
 }

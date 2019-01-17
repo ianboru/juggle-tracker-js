@@ -65,34 +65,13 @@ class App extends Component {
     colorNum : 1,
     calibrating : true,
     positions : [],
-    numBalls : 3,
+    totalNumColors : 1,
     showRaw : true,
-    tailSize : 10,
+    tailLength : 1,
     connectSameColor : false,
   }
-  componentDidMount(){
-    console.log("mounted " ,this.state.allColors)
-  }
-  mean = (x,y)=>{
-    return (x + y)/2
-  }
-  calculateCurrentColor=(ballColorRange,opacity)=>{
-    const r = this.mean(ballColorRange['lr'],ballColorRange['hr'])
-    const g = this.mean(ballColorRange['lg'],ballColorRange['hg'])
-    const b = this.mean(ballColorRange['lb'],ballColorRange['hb'])
-    return "rgb(" + r + "," + g + "," + b + ","+opacity+")"
-  }
-  sortContours = (contours)=>{
-    let contourAreas = []
-    for (let i = 0; i < contours.size(); ++i) {
-      contourAreas.push(cv.contourArea(contours.get(i), false))
-    }
-    const len = contourAreas.length
-    var indices = new Array(len);
-    for (let i = 0; i < len; ++i) indices[i] = i;
-    indices.sort(function (a, b) { return contourAreas[a] > contourAreas[b] ? -1 : contourAreas[a] > contourAreas[b] ? 1 : 0; });
-    return indices
-  }
+
+  
   startCamera=()=> {
     let that = this
     if (this.state.streaming) return;
@@ -152,7 +131,7 @@ class App extends Component {
     let hierarchy = new cv.Mat();
     cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
     
-    const sortedContourIndices = this.sortContours(contours)
+    const sortedContourIndices = utils.sortContours(contours)
     if(sortedContourIndices.length > 0){
       const numObjects = this.state.allColors[colorNum].numObjects
       for(let i = 0; i < Math.min(sortedContourIndices.length, numObjects); ++i){
@@ -165,6 +144,7 @@ class App extends Component {
             'r':[]
           }
         }
+        console.log("all postiiont", ballNum, allPositions)
         allPositions[ballNum]['x'].push(circle.center.x)
         allPositions[ballNum]['y'].push(circle.center.y)
         allPositions[ballNum]['r'].push(circle.radius)
@@ -187,37 +167,29 @@ class App extends Component {
     context.stroke();
   }
   drawTails =(context)=>{
-    //console.log("drawing tails", this.state.allColors)
     this.state.allColors.forEach((ballColors,colorNum)=>{
       for(let i = 0; i < ballColors.numObjects; ++i){
         const ballNum = colorNum + i 
-        if(this.state.positions[ballNum] && ballNum > 0){
+        console.log(ballColors, colorNum, ballNum)
+        if(this.state.positions[ballNum]){
           const xHistory = this.state.positions[ballNum]['x']
           const yHistory = this.state.positions[ballNum]['y']
           const rHistory = this.state.positions[ballNum]['r']
 
-          const maxWindowSize = 8
+          const maxWindowSize = this.state.tailLength
           let currentWindowSize
           if(this.state.connectSameColor){
             currentWindowSize = 1
           }else{
             currentWindowSize = Math.min(xHistory.length, maxWindowSize)
           }
+          console.log("window size", ballNum, currentWindowSize, this.state.positions[ballNum].x)
           for (let i=0; i < currentWindowSize; ++i){
             const lastX = xHistory[xHistory.length - 1 - i]
             const lastY = yHistory[yHistory.length - 1 - i]
             const lastR = rHistory[rHistory.length - 1 - i]
-            const color = this.calculateCurrentColor(ballColors,(1-(i/currentWindowSize)))
+            const color = utils.calculateCurrentColor(ballColors,(1-(i/currentWindowSize)))
             this.drawCircle(context,lastX, lastY, lastR*(1-(i/currentWindowSize)), color)
-
-            /*if(yHistory.length - 1 >= 1+i){
-              const prevX = xHistory[xHistory.length - 2 - i ]
-              const prevY = yHistory[yHistory.length - 2 - i ]
-              const prevR = rHistory[rHistory.length - 2 - i ]
-              if(prevY + prevR < 1.5 * (lastY-lastR)){
-                this.drawCircle(context,this.mean(lastX,prevX), this.mean(lastY,prevY), this.mean(lastR,prevR)*(1-(i/currentWindowSize)), color)
-              }
-            }*/
           }
         }
       }
@@ -228,14 +200,17 @@ class App extends Component {
       if(ballColors.numObjects > 1){
         for(let i = 0; i < ballColors.numObjects; ++i){
           const ballNum = colorNum + i 
-          if(this.state.positions[ballNum]){
-            console.log("drawing connections", ballNum, colorNum)
-            const xHistory = this.state.positions[ballNum]['x']
-            const yHistory = this.state.positions[ballNum]['y']
+          if(this.state.positions[ballNum] && this.state.positions[ballNum+1]){
+            const curBallX = this.state.positions[ballNum]['x'][this.state.positions[ballNum]['x'].length-1]
+            const curBallY = this.state.positions[ballNum]['y'][this.state.positions[ballNum]['y'].length-1]
+            const nextBallX = this.state.positions[ballNum+1]['x'][this.state.positions[ballNum+1]['x'].length-1]
+            const nextBallY = this.state.positions[ballNum+1]['y'][this.state.positions[ballNum+1]['y'].length-1]
+            console.log("drawing connections", ballNum, colorNum, curBallX,curBallY,nextBallX,nextBallY)
+            
             context.beginPath();
-            context.moveTo(xHistory[xHistory.length-2], yHistory[yHistory.length-2])
-            context.lineTo(xHistory[xHistory.length-1], yHistory[yHistory.length-1])
-            context.strokeStyle = this.calculateCurrentColor(ballColors, 1);
+            context.moveTo(curBallX, curBallY)
+            context.lineTo(nextBallX, nextBallY)
+            context.strokeStyle = utils.calculateCurrentColor(ballColors, 1);
             context.lineWidth = 10;
             context.stroke();
           }
@@ -290,14 +265,18 @@ class App extends Component {
     if(this.state.connectSameColor){
       this.drawConnections(context)
     }
+    this.trimHistories()
     requestAnimationFrame(this.processVideo);
     this.setState({
       startTime : Date.now()
     })
   }
-  handleBallNum=(e)=>{
+  handleColorNum=(e)=>{
+    if(e.target.value < 0){
+      return
+    }
     this.setState({
-      ballNum : parseInt(e.target.value)
+      colorNum : parseInt(e.target.value)
     })
   }
   stopCamera=()=> {
@@ -377,10 +356,13 @@ class App extends Component {
   nextColor=()=>{
     this.setColorRange()
     let colorNum = this.state.colorNum
-    colorNum += 1 
-    if(colorNum%this.state.allColors.length == 1 ){
+    console.log(this.state.totalNumColors, colorNum,colorNum%this.state.totalNumColors+1 )
+    if(colorNum%this.state.totalNumColors == 0 ){
       colorNum = 1
+    }else{
+      colorNum += 1 
     }
+
     console.log("next color ", colorNum,this.state.allColors  )
     if(this.state.allColors[colorNum]){
       this.setState({
@@ -409,15 +391,22 @@ class App extends Component {
   }
   trimHistories=()=>{
     let histories = []
+    console.log("trimming " ,this.state.positions)
+
     this.state.positions.forEach((history, ballNum)=>{
-      history['x'] = history['x'][history['x'].length - 1 - this.state.tailSize]
-      history['y'] = history['y'][history['y'].length - 1 - this.state.tailSize]
-      history['r'] = history['r'][history['r'].length - 1 - this.state.tailSize]
-      histories[ballNum] = [history['x'],history['y'],history['r']]
+      if(history['x'].length > this.state.tailLength){
+        history['x'] = history['x'].slice(history['x'].length - 1 - this.state.tailLength, history['x'].length)
+        history['y'] = history['y'].slice(history['y'].length - 1 - this.state.tailLength, history['y'].length)
+        history['r'] = history['r'].slice(history['r'].length - 1 - this.state.tailLength, history['r'].length)
+        histories[ballNum] = {'x':history['x'],'y':history['y'],'r':history['r']}
+      }
     })
-    this.setState({
-      positions : histories
-    })
+    console.log(histories)
+    if(histories.length > 0){
+      this.setState({
+        positions : histories
+      })
+    }
   }
   handleNumObjects=(e)=>{
     console.log("num objects", e.target.value)
@@ -427,6 +416,16 @@ class App extends Component {
       this.setColorRange()
     })
   }
+  handleTotalNumColors=(e)=>{
+    this.setState({
+      totalNumColors : e.target.value
+    })
+  }
+  handleTailLength=(e)=>{
+    this.setState({
+      tailLength : e.target.value
+    })
+  }
   toggleConnectSameColor=()=>{
     console.log("changing connect", this.state.connectSameColor, this.state.positions)
     this.setState({
@@ -434,14 +433,13 @@ class App extends Component {
     })
   }
   render() {
-    console.log("rendered" ,this.state.allColors)
     const sliders = 
         this.state.calibrating ? 
         <div className="sliders">
           <label>Color Number</label><input type="input" value={this.state.colorNum} onChange={this.handleColorNum}/>
           <button onClick={this.nextColor}>Next Color</button>
           <br/>
-          <label>Number of Objects</label><input type="input" value={this.state.numObjects} onChange={this.handleNumObjects}/>
+          <label>Number of Objects for this Color</label><input type="number" value={this.state.numObjects} onChange={this.handleNumObjects}/>
           <br/>
           <h3>Preset Colors</h3>
           <button style={{"backgroundColor":'red', 'color': 'white','fontSize':'12pt'}} name="red" onClick={this.setColorPreset}>Red</button>
@@ -467,14 +465,20 @@ class App extends Component {
         <button style={{'fontSize':'12pt'}} onClick={this.startCamera}>Start Video</button> 
         <button style={{'fontSize':'12pt'}} onClick={this.stopCamera}>Stop Video</button>
         <button style={{'fontSize':'12pt'}} onClick={this.toggleShowRaw}>Filtered/Raw Video</button>       
-        <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>       
+        <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
+        <br/>
+        <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="lg" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
+       
 
          <div id="container">
             <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
+            <br/>
+            
+            <h1>choose color ranges</h1>
+            <label>Total Number of Colors</label><input type="number" value={this.state.totalNumColors} onChange={this.handleTotalNumColors}/>
 
-            <h1>choose color range</h1>
             {sliders}
-            <video hidden={true} width={320} height={240} className="invisible" ref={ref => this.video = ref}></video>
+            <video width={320} height={240} className="invisible" ref={ref => this.video = ref}></video>
           </div>
         </div>
     );
@@ -482,3 +486,17 @@ class App extends Component {
 }
 
 export default App;
+
+/*
+<br/>
+<h3>current color setting</h3>
+<div style={{
+  'width' : '80px',
+  'height' : '80px',
+  'margin' : '0 auto',
+  'backgroundColor':utils.calculateCurrentColor(
+    this.state.allColors[this.state.colorNum],1
+    )
+}}
+></div>
+*/
