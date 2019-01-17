@@ -135,19 +135,20 @@ class App extends Component {
     if(sortedContourIndices.length > 0){
       const numObjects = this.state.allColors[colorNum].numObjects
       for(let i = 0; i < Math.min(sortedContourIndices.length, numObjects); ++i){
-        const ballNum = colorNum + i 
         const circle = cv.minEnclosingCircle(contours.get(sortedContourIndices[i]))
-        if(!allPositions[ballNum]){
-          allPositions[ballNum]={
+        if(!allPositions[colorNum]){
+          allPositions[colorNum] = []
+        }
+        if(!allPositions[colorNum][i]){
+          allPositions[colorNum][i]={
             'x':[],
             'y':[],
             'r':[]
           }
         }
-        console.log("all postiiont", ballNum, allPositions)
-        allPositions[ballNum]['x'].push(circle.center.x)
-        allPositions[ballNum]['y'].push(circle.center.y)
-        allPositions[ballNum]['r'].push(circle.radius)
+        allPositions[colorNum][i]['x'].push(circle.center.x)
+        allPositions[colorNum][i]['y'].push(circle.center.y)
+        allPositions[colorNum][i]['r'].push(circle.radius)
       }
       
       this.setState({
@@ -167,14 +168,16 @@ class App extends Component {
     context.stroke();
   }
   drawTails =(context)=>{
+    let ballNum = 0
     this.state.allColors.forEach((ballColors,colorNum)=>{
       for(let i = 0; i < ballColors.numObjects; ++i){
-        const ballNum = colorNum + i 
-        console.log(ballColors, colorNum, ballNum)
-        if(this.state.positions[ballNum]){
-          const xHistory = this.state.positions[ballNum]['x']
-          const yHistory = this.state.positions[ballNum]['y']
-          const rHistory = this.state.positions[ballNum]['r']
+        if(!this.state.positions[colorNum]){
+          continue
+        }
+        if(this.state.positions[colorNum][i]){
+          const xHistory = this.state.positions[colorNum][i]['x']
+          const yHistory = this.state.positions[colorNum][i]['y']
+          const rHistory = this.state.positions[colorNum][i]['r']
 
           const maxWindowSize = this.state.tailLength
           let currentWindowSize
@@ -183,7 +186,6 @@ class App extends Component {
           }else{
             currentWindowSize = Math.min(xHistory.length, maxWindowSize)
           }
-          console.log("window size", ballNum, currentWindowSize, this.state.positions[ballNum].x)
           for (let i=0; i < currentWindowSize; ++i){
             const lastX = xHistory[xHistory.length - 1 - i]
             const lastY = yHistory[yHistory.length - 1 - i]
@@ -192,6 +194,7 @@ class App extends Component {
             this.drawCircle(context,lastX, lastY, lastR*(1-(i/currentWindowSize)), color)
           }
         }
+        ballNum += 1
       }
     })
   }
@@ -200,12 +203,11 @@ class App extends Component {
       if(ballColors.numObjects > 1){
         for(let i = 0; i < ballColors.numObjects; ++i){
           const ballNum = colorNum + i 
-          if(this.state.positions[ballNum] && this.state.positions[ballNum+1]){
-            const curBallX = this.state.positions[ballNum]['x'][this.state.positions[ballNum]['x'].length-1]
-            const curBallY = this.state.positions[ballNum]['y'][this.state.positions[ballNum]['y'].length-1]
-            const nextBallX = this.state.positions[ballNum+1]['x'][this.state.positions[ballNum+1]['x'].length-1]
-            const nextBallY = this.state.positions[ballNum+1]['y'][this.state.positions[ballNum+1]['y'].length-1]
-            console.log("drawing connections", ballNum, colorNum, curBallX,curBallY,nextBallX,nextBallY)
+          if(this.state.positions[colorNum][i] && this.state.positions[colorNum][i+1]){
+            const curBallX = this.state.positions[colorNum][i]['x'][this.state.positions[colorNum][i]['x'].length-1]
+            const curBallY = this.state.positions[colorNum][i]['y'][this.state.positions[colorNum][i]['y'].length-1]
+            const nextBallX = this.state.positions[colorNum][i+1]['x'][this.state.positions[colorNum][i+1]['x'].length-1]
+            const nextBallY = this.state.positions[colorNum][i+1]['y'][this.state.positions[colorNum][i+1]['y'].length-1]
             
             context.beginPath();
             context.moveTo(curBallX, curBallY)
@@ -391,17 +393,20 @@ class App extends Component {
   }
   trimHistories=()=>{
     let histories = []
-    console.log("trimming " ,this.state.positions)
 
-    this.state.positions.forEach((history, ballNum)=>{
-      if(history['x'].length > this.state.tailLength){
-        history['x'] = history['x'].slice(history['x'].length - 1 - this.state.tailLength, history['x'].length)
-        history['y'] = history['y'].slice(history['y'].length - 1 - this.state.tailLength, history['y'].length)
-        history['r'] = history['r'].slice(history['r'].length - 1 - this.state.tailLength, history['r'].length)
-        histories[ballNum] = {'x':history['x'],'y':history['y'],'r':history['r']}
+    this.state.positions.forEach((colorPositions, colorNum)=>{
+      if(!histories[colorNum]){
+        histories[colorNum] = []
       }
+      colorPositions.forEach((history,ballNum)=>{
+        if(history['x'].length > this.state.tailLength){
+          history['x'] = history['x'].slice(history['x'].length - 1 - this.state.tailLength, history['x'].length)
+          history['y'] = history['y'].slice(history['y'].length - 1 - this.state.tailLength, history['y'].length)
+          history['r'] = history['r'].slice(history['r'].length - 1 - this.state.tailLength, history['r'].length)
+          histories[colorNum][ballNum] = {'x':history['x'],'y':history['y'],'r':history['r']}
+        }
+      })
     })
-    console.log(histories)
     if(histories.length > 0){
       this.setState({
         positions : histories
@@ -478,7 +483,7 @@ class App extends Component {
             <label>Total Number of Colors</label><input type="number" value={this.state.totalNumColors} onChange={this.handleTotalNumColors}/>
 
             {sliders}
-            <video width={320} height={240} className="invisible" ref={ref => this.video = ref}></video>
+            <video hidden={true} width={320} height={240} className="invisible" ref={ref => this.video = ref}></video>
           </div>
         </div>
     );
