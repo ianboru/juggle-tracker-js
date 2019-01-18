@@ -199,15 +199,24 @@ class App extends Component {
     })
   }
   drawConnections=(context)=>{
+    let ballNum = 0
     this.state.allColors.forEach((ballColors,colorNum)=>{
+      if(!this.state.positions[colorNum]){
+        return
+      }
       if(ballColors.numObjects > 1){
         for(let i = 0; i < ballColors.numObjects; ++i){
-          const ballNum = colorNum + i 
-          if(this.state.positions[colorNum][i] && this.state.positions[colorNum][i+1]){
+          let nextBallIndex = i+1
+          if(i == ballColors.numObjects-1){
+            nextBallIndex = 0 
+          }
+          if(this.state.positions[colorNum][i] && this.state.positions[colorNum][nextBallIndex]){
             const curBallX = this.state.positions[colorNum][i]['x'][this.state.positions[colorNum][i]['x'].length-1]
             const curBallY = this.state.positions[colorNum][i]['y'][this.state.positions[colorNum][i]['y'].length-1]
-            const nextBallX = this.state.positions[colorNum][i+1]['x'][this.state.positions[colorNum][i+1]['x'].length-1]
-            const nextBallY = this.state.positions[colorNum][i+1]['y'][this.state.positions[colorNum][i+1]['y'].length-1]
+            
+            console.log(colorNum,nextBallIndex, i)
+            const nextBallX = this.state.positions[colorNum][nextBallIndex]['x'][this.state.positions[colorNum][nextBallIndex]['x'].length-1]
+            const nextBallY = this.state.positions[colorNum][nextBallIndex]['y'][this.state.positions[colorNum][nextBallIndex]['y'].length-1]
             
             context.beginPath();
             context.moveTo(curBallX, curBallY)
@@ -216,6 +225,7 @@ class App extends Component {
             context.lineWidth = 10;
             context.stroke();
           }
+          ++ballNum
         }
       }
     })
@@ -252,10 +262,12 @@ class App extends Component {
     const context = document.getElementById("canvasOutput").getContext("2d")
     context.clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
     context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
+
     let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
     srcMat.data.set(imageData.data);
     cv.flip(srcMat, srcMat,1)
     const finalMat = this.colorFilter(srcMat.clone())
+
     if(this.state.showRaw){
       cv.imshow('canvasOutput',srcMat)
     }else{
@@ -264,14 +276,15 @@ class App extends Component {
     }
     finalMat.delete();srcMat.delete()
     this.drawTails(context)
+
     if(this.state.connectSameColor){
       this.drawConnections(context)
     }
+
     this.trimHistories()
+
     requestAnimationFrame(this.processVideo);
-    this.setState({
-      startTime : Date.now()
-    })
+    imageData = null
   }
   handleColorNum=(e)=>{
     if(e.target.value < 0){
@@ -393,25 +406,30 @@ class App extends Component {
   }
   trimHistories=()=>{
     let histories = []
+    console.log("trimming",window.performance.memory)
 
     this.state.positions.forEach((colorPositions, colorNum)=>{
+      console.log("looping",window.performance.memory)
+
       if(!histories[colorNum]){
         histories[colorNum] = []
       }
       colorPositions.forEach((history,ballNum)=>{
         if(history['x'].length > this.state.tailLength){
-          history['x'] = history['x'].slice(history['x'].length - 1 - this.state.tailLength, history['x'].length)
-          history['y'] = history['y'].slice(history['y'].length - 1 - this.state.tailLength, history['y'].length)
-          history['r'] = history['r'].slice(history['r'].length - 1 - this.state.tailLength, history['r'].length)
-          histories[colorNum][ballNum] = {'x':history['x'],'y':history['y'],'r':history['r']}
+          histories[colorNum][ballNum]['x'] = history['x'].slice(history['x'].length - 1 - this.state.tailLength, history['x'].length)
+          histories[colorNum][ballNum]['y'] = history['y'].slice(history['y'].length - 1 - this.state.tailLength, history['y'].length)
+          histories[colorNum][ballNum]['r'] = history['r'].slice(history['r'].length - 1 - this.state.tailLength, history['r'].length)
         }
       })
     })
+    console.log("setting",window.performance.memory)
+
     if(histories.length > 0){
       this.setState({
         positions : histories
       })
     }
+    histories = null
   }
   handleNumObjects=(e)=>{
     console.log("num objects", e.target.value)
