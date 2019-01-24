@@ -1,15 +1,19 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
 import cv from 'opencv.js';
 import utils from './utils'
 import * as tf from '@tensorflow/tfjs';
 import * as posenet from '@tensorflow-models/posenet';
+import Recorder from './recorder'
+import store from "./store"
+import { observer } from "mobx-react"
+
 const scoreThreshold = .5
+
+//@observer
 class App extends Component {
 
   state = {
-    canvasOutputCtx : null,
     src : null,
     dst : null,
     stream : null,
@@ -41,7 +45,13 @@ class App extends Component {
     showRaw : true,
     tailLength : 1,
     connectSameColor : false,
-    showPosePoints : false
+    showPosePoints : false,
+    mediaRecorder : null,
+    recordedBlobs : null,
+    mediaSource : new MediaSource(),
+    mediaSource : null,
+    visiblePlayer : "live",
+    canvasStream : null
   }
 
   componentDidMount=()=>{
@@ -90,6 +100,10 @@ class App extends Component {
     }, false);
   }
   startVideoProcessing=()=> {
+    //store.setVisiblePlayer("live")
+    this.setState({
+      canvasStream : this.canvasOutput.captureStream()
+    })
     var vidLength = 30 //seconds
     var fps = 24;
     if (!this.state.streaming) { console.warn("Please startup your webcam"); return; }
@@ -98,6 +112,7 @@ class App extends Component {
   }
 
   stopVideoProcessing = () =>{
+    //store.setVisiblePlayer("recorded")
     let src = this.state.src
     if (src != null && !src.isDeleted()) src.delete();
 
@@ -268,7 +283,8 @@ class App extends Component {
     return dst
   }
   processVideo=()=> {
-    let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
+    if(this.canvasOutput){
+      let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
     const context = document.getElementById("canvasOutput").getContext("2d")
     //Draw video frame onto canvas context
     context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
@@ -312,7 +328,7 @@ class App extends Component {
     
     //Process next frame
     requestAnimationFrame(this.processVideo);
-    
+    }
   }
   handleColorNum=(e)=>{
     if(e.target.value < 0){
@@ -483,7 +499,126 @@ class App extends Component {
       showPosePoints : !this.state.showPosePoints
     })
   }
+  handleDataAvailable=(event)=>{
+    let recordedBlobs = this.state.recordedBlobs
+    if (event.data && event.data.size > 0) {
+      recordedBlobs.push(event.data);
+      this.setState({
+        recordedBlobs
+      })
+    }
+  }
+
+  handleStop=(event)=>{
+    console.log('Recorder stopped: ', event);
+    const superBuffer = new Blob(this.state.recordedBlobs, {type: 'video/webm'});
+    this.recordedVideo.src = window.URL.createObjectURL(superBuffer);
+
+  }
+
+  toggleRecording=()=>{
+    const recordButton = document.querySelector('button#record');
+    const playButton = document.querySelector('button#play');
+    const downloadButton = document.querySelector('button#download');
+    console.log("first",recordButton.textContent,this.canvasOutput.display , this.canvasOutput.hidden )
+    if (recordButton.textContent === 'Start Recording') {
+      this.recordedVideo.hidden = true
+      this.canvasOutput.hidden = false
+      this.canvasOutput.style.display = "inline"
+
+      this.startRecording();
+    } else {
+      this.stopRecording();
+      this.recordedVideo.controls = true
+      this.recordedVideo.hidden = false
+      this.canvasOutput.style.display = "none"
+      recordButton.textContent = 'Start Recording';
+      playButton.disabled = false;
+      downloadButton.disabled = false;
+    }
+    console.log("second", recordButton.textContent,this.canvasOutput.display , this.canvasOutput.hidden )
+
+  }
+
+  // The nested try blocks will be simplified when Chrome 47 moves to Stable
+  startRecording=()=>{
+    this.recordedVideo.hidden = true
+    
+    let options = {mimeType: 'video/webm'};
+    this.setState({
+      recordedBlobs : []
+    })
+    let mediaRecorder
+    console.log(this.state.canvasStream)
+    if(!this.state.canvasStream){
+      alert('video not running');
+          console.error('Exception while creating MediaRecorder:');
+    }
+    try {
+      mediaRecorder = new MediaRecorder(this.state.canvasStream, options);
+    } catch (e0) {
+      console.log('Unable to create MediaRecorder with options Object: ', e0);
+      try {
+        options = {mimeType: 'video/webm,codecs=vp9'};
+        mediaRecorder = new MediaRecorder(this.state.canvasStream, options);
+      } catch (e1) {
+        console.log('Unable to create MediaRecorder with options Object: ', e1);
+        try {
+          options = 'video/vp8'; // Chrome 47
+          mediaRecorder = new MediaRecorder(this.state.canvasStream, options);
+        } catch (e2) {
+          alert('MediaRecorder is not supported by this browser.\n\n' +
+            'Try Firefox 29 or later, or Chrome 47 or later, ' +
+            'with Enable experimental Web Platform features enabled from chrome://flags.');
+          console.error('Exception while creating MediaRecorder:', e2);
+          return;
+        }
+      }
+    }
+    console.log('Created MediaRecorder', mediaRecorder, 'with options', options);
+    const recordButton = document.querySelector('button#record');
+    const playButton = document.querySelector('button#play');
+    const downloadButton = document.querySelector('button#download');
+
+    recordButton.textContent = 'Stop Recording';
+    playButton.disabled = true;
+    downloadButton.disabled = true;
+    mediaRecorder.onstop = this.handleStop;
+    mediaRecorder.ondataavailable = this.handleDataAvailable;
+    mediaRecorder.start(100); // collect 100ms of data
+    this.setState({
+        mediaRecorder
+      })
+    console.log('MediaRecorder started', mediaRecorder);
+  }
+  stopRecording=()=>{
+    const mediaRecorder = this.state.mediaRecorder
+    mediaRecorder.stop()
+    this.setState({
+      mediaRecorder,
+    })
+  }
+
+  
+  download=()=>{
+    console.log("clicked download ")
+    const blob = new Blob(this.state.recordedBlobs, {type: 'video/webm'});
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = 'test.webm';
+    document.body.appendChild(a);
+    console.log("a",a)
+
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 100);
+  }
   render() {
+    
     const sliders = 
         this.state.calibrating ? 
         <div className="sliders">
@@ -510,6 +645,7 @@ class App extends Component {
           <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.hb}</span><label>High B</label><input name="hb" type="range" min={0} max={255} value={this.state.hb} onChange={this.handleRGBChange}/>
         </div> : null
       
+            
     return (
       <div className="App">
         <br/>
@@ -518,40 +654,26 @@ class App extends Component {
         <button style={{'fontSize':'12pt'}} onClick={this.toggleShowRaw}>Filtered/Raw Video</button>       
         <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
         <button style={{'fontSize':'12pt'}} onClick={this.toggleDrawPose}>Draw Body Parts</button>
-
         <br/>
         <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="lg" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
-       
+        <br/>
+        <button id="record" onClick={this.toggleRecording}>Start Recording</button>
+          <button id="play" onClick={this.play} disabled>Play</button>
+          <button id="download" onClick={this.download} >Download</button>
+          <br/>
+          <canvas display ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
+          <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
+        <h1>choose color ranges</h1>
+        <label>Total Number of Colors</label><input type="number" value={this.state.totalNumColors} onChange={this.handleTotalNumColors}/>
 
-         <div id="container">
-            <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
-            <br/>
-            
-            <h1>choose color ranges</h1>
-            <label>Total Number of Colors</label><input type="number" value={this.state.totalNumColors} onChange={this.handleTotalNumColors}/>
+        {sliders}
+          
+          <video hidden={true} width={320} height={240} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
 
-            {sliders}
-            <video hidden={true} width={320} height={240} muted playsInline autoplay className="invisible" ref={ref => this.video = ref}></video>
-          </div>
-        </div>
+      </div>
     );
   }
 }
 
 export default App;
 
-
-
-/*
-<br/>
-<h3>current color setting</h3>
-<div style={{
-  'width' : '80px',
-  'height' : '80px',
-  'margin' : '0 auto',
-  'backgroundColor':utils.calculateCurrentColor(
-    this.state.allColors[this.state.colorNum],1
-    )
-}}
-></div>
-*/
