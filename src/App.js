@@ -270,35 +270,49 @@ class App extends Component {
   processVideo=()=> {
     let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
     const context = document.getElementById("canvasOutput").getContext("2d")
-    //context.clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
+    //Draw video frame onto canvas context
     context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
-
+    //Extra image data from canvas context
     let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
     srcMat.data.set(imageData.data);
+    //Flip horizontally because camera feed is pre-flipped 
     cv.flip(srcMat, srcMat,1)
+    //Filters by color AND tracks ball positions by color
     const combinedColorMat = this.colorFilter(srcMat.clone())
 
     if(this.state.showRaw){
+      //Initialize final canvas with raw video
       cv.imshow('canvasOutput',srcMat)
     }else{
+      //Initialize final canvas with black background
       context.fillStyle = 'rgba(0, 0, 0, 1)';
       context.fillRect(0, 0, this.state.videoWidth, this.state.videoHeight);
     }
-    combinedColorMat.delete();srcMat.delete()
+
+    //Draw balls and tails 
     this.drawTails(context)
+
+    //Draw body keypoints
     if(this.state.showPosePoints){
       this.detectPose(context)
       this.drawPose(context)
     }
 
+    //Draw lines between balls of same color
     if(this.state.connectSameColor){
       this.drawConnections(context)
     }
 
+    //Trim histories to tail length
     this.trimHistories()
 
-    requestAnimationFrame(this.processVideo);
+    //Clean up all possible data 
+    combinedColorMat.delete();srcMat.delete()
     imageData = null
+    
+    //Process next frame
+    requestAnimationFrame(this.processVideo);
+    
   }
   handleColorNum=(e)=>{
     if(e.target.value < 0){
