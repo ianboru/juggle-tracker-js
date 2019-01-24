@@ -2,8 +2,6 @@ import React, { Component } from 'react';
 import './App.css';
 import cv from 'opencv.js';
 import utils from './utils'
-import * as tf from '@tensorflow/tfjs';
-import * as posenet from '@tensorflow-models/posenet';
 import Recorder from './recorder'
 import store from "./store"
 import { observer } from "mobx-react"
@@ -45,7 +43,6 @@ class App extends Component {
     showRaw : true,
     tailLength : 1,
     connectSameColor : false,
-    showPosePoints : false,
     mediaRecorder : null,
     recordedBlobs : null,
     mediaSource : new MediaSource(),
@@ -55,13 +52,6 @@ class App extends Component {
   }
 
   componentDidMount=()=>{
-    posenet.load().then(data=>{
-      console.log("posenet loaded")
-       this.setState({
-          net : data
-        })
-
-    });
     this.startCamera()
   }
   startCamera=()=> {
@@ -153,35 +143,7 @@ class App extends Component {
     
     src.delete();dst.delete(); contours.delete(); hierarchy.delete();
   }
-  drawPose = (context)=>{
-
-    var boxSize = 5
-    context.lineWidth = 4;
-    context.strokeStyle = 'rgba(255,255,255,0.8)'
-    if(this.state.pose){
-      this.state.pose.keypoints.forEach((keypoint,index)=>{
-        if(keypoint.score > scoreThreshold){
-          console.log("drawing keypoint",keypoint.part, keypoint.position.x,keypoint.position.y )
-
-          context.strokeRect(keypoint.position.x - boxSize/2 , keypoint.position.y - boxSize/2, boxSize, boxSize);
-
-        }
-      })
-    }
-  }
-  detectPose = ()=>{
-    if(this.state.net){
-
-      var imageScaleFactor = 0.5;
-      var outputStride = 16;
-      var flipHorizontal = true;
-      this.state.net.estimateSinglePose(this.video,imageScaleFactor, flipHorizontal, outputStride).then(pose=>{
-        this.setState({
-          pose
-        })
-      });
-    }
-  }
+  
   drawCircle = (context, x,y,r, color)=>{
     context.beginPath();
     context.arc(x, y, r, 0, 2 * Math.PI, false);
@@ -307,11 +269,6 @@ class App extends Component {
     //Draw balls and tails 
     this.drawTails(context)
 
-    //Draw body keypoints
-    if(this.state.showPosePoints){
-      this.detectPose(context)
-      this.drawPose(context)
-    }
 
     //Draw lines between balls of same color
     if(this.state.connectSameColor){
@@ -490,11 +447,7 @@ class App extends Component {
       connectSameColor : !this.state.connectSameColor
     })
   }
-  toggleDrawPose=()=>{
-    this.setState({
-      showPosePoints : !this.state.showPosePoints
-    })
-  }
+
   handleDataAvailable=(event)=>{
     let recordedBlobs = this.state.recordedBlobs
     if (event.data && event.data.size > 0) {
@@ -657,7 +610,6 @@ class App extends Component {
         <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
         <h1>Animation Controls</h1>
         <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
-        <button style={{'fontSize':'12pt'}} onClick={this.toggleDrawPose}>Draw Body Parts</button>
         <br/>
         <br/>
         <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="lg" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
