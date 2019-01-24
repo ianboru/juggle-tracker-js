@@ -62,6 +62,7 @@ class App extends Component {
         })
 
     });
+    this.startCamera()
   }
   startCamera=()=> {
     let that = this
@@ -90,9 +91,7 @@ class App extends Component {
         that.canvasOutput.height = videoHeight;
         that.setState({
           videoWidth,
-          videoHeight
-        })
-        that.setState({
+          videoHeight,
           streaming : true,
         })
       }
@@ -350,10 +349,7 @@ class App extends Component {
     })
     
   }
-  opencvIsReady=()=> {
-    console.log('OpenCV.js is ready');
-    this.startCamera();
-  }
+
   handleRGBChange=(e)=>{
     let state = this.state
     state[e.target.name] =parseInt(e.target.value)
@@ -521,6 +517,9 @@ class App extends Component {
     const downloadButton = document.querySelector('button#download');
     console.log("first",recordButton.textContent,this.canvasOutput.display , this.canvasOutput.hidden )
     if (recordButton.textContent === 'Start Recording') {
+      if(!this.state.streaming){
+        this.startCamera()
+      }
       this.recordedVideo.hidden = true
       this.canvasOutput.hidden = false
       this.canvasOutput.style.display = "inline"
@@ -528,6 +527,7 @@ class App extends Component {
       this.startRecording();
     } else {
       this.stopRecording();
+      this.stopCamera();
       this.recordedVideo.controls = true
       this.recordedVideo.hidden = false
       this.canvasOutput.style.display = "none"
@@ -645,24 +645,27 @@ class App extends Component {
     return (
       <div className="App">
         <br/>
-        <button style={{'fontSize':'12pt'}} onClick={this.startCamera}>Start Video</button> 
-        <button style={{'fontSize':'12pt'}} onClick={this.stopCamera}>Stop Video</button>
+        <h1>Video Controls</h1>
+        <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
         <button style={{'fontSize':'12pt'}} onClick={this.toggleShowRaw}>Filtered/Raw Video</button>       
-        <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
-        <button style={{'fontSize':'12pt'}} onClick={this.toggleDrawPose}>Draw Body Parts</button>
+        <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
+
         <br/>
         <br/>
         
         <canvas display ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
         <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
+        <h1>Animation Controls</h1>
+        <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
+        <button style={{'fontSize':'12pt'}} onClick={this.toggleDrawPose}>Draw Body Parts</button>
         <br/>
-        <button id="record" onClick={this.toggleRecording}>Start Recording</button>
-        <button id="download" onClick={this.download} >Download</button>
+        <br/>
+        <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="lg" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
+        <br/>
         <br/>
          
-         <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="lg" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
 
-        <h1>choose color ranges</h1>
+        <h3>choose color ranges</h3>
         <label>Total Number of Colors</label><input type="number" value={this.state.totalNumColors} onChange={this.handleTotalNumColors}/>
 
         {sliders}
