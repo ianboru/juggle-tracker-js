@@ -518,7 +518,6 @@ class App extends Component {
 
   toggleRecording=()=>{
     const recordButton = document.querySelector('button#record');
-    const playButton = document.querySelector('button#play');
     const downloadButton = document.querySelector('button#download');
     console.log("first",recordButton.textContent,this.canvasOutput.display , this.canvasOutput.hidden )
     if (recordButton.textContent === 'Start Recording') {
@@ -533,7 +532,6 @@ class App extends Component {
       this.recordedVideo.hidden = false
       this.canvasOutput.style.display = "none"
       recordButton.textContent = 'Start Recording';
-      playButton.disabled = false;
       downloadButton.disabled = false;
     }
     console.log("second", recordButton.textContent,this.canvasOutput.display , this.canvasOutput.hidden )
@@ -577,11 +575,9 @@ class App extends Component {
     }
     console.log('Created MediaRecorder', mediaRecorder, 'with options', options);
     const recordButton = document.querySelector('button#record');
-    const playButton = document.querySelector('button#play');
     const downloadButton = document.querySelector('button#download');
 
     recordButton.textContent = 'Stop Recording';
-    playButton.disabled = true;
     downloadButton.disabled = true;
     mediaRecorder.onstop = this.handleStop;
     mediaRecorder.ondataavailable = this.handleDataAvailable;
@@ -655,14 +651,17 @@ class App extends Component {
         <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
         <button style={{'fontSize':'12pt'}} onClick={this.toggleDrawPose}>Draw Body Parts</button>
         <br/>
-        <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="lg" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
+        <br/>
+        
+        <canvas display ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
+        <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
         <br/>
         <button id="record" onClick={this.toggleRecording}>Start Recording</button>
-          <button id="play" onClick={this.play} disabled>Play</button>
-          <button id="download" onClick={this.download} >Download</button>
-          <br/>
-          <canvas display ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
-          <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
+        <button id="download" onClick={this.download} >Download</button>
+        <br/>
+         
+         <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="lg" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
+
         <h1>choose color ranges</h1>
         <label>Total Number of Colors</label><input type="number" value={this.state.totalNumColors} onChange={this.handleTotalNumColors}/>
 
