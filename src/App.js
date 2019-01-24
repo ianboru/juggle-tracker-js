@@ -195,12 +195,12 @@ class App extends Component {
           }else{
             currentWindowSize = Math.min(xHistory.length, maxWindowSize)
           }
-          for (let i=0; i < currentWindowSize; ++i){
-            const lastX = xHistory[xHistory.length - 1 - i]
-            const lastY = yHistory[yHistory.length - 1 - i]
-            const lastR = rHistory[rHistory.length - 1 - i]
-            const color = utils.calculateCurrentColor(ballColors,(1-(i/currentWindowSize)))
-            this.drawCircle(context,lastX, lastY, lastR*(1-(i/currentWindowSize)), color)
+          for (let t=0; t < currentWindowSize; ++t){
+            const lastX = xHistory[xHistory.length - 1 - t]
+            const lastY = yHistory[yHistory.length - 1 - t]
+            const lastR = rHistory[rHistory.length - 1 - t]
+            const color = utils.calculateCurrentColor(ballColors,(1-(t/currentWindowSize)))
+            this.drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), color)
           }
         }
         ballNum += 1
@@ -422,24 +422,22 @@ class App extends Component {
     let histories = []
 
     this.state.positions.forEach((colorPositions, colorNum)=>{
-
-      if(!histories[colorNum]){
-        histories[colorNum] = []
-      }
+      histories[colorNum] = []
       colorPositions.forEach((history,ballNum)=>{
+        histories[colorNum][ballNum] = []
         if(history['x'].length > this.state.tailLength){
           histories[colorNum][ballNum]['x'] = history['x'].slice(history['x'].length - 1 - this.state.tailLength, history['x'].length)
           histories[colorNum][ballNum]['y'] = history['y'].slice(history['y'].length - 1 - this.state.tailLength, history['y'].length)
           histories[colorNum][ballNum]['r'] = history['r'].slice(history['r'].length - 1 - this.state.tailLength, history['r'].length)
+        }else{
+          histories[colorNum][ballNum] = this.state.positions[colorNum][ballNum]
         }
       })
     })
 
-    if(histories.length > 0){
-      this.setState({
-        positions : histories
-      })
-    }
+    this.setState({
+      positions : histories
+    })
     histories = null
   }
   handleNumObjects=(e)=>{
@@ -519,7 +517,7 @@ class App extends Component {
             <label>Total Number of Colors</label><input type="number" value={this.state.totalNumColors} onChange={this.handleTotalNumColors}/>
 
             {sliders}
-            <video hidden={true} width={320} height={240} playsInline className="invisible" ref={ref => this.video = ref}></video>
+            <video hidden={true} width={320} height={240} muted playsInline autoplay className="invisible" ref={ref => this.video = ref}></video>
           </div>
         </div>
     );
