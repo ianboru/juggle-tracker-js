@@ -3,7 +3,6 @@ import logo from './logo.svg';
 import './App.css';
 import cv from 'opencv.js';
 import utils from './utils'
-import VideoRecorder from 'react-video-recorder'
 import * as tf from '@tensorflow/tfjs';
 import * as posenet from '@tensorflow-models/posenet';
 const scoreThreshold = .5
