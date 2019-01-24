@@ -64,10 +64,46 @@ function sortContours(contours){
 function mean(x,y){
     return (x + y)/2
 }
+const red = {
+    'lr' : 40,
+    'lg' : 0,
+    'lb' : 0,
+    'hr' : 255,
+    'hg' : 30,
+    'hb' : 60,
+  }
+const green = {
+    'lr' : 0,
+    'lg' : 80,
+    'lb' : 0,
+    'hr' : 50,
+    'hg' : 255,
+    'hb' : 80,
+  }
+const blue = {
+    'lr' : 0,
+    'lg' : 0,
+    'lb' : 60,
+    'hr' : 50,
+    'hg' : 100,
+    'hb' : 255,
+  }
+const white = {
+    'lr' : 220,
+    'lg' : 225,
+    'lb' : 230,
+    'hr' : 255,
+    'hg' : 255,
+    'hb' : 255,
+  }
 export default { 
     calculateCurrentColor,
     mean,
     sortContours,
     RGBtoHSV,
-    HSVtoRGB
+    HSVtoRGB,
+    red,
+    green,
+    blue,
+    white
 }

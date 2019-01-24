@@ -3,38 +3,10 @@ import logo from './logo.svg';
 import './App.css';
 import cv from 'opencv.js';
 import utils from './utils'
-const red = {
-    'lr' : 40,
-    'lg' : 0,
-    'lb' : 0,
-    'hr' : 255,
-    'hg' : 30,
-    'hb' : 60,
-  }
-const green = {
-    'lr' : 0,
-    'lg' : 80,
-    'lb' : 0,
-    'hr' : 50,
-    'hg' : 255,
-    'hb' : 80,
-  }
-const blue = {
-    'lr' : 0,
-    'lg' : 0,
-    'lb' : 60,
-    'hr' : 50,
-    'hg' : 100,
-    'hb' : 255,
-  }
-const white = {
-    'lr' : 220,
-    'lg' : 225,
-    'lb' : 230,
-    'hr' : 255,
-    'hg' : 255,
-    'hb' : 255,
-  }
+import VideoRecorder from 'react-video-recorder'
+import * as tf from '@tensorflow/tfjs';
+import * as posenet from '@tensorflow-models/posenet';
+const scoreThreshold = .5
 class App extends Component {
 
   state = {
@@ -53,6 +25,7 @@ class App extends Component {
     hr : 20,
     hg : 50,
     hb : 255,
+    net : null,
     allColors : [{},{
       numObjects : 1,
       lr : 0,
@@ -69,14 +42,23 @@ class App extends Component {
     showRaw : true,
     tailLength : 1,
     connectSameColor : false,
+    showPosePoints : false
   }
 
-  
+  componentDidMount=()=>{
+    posenet.load().then(data=>{
+      console.log("posenet loaded")
+       this.setState({
+          net : data
+        })
+
+    });
+  }
   startCamera=()=> {
     let that = this
     if (this.state.streaming) return;
 
-      navigator.mediaDevices.getUserMedia({video: {width:320, height:240}, audio: false})
+      navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user', width:320, height:240}, audio: false})
         .then(function(s) {
 
         that.setState({
@@ -158,7 +140,35 @@ class App extends Component {
     
     src.delete();dst.delete(); contours.delete(); hierarchy.delete();
   }
-  
+  drawPose = (context)=>{
+
+    var boxSize = 5
+    context.lineWidth = 4;
+    context.strokeStyle = 'rgba(255,255,255,0.8)'
+    if(this.state.pose){
+      this.state.pose.keypoints.forEach((keypoint,index)=>{
+        if(keypoint.score > scoreThreshold){
+          console.log("drawing keypoint",keypoint.part, keypoint.position.x,keypoint.position.y )
+
+          context.strokeRect(keypoint.position.x - boxSize/2 , keypoint.position.y - boxSize/2, boxSize, boxSize);
+
+        }
+      })
+    }
+  }
+  detectPose = ()=>{
+    if(this.state.net){
+
+      var imageScaleFactor = 0.5;
+      var outputStride = 16;
+      var flipHorizontal = true;
+      this.state.net.estimateSinglePose(this.video,imageScaleFactor, flipHorizontal, outputStride).then(pose=>{
+        this.setState({
+          pose
+        })
+      });
+    }
+  }
   drawCircle = (context, x,y,r, color)=>{
     context.beginPath();
     context.arc(x, y, r, 0, 2 * Math.PI, false);
@@ -214,7 +224,6 @@ class App extends Component {
             const curBallX = this.state.positions[colorNum][i]['x'][this.state.positions[colorNum][i]['x'].length-1]
             const curBallY = this.state.positions[colorNum][i]['y'][this.state.positions[colorNum][i]['y'].length-1]
             
-            console.log(colorNum,nextBallIndex, i)
             const nextBallX = this.state.positions[colorNum][nextBallIndex]['x'][this.state.positions[colorNum][nextBallIndex]['x'].length-1]
             const nextBallY = this.state.positions[colorNum][nextBallIndex]['y'][this.state.positions[colorNum][nextBallIndex]['y'].length-1]
             
@@ -222,7 +231,7 @@ class App extends Component {
             context.moveTo(curBallX, curBallY)
             context.lineTo(nextBallX, nextBallY)
             context.strokeStyle = utils.calculateCurrentColor(ballColors, 1);
-            context.lineWidth = 10;
+            context.lineWidth = 4;
             context.stroke();
           }
           ++ballNum
@@ -246,6 +255,8 @@ class App extends Component {
         let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
         cv.dilate(dst,dst,kernel)
         cv.dilate(dst,dst,kernel)
+        cv.dilate(dst,dst,kernel)
+
         if(previousDst){
           cv.add(dst,previousDst,dst)
           previousDst.delete()
@@ -260,13 +271,13 @@ class App extends Component {
   processVideo=()=> {
     let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
     const context = document.getElementById("canvasOutput").getContext("2d")
-    context.clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
+    //context.clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
     context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
 
     let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
     srcMat.data.set(imageData.data);
     cv.flip(srcMat, srcMat,1)
-    const finalMat = this.colorFilter(srcMat.clone())
+    const combinedColorMat = this.colorFilter(srcMat.clone())
 
     if(this.state.showRaw){
       cv.imshow('canvasOutput',srcMat)
@@ -274,8 +285,12 @@ class App extends Component {
       context.fillStyle = 'rgba(0, 0, 0, 1)';
       context.fillRect(0, 0, this.state.videoWidth, this.state.videoHeight);
     }
-    finalMat.delete();srcMat.delete()
+    combinedColorMat.delete();srcMat.delete()
     this.drawTails(context)
+    if(this.state.showPosePoints){
+      this.detectPose(context)
+      this.drawPose(context)
+    }
 
     if(this.state.connectSameColor){
       this.drawConnections(context)
@@ -347,17 +362,17 @@ class App extends Component {
     let numObjects = colorRanges[this.state.colorNum].numObjects
     
     if(e.target.name == "red"){
-      colorRanges[this.state.colorNum] = red
-      color = red
+      colorRanges[this.state.colorNum] = utils.red
+      color = utils.red
     }else if(e.target.name == "green"){
-      colorRanges[this.state.colorNum] = green
-      color = green
+      colorRanges[this.state.colorNum] = utils.green
+      color = utils.green
     }else if(e.target.name == "blue"){
-      colorRanges[this.state.colorNum] = blue
-      color = blue
+      colorRanges[this.state.colorNum] = utils.blue
+      color = utils.blue
     }else if(e.target.name == "white"){
-      colorRanges[this.state.colorNum] = white
-      color = white
+      colorRanges[this.state.colorNum] = utils.white
+      color = utils.white
     }
     colorRanges[this.state.colorNum].numObjects = numObjects
     tempState.allColors = colorRanges
@@ -406,10 +421,8 @@ class App extends Component {
   }
   trimHistories=()=>{
     let histories = []
-    console.log("trimming",window.performance.memory)
 
     this.state.positions.forEach((colorPositions, colorNum)=>{
-      console.log("looping",window.performance.memory)
 
       if(!histories[colorNum]){
         histories[colorNum] = []
@@ -422,7 +435,6 @@ class App extends Component {
         }
       })
     })
-    console.log("setting",window.performance.memory)
 
     if(histories.length > 0){
       this.setState({
@@ -453,6 +465,11 @@ class App extends Component {
     console.log("changing connect", this.state.connectSameColor, this.state.positions)
     this.setState({
       connectSameColor : !this.state.connectSameColor
+    })
+  }
+  toggleDrawPose=()=>{
+    this.setState({
+      showPosePoints : !this.state.showPosePoints
     })
   }
   render() {
@@ -489,6 +506,8 @@ class App extends Component {
         <button style={{'fontSize':'12pt'}} onClick={this.stopCamera}>Stop Video</button>
         <button style={{'fontSize':'12pt'}} onClick={this.toggleShowRaw}>Filtered/Raw Video</button>       
         <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
+        <button style={{'fontSize':'12pt'}} onClick={this.toggleDrawPose}>Draw Body Parts</button>
+
         <br/>
         <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="lg" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
        
@@ -501,7 +520,7 @@ class App extends Component {
             <label>Total Number of Colors</label><input type="number" value={this.state.totalNumColors} onChange={this.handleTotalNumColors}/>
 
             {sliders}
-            <video hidden={true} width={320} height={240} className="invisible" ref={ref => this.video = ref}></video>
+            <video hidden={true} width={320} height={240} playsInline className="invisible" ref={ref => this.video = ref}></video>
           </div>
         </div>
     );
@@ -509,6 +528,8 @@ class App extends Component {
 }
 
 export default App;
+
+
 
 /*
 <br/>
