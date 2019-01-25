@@ -18,29 +18,29 @@ class App extends Component {
     videoWidth : null,
     startTime : Date.now(),
     numObjects : 1,
-    lr : 0,
-    lg : 0,
-    lb : 50,
-    hr : 20,
-    hg : 50,
+    lr : 24,
+    lg : 75,
+    lb : 160,
+    hr : 45,
+    hg : 255,
     hb : 255,
     net : null,
     allColors : [{},{
       numObjects : 1,
-      lr : 0,
-      lg : 0,
-      lb : 50,
-      hr : 20,
-      hg : 50,
+      lr : 24,
+      lg : 75,
+      lb : 160,
+      hr : 45,
+      hg : 255,
       hb : 255,
     }],
-    colorNum : 1,
+    colorNum : 3,
     calibrating : true,
     positions : [],
     totalNumColors : 1,
     showRaw : true,
-    tailLength : 1,
-    connectSameColor : false,
+    tailLength : 0,
+    connectSameColor : true,
     showPosePoints : false
   }
 
@@ -255,16 +255,12 @@ class App extends Component {
         cv.cvtColor(src, temp, cv.COLOR_RGBA2RGB)
 
         // Blur the temporary image
-        //let ksize = new cv.Size(7, 7);
-        //let anchor = new cv.Point(-1, -1);
-        //cv.blur(temp, temp, ksize, anchor, cv.BORDER_DEFAULT);
+        let ksize = new cv.Size(11,11);
+        let anchor = new cv.Point(-1, -1);
+        cv.blur(temp, temp, ksize, anchor, cv.BORDER_DEFAULT);
 
         // Convert the RGB temporary image to HSV
         cv.cvtColor(temp, hsv, cv.COLOR_RGB2HSV)
-
-        // Hardcode the color green: 50,57,155,86,255,255
-        //let lower = [43, 60, 40,0];
-        //let higher = [79, 186, 255,255];
 
         // Get values for the color ranges from the trackbars
         let lower = [colorRange.lr, colorRange.lg, colorRange.lb,0];
@@ -277,26 +273,22 @@ class App extends Component {
         // Find the colors that are within (low, high)
         cv.inRange(hsv, low, high, dst);
 
-        //
-        // This 'dst' image needs to the shown to the user.
-        // Then, the user can see the color segmentation
-        // The 'dst' image is a black and white image
-
         // Track the balls - arguments: mask image, and number of balls
         this.trackBall(dst.clone(),colorNum)
 
-        let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
-        cv.dilate(dst,dst,kernel)
+        //let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
+        //cv.dilate(dst,dst,kernel)
 
-        if(previousDst){
+        /*if(previousDst){
           cv.add(dst,previousDst,dst)
           previousDst.delete()
-        }
+        }*/
         previousDst = dst.clone()
-        kernel.delete();low.delete();high.delete();
+        //kernel.delete();
+        low.delete();high.delete();
       }
     })
-    src.delete()
+    src.delete();temp.delete();hsv.delete();
     return dst
   }
   processVideo=()=> {
@@ -313,15 +305,12 @@ class App extends Component {
     const combinedColorMat = this.colorFilter(srcMat.clone())
 
     if(this.state.showRaw){
-      //Initialize final canvas with raw video
-      // draw a circle that indicates the trackbar color
-      this.drawCircle(context,100, 100, 50, (123,234,123))
-
+      // Initialize final canvas with raw video
       cv.imshow('canvasOutput',srcMat)
     }else{
-      //Initialize final canvas with black background
-      context.fillStyle = 'rgba(0, 0, 0, 1)';
-      context.fillRect(0, 0, this.state.videoWidth, this.state.videoHeight);
+      // Initialize final canvas with the mask of the colors within the color ranges
+      // This setting is used when calibrating the colors
+      cv.imshow('canvasOutput',this.colorFilter(srcMat.clone()))
     }
 
     //Draw balls and tails
@@ -561,6 +550,8 @@ class App extends Component {
          <div id="container">
             <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
             <br/>
+               <canvas ref={ref => this.canvasOutput1 = ref}  className="center-block" id="canvasOutput1" width={320} height={240}></canvas>
+               <br/>
 
             <h1>choose color ranges</h1>
             <label>Total Number of Colors</label><input type="number" value={this.state.totalNumColors} onChange={this.handleTotalNumColors}/>
@@ -574,19 +565,3 @@ class App extends Component {
 }
 
 export default App;
-
-
-
-/*
-<br/>
-<h3>current color setting</h3>
-<div style={{
-  'width' : '80px',
-  'height' : '80px',
-  'margin' : '0 auto',
-  'backgroundColor':utils.calculateCurrentColor(
-    this.state.allColors[this.state.colorNum],1
-    )
-}}
-></div>
-*/
