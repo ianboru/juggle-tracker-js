@@ -36,7 +36,7 @@ class App extends Component {
       hg : 255,
       hb : 255,
     }],
-    colorNum : 3,
+    colorNum : 1,
     calibrating : true,
     positions : [],
     totalNumColors : 1,
@@ -352,13 +352,11 @@ class App extends Component {
       'hg' : this.state.hg,
       'hb' : this.state.hb,
     }
-    console.log("setting color range", colorRanges)
     this.setState({
       allColors : colorRanges
     })
   }
   setColorPreset=(e)=>{
-    console.log("setting color" , this.state.allColors)
 
     let tempState = this.state
     let color = {}
@@ -487,7 +485,7 @@ class App extends Component {
     console.log('Recorder stopped: ', event);
     const superBuffer = new Blob(this.state.recordedBlobs, {type: 'video/webm'});
     this.recordedVideo.src = window.URL.createObjectURL(superBuffer);
-
+    
   }
 
   toggleRecording=()=>{
@@ -630,25 +628,21 @@ class App extends Component {
         <br/>
         <br/>
         
-        <canvas display ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
+        <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
         <br/>
-         <canvas ref={ref => this.canvasOutput1 = ref}  className="center-block" id="canvasOutput1" width={320} height={240}></canvas>
-         <br/>
         <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
+        <h3>choose color ranges</h3>
+        <label>Total Number of Colors</label><input type="number" value={this.state.totalNumColors} onChange={this.handleTotalNumColors}/>
+
+        {sliders}
+
         <h1>Animation Controls</h1>
         <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
         <br/>
         <br/>
         <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="lg" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
         <br/>
-        <br/>
-         
-
-        <h3>choose color ranges</h3>
-        <label>Total Number of Colors</label><input type="number" value={this.state.totalNumColors} onChange={this.handleTotalNumColors}/>
-
-        {sliders}
-          
+        <br/>   
         <video hidden={true} width={320} height={240} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
         
 
