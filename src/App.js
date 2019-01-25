@@ -106,7 +106,7 @@ class App extends Component {
     if (src != null && !src.isDeleted()) src.delete();
 
   }
-  
+
   trackBall=(src,colorNum)=>{
     let allPositions = this.state.positions
 
@@ -115,7 +115,7 @@ class App extends Component {
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
     cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
-    
+
     const sortedContourIndices = utils.sortContours(contours)
     if(sortedContourIndices.length > 0){
       const numObjects = this.state.allColors[colorNum].numObjects
@@ -135,12 +135,12 @@ class App extends Component {
         allPositions[colorNum][i]['y'].push(circle.center.y)
         allPositions[colorNum][i]['r'].push(circle.radius)
       }
-      
+
       this.setState({
         positions : allPositions
       })
     }
-    
+
     src.delete();dst.delete(); contours.delete(); hierarchy.delete();
   }
   
@@ -193,15 +193,15 @@ class App extends Component {
         for(let i = 0; i < ballColors.numObjects; ++i){
           let nextBallIndex = i+1
           if(i == ballColors.numObjects-1){
-            nextBallIndex = 0 
+            nextBallIndex = 0
           }
           if(this.state.positions[colorNum][i] && this.state.positions[colorNum][nextBallIndex]){
             const curBallX = this.state.positions[colorNum][i]['x'][this.state.positions[colorNum][i]['x'].length-1]
             const curBallY = this.state.positions[colorNum][i]['y'][this.state.positions[colorNum][i]['y'].length-1]
-            
+
             const nextBallX = this.state.positions[colorNum][nextBallIndex]['x'][this.state.positions[colorNum][nextBallIndex]['x'].length-1]
             const nextBallY = this.state.positions[colorNum][nextBallIndex]['y'][this.state.positions[colorNum][nextBallIndex]['y'].length-1]
-            
+
             context.beginPath();
             context.moveTo(curBallX, curBallY)
             context.lineTo(nextBallX, nextBallY)
@@ -214,22 +214,54 @@ class App extends Component {
       }
     })
   }
+
+
   colorFilter=(src)=>{
-    let previousDst 
+    let previousDst
     let dst = new cv.Mat();
+
+    // Create a two new mat objects for the image in different color spaces
+    let temp = new cv.Mat();
+    let hsv = new cv.Mat();
+
     this.state.allColors.forEach((colorRange,colorNum)=>{
       if(colorNum > 0){
-        const lowHSV = utils.RGBtoHSV(colorRange.lr, colorRange.lg, colorRange.lb)
-        lowHSV.push(0)
-        const highHSV = utils.RGBtoHSV(colorRange.hr, colorRange.hg, colorRange.hb)
-        highHSV.push(255)
-        const low = new cv.Mat(src.rows, src.cols, src.type(), [colorRange.lr, colorRange.lg, colorRange.lb, 0]);
-        const high = new cv.Mat(src.rows, src.cols, src.type(), [colorRange.hr, colorRange.hg, colorRange.hb, 255]);
-        cv.inRange(src,low, high, dst);
+
+        // Convert the RGBA source image to RGB
+        cv.cvtColor(src, temp, cv.COLOR_RGBA2RGB)
+
+        // Blur the temporary image
+        //let ksize = new cv.Size(7, 7);
+        //let anchor = new cv.Point(-1, -1);
+        //cv.blur(temp, temp, ksize, anchor, cv.BORDER_DEFAULT);
+
+        // Convert the RGB temporary image to HSV
+        cv.cvtColor(temp, hsv, cv.COLOR_RGB2HSV)
+
+        // Hardcode the color green: 50,57,155,86,255,255
+        //let lower = [43, 60, 40,0];
+        //let higher = [79, 186, 255,255];
+
+        // Get values for the color ranges from the trackbars
+        let lower = [colorRange.lr, colorRange.lg, colorRange.lb,0];
+        let higher = [colorRange.hr, colorRange.hg, colorRange.hb,255];
+
+        // Create the new mat objects that are the lower and upper ranges of the color
+        let low = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), lower);
+        let high = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), higher);
+
+        // Find the colors that are within (low, high)
+        cv.inRange(hsv, low, high, dst);
+
+        //
+        // This 'dst' image needs to the shown to the user.
+        // Then, the user can see the color segmentation
+        // The 'dst' image is a black and white image
+
+        // Track the balls - arguments: mask image, and number of balls
         this.trackBall(dst.clone(),colorNum)
+
         let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
-        cv.dilate(dst,dst,kernel)
-        cv.dilate(dst,dst,kernel)
         cv.dilate(dst,dst,kernel)
 
         if(previousDst){
@@ -246,44 +278,47 @@ class App extends Component {
   processVideo=()=> {
     if(this.canvasOutput){
       let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
-    const context = document.getElementById("canvasOutput").getContext("2d")
-    //Draw video frame onto canvas context
-    context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
-    //Extra image data from canvas context
-    let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
-    srcMat.data.set(imageData.data);
-    //Flip horizontally because camera feed is pre-flipped 
-    cv.flip(srcMat, srcMat,1)
-    //Filters by color AND tracks ball positions by color
-    const combinedColorMat = this.colorFilter(srcMat.clone())
+      const context = document.getElementById("canvasOutput").getContext("2d")
+      //Draw video frame onto canvas context
+      context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
+      //Extra image data from canvas context
+      let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
+      srcMat.data.set(imageData.data);
+      //Flip horizontally because camera feed is pre-flipped
+      cv.flip(srcMat, srcMat,1)
+      //Filters by color AND tracks ball positions by color
+      const combinedColorMat = this.colorFilter(srcMat.clone())
 
-    if(this.state.showRaw){
-      //Initialize final canvas with raw video
-      cv.imshow('canvasOutput',srcMat)
-    }else{
-      //Initialize final canvas with black background
-      context.fillStyle = 'rgba(0, 0, 0, 1)';
-      context.fillRect(0, 0, this.state.videoWidth, this.state.videoHeight);
-    }
+      if(this.state.showRaw){
+        //Initialize final canvas with raw video
+        // draw a circle that indicates the trackbar color
+        this.drawCircle(context,100, 100, 50, (123,234,123))
 
-    //Draw balls and tails 
-    this.drawTails(context)
+        cv.imshow('canvasOutput',srcMat)
+      }else{
+        //Initialize final canvas with black background
+        context.fillStyle = 'rgba(0, 0, 0, 1)';
+        context.fillRect(0, 0, this.state.videoWidth, this.state.videoHeight);
+      }
+
+      //Draw balls and tails
+      this.drawTails(context)
 
 
-    //Draw lines between balls of same color
-    if(this.state.connectSameColor){
-      this.drawConnections(context)
-    }
+      //Draw lines between balls of same color
+      if(this.state.connectSameColor){
+        this.drawConnections(context)
+      }
 
-    //Trim histories to tail length
-    this.trimHistories()
+      //Trim histories to tail length
+      this.trimHistories()
 
-    //Clean up all possible data 
-    combinedColorMat.delete();srcMat.delete()
-    imageData = null
-    
-    //Process next frame
-    requestAnimationFrame(this.processVideo);
+      //Clean up all possible data
+      combinedColorMat.delete();srcMat.delete()
+      imageData = null
+
+      //Process next frame
+      requestAnimationFrame(this.processVideo);
     }
   }
   handleColorNum=(e)=>{
@@ -304,7 +339,7 @@ class App extends Component {
     this.setState({
       streaming :false,
     })
-    
+
   }
 
   handleRGBChange=(e)=>{
@@ -338,11 +373,11 @@ class App extends Component {
     let tempState = this.state
     let color = {}
     let colorRanges = this.state.allColors
-   
+
     console.log("color ranges" , this.state.allColors, tempState.allColors)
     console.log(this.state.colorNum)
     let numObjects = colorRanges[this.state.colorNum].numObjects
-    
+
     if(e.target.name == "red"){
       colorRanges[this.state.colorNum] = utils.red
       color = utils.red
@@ -372,7 +407,7 @@ class App extends Component {
     if(colorNum%this.state.totalNumColors == 0 ){
       colorNum = 1
     }else{
-      colorNum += 1 
+      colorNum += 1
     }
 
     console.log("next color ", colorNum,this.state.allColors  )
@@ -426,7 +461,7 @@ class App extends Component {
   handleNumObjects=(e)=>{
     console.log("num objects", e.target.value)
     this.setState({
-      numObjects : e.target.value 
+      numObjects : e.target.value
     },()=>{
       this.setColorRange()
     })
@@ -567,9 +602,9 @@ class App extends Component {
     }, 100);
   }
   render() {
-    
-    const sliders = 
-        this.state.calibrating ? 
+
+    const sliders =
+        this.state.calibrating ?
         <div className="sliders">
           <label>Color Number</label><input type="input" value={this.state.colorNum} onChange={this.handleColorNum}/>
           <button onClick={this.nextColor}>Next Color</button>
@@ -593,8 +628,7 @@ class App extends Component {
           <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.hg}</span><label>High G</label><input name="hg" type="range" min={0} max={255} value={this.state.hg} onChange={this.handleRGBChange}/>
           <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.hb}</span><label>High B</label><input name="hb" type="range" min={0} max={255} value={this.state.hb} onChange={this.handleRGBChange}/>
         </div> : null
-      
-            
+
     return (
       <div className="App">
         <br/>
