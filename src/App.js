@@ -318,7 +318,6 @@ class App extends Component {
               const lastX = xHistory[xHistory.length - 1 - t]
               const lastY = yHistory[yHistory.length - 1 - t]
               const lastR = rHistory[rHistory.length - 1 - t]
-              console.log("tail color", utils.calculateCurrentHSVString(ballColors,(1-(t/currentWindowSize))))
               const color = utils.calculateCurrentHSVString(ballColors,(1-(t/currentWindowSize)))
               this.drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), color)
             }
@@ -631,7 +630,7 @@ class App extends Component {
         <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
         <br/>
         <br/>
-        <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="ls" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
+        <span style={{"padding" : "5px", "margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="ls" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
         <br/>
         <br/>   
         <video hidden={true} width={320} height={240} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
