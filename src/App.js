@@ -90,6 +90,7 @@ class App extends Component {
   }
   startVideoProcessing=()=> {
     //store.setVisiblePlayer("live")
+    const context = this.canvasOutput.getContext('2d')
     this.setState({
       canvasStream : this.canvasOutput.captureStream()
     })

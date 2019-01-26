@@ -123,7 +123,11 @@ class Recorder extends Component {
 			<div id="container">
 				<title>Record canvas stream</title>
 			    <video ref={ref => this.video = ref} id="recorded" playsInline loop></video>
-			    
+			    <div>
+			        <button id="record" onClick={this.toggleRecording}>Start Recording</button>
+			        <button id="play" onClick={this.play} diabled>Play</button>
+			        <button id="download" onClick={this.download} >Download</button>
+			    </div>
 
 			</div>
 		)

@@ -12,7 +12,6 @@ V0.2
 	- Upload video instead of using Cam
 
 	Bugs:
-	- Tail length doesn't work
 	- Color input arrows don't allow removing a color
 	- Stop video doesn't work 
 
