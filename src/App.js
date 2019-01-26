@@ -5,7 +5,7 @@ import utils from './utils'
 import Recorder from './recorder'
 import store from "./store"
 import { observer } from "mobx-react"
-import { PhotoshopPicker } from 'react-color';
+import { HuePicker } from 'react-color';
 
 const scoreThreshold = .5
 
@@ -207,6 +207,7 @@ class App extends Component {
             context.beginPath();
             context.moveTo(curBallX, curBallY)
             context.lineTo(nextBallX, nextBallY)
+            console.log(utils.calculateCurrentHSVString(ballColors, 1))
             context.strokeStyle = utils.calculateCurrentHSVString(ballColors, 1);
             context.lineWidth = 4;
             context.stroke();
@@ -496,10 +497,11 @@ class App extends Component {
     console.log(this.state.canvasStream)
     if(!this.state.canvasStream){
       alert('video not running');
-          console.error('Exception while creating MediaRecorder:');
+      console.error('Exception while creating MediaRecorder:');
+      return
     }
     try {
-      mediaRecorder = new MediaRecorder(this.stafte.canvasStream, options);
+      mediaRecorder = new MediaRecorder(this.state.canvasStream, options);
     } catch (e0) {
       console.log('Unable to create MediaRecorder with options Object: ', e0);
       try {
@@ -582,7 +584,7 @@ class App extends Component {
     const sliders =
         this.state.calibrating ?
         <div className="sliders">
-          <h3>Adjust Colors</h3>
+          <h3>Adjust Color Range</h3>
           <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.lh}</span><label>min H</label><input name="lh" type="range" min={0} max={360} step={1} value={this.state.lh} onChange={this.handleHSVSliderChange}/>
           <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.hh}</span><label>max H</label><input name="hh" type="range" min={0} max={360} step={1} value={this.state.hh} onChange={this.handleHSVSliderChange}/>
           <br/>
@@ -607,25 +609,21 @@ class App extends Component {
         <br/>
         
         <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
+        <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
+
         <br/>
-          <PhotoshopPicker
+          <HuePicker
             style={{'margin':'0 auto'}}
             color={ this.state.pickedColor }
             onChangeComplete={ this.handleChangeComplete }
           />
-        <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
         {sliders}
 
         <br/>
         <br/>
-
         <label>Color Number</label><input type="input" value={this.state.colorNum} onChange={this.handleColorNum}/>
         <button onClick={this.nextColor}>Next Color</button>
-        <br/>
-        <label>Number of Objects for this Color</label><input type="number" value={this.state.numObjects} onChange={this.handleNumObjects}/>
-        <br/>
-        <h3>choose color ranges</h3>
-        <label>Total Number of Colors</label><input type="number" value={this.state.totalNumColors} onChange={this.handleTotalNumColors}/>
+       
 
         
 

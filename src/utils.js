@@ -44,11 +44,8 @@ function RGBtoHSV(r, g, b) {
 
     return [h,s,v];
 }
-function calculateCurrentHSVString(ballColorRange,opacity){ 
-    const h = this.mean(ballColorRange['lh'],ballColorRange['hh'])
-    const s = this.mean(ballColorRange['ls'],ballColorRange['hs'])
-    const v = this.mean(ballColorRange['lv'],ballColorRange['hv'])
-    return "hsv(" + h + "," + s + "," + v + ","+opacity+")"
+function calculateCurrentHSVString(ballColorRange,opacity){
+    return "hsv(" + ballColorRange['hh'] + "," + ballColorRange['hs'] + "," + ballColorRange['hv'] + ","+opacity+")"
 }
 function calculateCurrentHSV(ballColorRange,opacity){ 
     return "hsv(" + ballColorRange['hh'] + "," + ballColorRange['hs'] + "," + ballColorRange['hv'] + ","+opacity+")"
