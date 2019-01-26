@@ -5,6 +5,7 @@ import utils from './utils'
 import Recorder from './recorder'
 import store from "./store"
 import { observer } from "mobx-react"
+import { PhotoshopPicker } from 'react-color';
 
 const scoreThreshold = .5
 
@@ -20,21 +21,21 @@ class App extends Component {
     videoWidth : null,
     startTime : Date.now(),
     numObjects : 1,
-    lr : 24,
-    lg : 75,
-    lb : 160,
-    hr : 45,
-    hg : 255,
-    hb : 255,
+    lh : 0,
+    ls : .2,
+    lv : .2,
+    hh : 360,
+    hs : 1,
+    hv : 1,
     net : null,
     allColors : [{},{
       numObjects : 1,
-      lr : 24,
-      lg : 75,
-      lb : 160,
-      hr : 45,
-      hg : 255,
-      hb : 255,
+      lh : 0,
+      ls : .2,
+      lv : .2,
+      hh : 360,
+      hs : 1,
+      hv : 1,
     }],
     colorNum : 1,
     calibrating : true,
@@ -48,7 +49,7 @@ class App extends Component {
     mediaSource : new MediaSource(),
     mediaSource : null,
     visiblePlayer : "live",
-    canvasStream : null
+    canvasStream : null,
   }
 
   componentDidMount=()=>{
@@ -176,7 +177,7 @@ class App extends Component {
             const lastX = xHistory[xHistory.length - 1 - t]
             const lastY = yHistory[yHistory.length - 1 - t]
             const lastR = rHistory[rHistory.length - 1 - t]
-            const color = utils.calculateCurrentColor(ballColors,(1-(t/currentWindowSize)))
+            const color = utils.calculateCurrentHSVString(ballColors,(1-(t/currentWindowSize)))
             this.drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), color)
           }
         }
@@ -206,7 +207,7 @@ class App extends Component {
             context.beginPath();
             context.moveTo(curBallX, curBallY)
             context.lineTo(nextBallX, nextBallY)
-            context.strokeStyle = utils.calculateCurrentColor(ballColors, 1);
+            context.strokeStyle = utils.calculateCurrentHSVString(ballColors, 1);
             context.lineWidth = 4;
             context.stroke();
           }
@@ -216,7 +217,7 @@ class App extends Component {
     })
   }
 
-
+  
   colorFilter=(src)=>{
     let previousDst
     let dst = new cv.Mat();
@@ -238,14 +239,18 @@ class App extends Component {
 
         // Convert the RGB temporary image to HSV
         cv.cvtColor(temp, hsv, cv.COLOR_RGB2HSV)
-
         // Get values for the color ranges from the trackbars
-        let lower = [colorRange.lr, colorRange.lg, colorRange.lb,0];
-        let higher = [colorRange.hr, colorRange.hg, colorRange.hb,255];
 
+        let lowerHSV = utils.htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
+        lowerHSV.push(0)
+        let higherHSV = utils.htmlToOpenCVHSV([colorRange.hh, colorRange.hs, colorRange.hv])
+        higherHSV.push(255)
+        let lower = [colorRange.lh, colorRange.ls, colorRange.lv,0];
+        let higher = [colorRange.hh, colorRange.hs, colorRange.hv,255];
+        console.log("lower higher", lower, higher)
         // Create the new mat objects that are the lower and upper ranges of the color
-        let low = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), lower);
-        let high = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), higher);
+        let low = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), lowerHSV);
+        let high = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), higherHSV);
 
         // Find the colors that are within (low, high)
         cv.inRange(hsv, low, high, dst);
@@ -253,15 +258,7 @@ class App extends Component {
         // Track the balls - arguments: mask image, and number of balls
         this.trackBall(dst.clone(),colorNum)
 
-        //let kernel = cv.Mat.ones(5, 5, cv.CV_8U);
-        //cv.dilate(dst,dst,kernel)
-
-        /*if(previousDst){
-          cv.add(dst,previousDst,dst)
-          previousDst.delete()
-        }*/
         previousDst = dst.clone()
-        //kernel.delete();
         low.delete();high.delete();
       }
     })
@@ -289,7 +286,7 @@ class App extends Component {
       }else{
         // Initialize final canvas with the mask of the colors within the color ranges
         // This setting is used when calibrating the colors
-        cv.imshow('canvasOutput',this.colorFilter(srcMat.clone()))
+        cv.imshow('canvasOutput',combinedColorMat)
       }
 
       //Draw balls and tails
@@ -333,9 +330,10 @@ class App extends Component {
 
   }
 
-  handleRGBChange=(e)=>{
+  handleHSVSliderChange=(e)=>{
     let state = this.state
-    state[e.target.name] =parseInt(e.target.value)
+    console.log(e.target.value)
+    state[e.target.name] =parseFloat(e.target.value)
     this.setState({
       state
     },()=>{
@@ -346,49 +344,20 @@ class App extends Component {
     let colorRanges = this.state.allColors
     colorRanges[this.state.colorNum] = {
       'numObjects' : parseInt(this.state.numObjects),
-      'lr' : this.state.lr,
-      'lg' : this.state.lg,
-      'lb' : this.state.lb,
-      'hr' : this.state.hr,
-      'hg' : this.state.hg,
-      'hb' : this.state.hb,
+      'lh' : this.state.lh,
+      'ls' : this.state.ls,
+      'lv' : this.state.lv,
+      'hh' : this.state.hh,
+      'hs' : this.state.hs,
+      'hv' : this.state.hv,
     }
     this.setState({
-      allColors : colorRanges
+      allColors : colorRanges,
+      pickedColor : utils.calculateCurrentHSV(colorRanges[this.state.colorNum])
+
     })
   }
-  setColorPreset=(e)=>{
 
-    let tempState = this.state
-    let color = {}
-    let colorRanges = this.state.allColors
-
-    console.log("color ranges" , this.state.allColors, tempState.allColors)
-    console.log(this.state.colorNum)
-    let numObjects = colorRanges[this.state.colorNum].numObjects
-
-    if(e.target.name == "red"){
-      colorRanges[this.state.colorNum] = utils.red
-      color = utils.red
-    }else if(e.target.name == "green"){
-      colorRanges[this.state.colorNum] = utils.green
-      color = utils.green
-    }else if(e.target.name == "blue"){
-      colorRanges[this.state.colorNum] = utils.blue
-      color = utils.blue
-    }else if(e.target.name == "white"){
-      colorRanges[this.state.colorNum] = utils.white
-      color = utils.white
-    }
-    colorRanges[this.state.colorNum].numObjects = numObjects
-    tempState.allColors = colorRanges
-    console.log("final state", tempState.allColors)
-
-    tempState = Object.assign(tempState, color);
-    this.setState(
-      tempState
-    )
-  }
   nextColor=()=>{
     this.setColorRange()
     let colorNum = this.state.colorNum
@@ -404,12 +373,12 @@ class App extends Component {
       this.setState({
         colorNum,
         numObjects : this.state.allColors[colorNum].numObjects,
-        lr : this.state.allColors[colorNum]['lr'],
-        lg : this.state.allColors[colorNum]['lg'],
-        lb : this.state.allColors[colorNum]['lb'],
-        hr : this.state.allColors[colorNum]['hr'],
-        hg : this.state.allColors[colorNum]['hg'],
-        hb : this.state.allColors[colorNum]['hb'],
+        lh : this.state.allColors[colorNum]['lh'],
+        ls : this.state.allColors[colorNum]['ls'],
+        lv : this.state.allColors[colorNum]['lv'],
+        hh : this.state.allColors[colorNum]['hh'],
+        hs : this.state.allColors[colorNum]['hs'],
+        hv : this.state.allColors[colorNum]['hv'],
       })
     }else{
       this.setState({
@@ -530,7 +499,7 @@ class App extends Component {
           console.error('Exception while creating MediaRecorder:');
     }
     try {
-      mediaRecorder = new MediaRecorder(this.state.canvasStream, options);
+      mediaRecorder = new MediaRecorder(this.stafte.canvasStream, options);
     } catch (e0) {
       console.log('Unable to create MediaRecorder with options Object: ', e0);
       try {
@@ -590,36 +559,44 @@ class App extends Component {
       window.URL.revokeObjectURL(url);
     }, 100);
   }
+
+  handleChangeComplete = (color) => {
+    this.setState({ pickedColor: color.hsv });
+    console.log(color)
+    let colorRanges = this.state.allColors
+    const hRange = 60
+    console.log(Math.round(color.hsv.h) - hRange, 0)
+    let lowH = Math.max(Math.round(color.hsv.h) - hRange, 0)
+    colorRanges[this.state.colorNum]['hh'] = Math.round(color.hsv.h)
+    colorRanges[this.state.colorNum]['lh'] = lowH
+
+    this.setState({
+      allColors : colorRanges,
+      'hh' : Math.round(color.hsv.h),
+
+      'lh' : lowH,
+    })
+  };
   render() {
 
     const sliders =
         this.state.calibrating ?
         <div className="sliders">
-          <label>Color Number</label><input type="input" value={this.state.colorNum} onChange={this.handleColorNum}/>
-          <button onClick={this.nextColor}>Next Color</button>
-          <br/>
-          <label>Number of Objects for this Color</label><input type="number" value={this.state.numObjects} onChange={this.handleNumObjects}/>
-          <br/>
-          <h3>Preset Colors</h3>
-          <button style={{"backgroundColor":'red', 'color': 'white','fontSize':'12pt'}} name="red" onClick={this.setColorPreset}>Red</button>
-          <button style={{"backgroundColor":'green', 'color': 'white','fontSize':'12pt'}} name="green" onClick={this.setColorPreset}>Green</button>
-          <button style={{"backgroundColor":'blue', 'color': 'white','fontSize':'12pt'}} name="blue" onClick={this.setColorPreset}>Blue</button>
-          <button style={{"backgroundColor":'white', 'color': 'black','fontSize':'12pt'}} name="white" onClick={this.setColorPreset}>White</button>
-
-          <br/>
           <h3>Adjust Colors</h3>
-          <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.lr}</span><label>Low R</label><input name="lr" type="range" min={0} max={255} value={this.state.lr} onChange={this.handleRGBChange}/>
-          <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.lg}</span><label>Low G</label><input name="lg" type="range" min={0} max={255} value={this.state.lg} onChange={this.handleRGBChange}/>
-          <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.lb}</span><label>Low B</label><input name="lb" type="range" min={0} max={255} value={this.state.lb} onChange={this.handleRGBChange}/>
+          <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.lh}</span><label>min H</label><input name="lh" type="range" min={0} max={360} step={1} value={this.state.lh} onChange={this.handleHSVSliderChange}/>
+          <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.hh}</span><label>max H</label><input name="hh" type="range" min={0} max={360} step={1} value={this.state.hh} onChange={this.handleHSVSliderChange}/>
           <br/>
           <br/>
-          <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.hr}</span><label>High R</label><input name="hr" type="range" min={0} max={255} value={this.state.hr} onChange={this.handleRGBChange}/>
-          <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.hg}</span><label>High G</label><input name="hg" type="range" min={0} max={255} value={this.state.hg} onChange={this.handleRGBChange}/>
-          <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.hb}</span><label>High B</label><input name="hb" type="range" min={0} max={255} value={this.state.hb} onChange={this.handleRGBChange}/>
+          <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.ls}</span><label>min S</label><input name="ls" type="range" min={0} max={1} step={.01} value={this.state.ls} onChange={this.handleHSVSliderChange}/>
+          <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.hs}</span><label>max S</label><input name="hs" type="range" min={0} max={1} step={.01} value={this.state.hs} onChange={this.handleHSVSliderChange}/>
+          <br/>
+          <br/>
+          <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.lv}</span><label>min V</label><input name="lv" type="range" min={0} max={1} step={.01} value={this.state.lv} onChange={this.handleHSVSliderChange}/>
+          <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.hv}</span><label>max V</label><input name="hv" type="range" min={0} max={1} step={.01} value={this.state.hv} onChange={this.handleHSVSliderChange}/>
         </div> : null
 
     return (
-      <div className="App">
+      <div className="App" >
         <br/>
         <h1>Video Controls</h1>
         <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
@@ -631,17 +608,32 @@ class App extends Component {
         
         <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
         <br/>
+          <PhotoshopPicker
+            style={{'margin':'0 auto'}}
+            color={ this.state.pickedColor }
+            onChangeComplete={ this.handleChangeComplete }
+          />
         <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
+        {sliders}
+
+        <br/>
+        <br/>
+
+        <label>Color Number</label><input type="input" value={this.state.colorNum} onChange={this.handleColorNum}/>
+        <button onClick={this.nextColor}>Next Color</button>
+        <br/>
+        <label>Number of Objects for this Color</label><input type="number" value={this.state.numObjects} onChange={this.handleNumObjects}/>
+        <br/>
         <h3>choose color ranges</h3>
         <label>Total Number of Colors</label><input type="number" value={this.state.totalNumColors} onChange={this.handleTotalNumColors}/>
 
-        {sliders}
+        
 
         <h1>Animation Controls</h1>
         <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
         <br/>
         <br/>
-        <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="lg" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
+        <span style={{"margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="ls" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
         <br/>
         <br/>   
         <video hidden={true} width={320} height={240} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
