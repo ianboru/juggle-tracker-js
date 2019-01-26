@@ -45,10 +45,10 @@ function RGBtoHSV(r, g, b) {
     return [h,s,v];
 }
 function calculateCurrentHSVString(ballColorRange,opacity){
-    return "hsv(" + ballColorRange['hh'] + "," + ballColorRange['hs'] + "," + ballColorRange['hv'] + ","+opacity+")"
+    return "hsl(" + ballColorRange['hh'] + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
 }
 function calculateCurrentHSV(ballColorRange,opacity){ 
-    return "hsv(" + ballColorRange['hh'] + "," + ballColorRange['hs'] + "," + ballColorRange['hv'] + ","+opacity+")"
+    return "hsl(" + ballColorRange['hh'] + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
 }
 function htmlToOpenCVHSV(htmlHSV){
     let openCVHSV  = htmlHSV

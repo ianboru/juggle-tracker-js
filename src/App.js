@@ -10,6 +10,14 @@ import { HuePicker } from 'react-color';
 const scoreThreshold = .5
 
 //@observer
+const initialHSV = {
+      lh : 200,
+      ls : .2,
+      lv : .2,
+      hh : 230,
+      hs : .9,
+      hv : .9,
+    }
 class App extends Component {
 
   state = {
@@ -20,23 +28,14 @@ class App extends Component {
     videoHeight : null,
     videoWidth : null,
     startTime : Date.now(),
-    numObjects : 1,
-    lh : 0,
+    lh : 200,
     ls : .2,
     lv : .2,
-    hh : 360,
-    hs : 1,
-    hv : 1,
+    hh : 230,
+    hs : .9,
+    hv : .9,
     net : null,
-    allColors : [{},{
-      numObjects : 1,
-      lh : 0,
-      ls : .2,
-      lv : .2,
-      hh : 360,
-      hs : 1,
-      hv : 1,
-    }],
+    allColors : [{},initialHSV],
     colorNum : 1,
     calibrating : true,
     positions : [],
@@ -55,6 +54,9 @@ class App extends Component {
   componentDidMount=()=>{
     this.startCamera()
   }
+  /****
+  Camera Stuff
+  ****/
   startCamera=()=> {
     let that = this
     if (this.state.streaming) return;
@@ -89,6 +91,18 @@ class App extends Component {
       that.startVideoProcessing();
     }, false);
   }
+  stopCamera=()=> {
+    if (!this.state.streaming) return;
+    this.stopVideoProcessing();
+    document.getElementById("canvasOutput").getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
+    this.video.pause();
+    this.video.srcObject=null;
+    this.state.stream.getVideoTracks()[0].stop();
+    this.setState({
+      streaming :false,
+    })
+
+  }
   startVideoProcessing=()=> {
     //store.setVisiblePlayer("live")
     const context = this.canvasOutput.getContext('2d')
@@ -109,340 +123,10 @@ class App extends Component {
 
   }
 
-  trackBall=(src,colorNum)=>{
-    let allPositions = this.state.positions
-
-    //initialize contour finding data
-    let dst = cv.Mat.zeros(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
-    let contours = new cv.MatVector();
-    let hierarchy = new cv.Mat();
-    cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
-
-    const sortedContourIndices = utils.sortContours(contours)
-    if(sortedContourIndices.length > 0){
-      const numObjects = this.state.allColors[colorNum].numObjects
-      for(let i = 0; i < Math.min(sortedContourIndices.length, numObjects); ++i){
-        const circle = cv.minEnclosingCircle(contours.get(sortedContourIndices[i]))
-        if(!allPositions[colorNum]){
-          allPositions[colorNum] = []
-        }
-        if(!allPositions[colorNum][i]){
-          allPositions[colorNum][i]={
-            'x':[],
-            'y':[],
-            'r':[]
-          }
-        }
-        allPositions[colorNum][i]['x'].push(circle.center.x)
-        allPositions[colorNum][i]['y'].push(circle.center.y)
-        allPositions[colorNum][i]['r'].push(circle.radius)
-      }
-
-      this.setState({
-        positions : allPositions
-      })
-    }
-
-    src.delete();dst.delete(); contours.delete(); hierarchy.delete();
-  }
-  
-  drawCircle = (context, x,y,r, color)=>{
-    context.beginPath();
-    context.arc(x, y, r, 0, 2 * Math.PI, false);
-    context.fillStyle = color;
-    context.fill();
-    context.strokeStyle = color;
-    context.stroke();
-  }
-  drawTails =(context)=>{
-    let ballNum = 0
-    this.state.allColors.forEach((ballColors,colorNum)=>{
-      for(let i = 0; i < ballColors.numObjects; ++i){
-        if(!this.state.positions[colorNum]){
-          continue
-        }
-        if(this.state.positions[colorNum][i]){
-          const xHistory = this.state.positions[colorNum][i]['x']
-          const yHistory = this.state.positions[colorNum][i]['y']
-          const rHistory = this.state.positions[colorNum][i]['r']
-
-          const maxWindowSize = this.state.tailLength
-          let currentWindowSize
-          if(this.state.connectSameColor){
-            currentWindowSize = 1
-          }else{
-            currentWindowSize = Math.min(xHistory.length, maxWindowSize)
-          }
-          for (let t=0; t < currentWindowSize; ++t){
-            const lastX = xHistory[xHistory.length - 1 - t]
-            const lastY = yHistory[yHistory.length - 1 - t]
-            const lastR = rHistory[rHistory.length - 1 - t]
-            const color = utils.calculateCurrentHSVString(ballColors,(1-(t/currentWindowSize)))
-            this.drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), color)
-          }
-        }
-        ballNum += 1
-      }
-    })
-  }
-  drawConnections=(context)=>{
-    let ballNum = 0
-    this.state.allColors.forEach((ballColors,colorNum)=>{
-      if(!this.state.positions[colorNum]){
-        return
-      }
-      if(ballColors.numObjects > 1){
-        for(let i = 0; i < ballColors.numObjects; ++i){
-          let nextBallIndex = i+1
-          if(i == ballColors.numObjects-1){
-            nextBallIndex = 0
-          }
-          if(this.state.positions[colorNum][i] && this.state.positions[colorNum][nextBallIndex]){
-            const curBallX = this.state.positions[colorNum][i]['x'][this.state.positions[colorNum][i]['x'].length-1]
-            const curBallY = this.state.positions[colorNum][i]['y'][this.state.positions[colorNum][i]['y'].length-1]
-
-            const nextBallX = this.state.positions[colorNum][nextBallIndex]['x'][this.state.positions[colorNum][nextBallIndex]['x'].length-1]
-            const nextBallY = this.state.positions[colorNum][nextBallIndex]['y'][this.state.positions[colorNum][nextBallIndex]['y'].length-1]
-
-            context.beginPath();
-            context.moveTo(curBallX, curBallY)
-            context.lineTo(nextBallX, nextBallY)
-            console.log(utils.calculateCurrentHSVString(ballColors, 1))
-            context.strokeStyle = utils.calculateCurrentHSVString(ballColors, 1);
-            context.lineWidth = 4;
-            context.stroke();
-          }
-          ++ballNum
-        }
-      }
-    })
-  }
-
-  
-  colorFilter=(src)=>{
-    let previousDst
-    let dst = new cv.Mat();
-
-    // Create a two new mat objects for the image in different color spaces
-    let temp = new cv.Mat();
-    let hsv = new cv.Mat();
-
-    this.state.allColors.forEach((colorRange,colorNum)=>{
-      if(colorNum > 0){
-
-        // Convert the RGBA source image to RGB
-        cv.cvtColor(src, temp, cv.COLOR_RGBA2RGB)
-
-        // Blur the temporary image
-        let ksize = new cv.Size(11,11);
-        let anchor = new cv.Point(-1, -1);
-        cv.blur(temp, temp, ksize, anchor, cv.BORDER_DEFAULT);
-
-        // Convert the RGB temporary image to HSV
-        cv.cvtColor(temp, hsv, cv.COLOR_RGB2HSV)
-        // Get values for the color ranges from the trackbars
-
-        let lowerHSV = utils.htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
-        lowerHSV.push(0)
-        let higherHSV = utils.htmlToOpenCVHSV([colorRange.hh, colorRange.hs, colorRange.hv])
-        higherHSV.push(255)
-        let lower = [colorRange.lh, colorRange.ls, colorRange.lv,0];
-        let higher = [colorRange.hh, colorRange.hs, colorRange.hv,255];
-        console.log("lower higher", lower, higher)
-        // Create the new mat objects that are the lower and upper ranges of the color
-        let low = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), lowerHSV);
-        let high = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), higherHSV);
-
-        // Find the colors that are within (low, high)
-        cv.inRange(hsv, low, high, dst);
-
-        // Track the balls - arguments: mask image, and number of balls
-        this.trackBall(dst.clone(),colorNum)
-
-        previousDst = dst.clone()
-        low.delete();high.delete();
-      }
-    })
-    src.delete();temp.delete();hsv.delete();
-    return dst
-  }
-  processVideo=()=> {
-    if(this.canvasOutput){
-
-      let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
-      const context = document.getElementById("canvasOutput").getContext("2d")
-      //Draw video frame onto canvas context
-      context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
-      //Extra image data from canvas context
-      let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
-      srcMat.data.set(imageData.data);
-      //Flip horizontally because camera feed is pre-flipped
-      cv.flip(srcMat, srcMat,1)
-      //Filters by color AND tracks ball positions by color
-      const combinedColorMat = this.colorFilter(srcMat.clone())
-
-      if(this.state.showRaw){
-        // Initialize final canvas with raw video
-        cv.imshow('canvasOutput',srcMat)
-      }else{
-        // Initialize final canvas with the mask of the colors within the color ranges
-        // This setting is used when calibrating the colors
-        cv.imshow('canvasOutput',combinedColorMat)
-      }
-
-      //Draw balls and tails
-      this.drawTails(context)
-
-
-      //Draw lines between balls of same color
-      if(this.state.connectSameColor){
-        this.drawConnections(context)
-      }
-
-      //Trim histories to tail length
-      this.trimHistories()
-
-      //Clean up all possible data
-      combinedColorMat.delete();srcMat.delete()
-      imageData = null
-
-      //Process next frame
-      requestAnimationFrame(this.processVideo);
-    }
-  }
-  handleColorNum=(e)=>{
-    if(e.target.value < 0){
-      return
-    }
-    this.setState({
-      colorNum : parseInt(e.target.value)
-    })
-  }
-  stopCamera=()=> {
-    if (!this.state.streaming) return;
-    this.stopVideoProcessing();
-    document.getElementById("canvasOutput").getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
-    this.video.pause();
-    this.video.srcObject=null;
-    this.state.stream.getVideoTracks()[0].stop();
-    this.setState({
-      streaming :false,
-    })
-
-  }
-
-  handleHSVSliderChange=(e)=>{
-    let state = this.state
-    console.log(e.target.value)
-    state[e.target.name] =parseFloat(e.target.value)
-    this.setState({
-      state
-    },()=>{
-      this.setColorRange()
-    })
-  }
-  setColorRange=()=>{
-    let colorRanges = this.state.allColors
-    colorRanges[this.state.colorNum] = {
-      'numObjects' : parseInt(this.state.numObjects),
-      'lh' : this.state.lh,
-      'ls' : this.state.ls,
-      'lv' : this.state.lv,
-      'hh' : this.state.hh,
-      'hs' : this.state.hs,
-      'hv' : this.state.hv,
-    }
-    this.setState({
-      allColors : colorRanges,
-      pickedColor : utils.calculateCurrentHSV(colorRanges[this.state.colorNum])
-
-    })
-  }
-
-  nextColor=()=>{
-    this.setColorRange()
-    let colorNum = this.state.colorNum
-    console.log(this.state.totalNumColors, colorNum,colorNum%this.state.totalNumColors+1 )
-    if(colorNum%this.state.totalNumColors == 0 ){
-      colorNum = 1
-    }else{
-      colorNum += 1
-    }
-
-    console.log("next color ", colorNum,this.state.allColors  )
-    if(this.state.allColors[colorNum]){
-      this.setState({
-        colorNum,
-        numObjects : this.state.allColors[colorNum].numObjects,
-        lh : this.state.allColors[colorNum]['lh'],
-        ls : this.state.allColors[colorNum]['ls'],
-        lv : this.state.allColors[colorNum]['lv'],
-        hh : this.state.allColors[colorNum]['hh'],
-        hs : this.state.allColors[colorNum]['hs'],
-        hv : this.state.allColors[colorNum]['hv'],
-      })
-    }else{
-      this.setState({
-        numObjects : 1,
-        colorNum
-      },()=>{
-        this.setColorRange()
-      })
-    }
-  }
-  toggleShowRaw=()=>{
-    this.setState({
-      showRaw : !this.state.showRaw
-    })
-  }
-  trimHistories=()=>{
-    let histories = []
-
-    this.state.positions.forEach((colorPositions, colorNum)=>{
-      histories[colorNum] = []
-      colorPositions.forEach((history,ballNum)=>{
-        histories[colorNum][ballNum] = []
-        if(history['x'].length > this.state.tailLength){
-          histories[colorNum][ballNum]['x'] = history['x'].slice(history['x'].length - 1 - this.state.tailLength, history['x'].length)
-          histories[colorNum][ballNum]['y'] = history['y'].slice(history['y'].length - 1 - this.state.tailLength, history['y'].length)
-          histories[colorNum][ballNum]['r'] = history['r'].slice(history['r'].length - 1 - this.state.tailLength, history['r'].length)
-        }else{
-          histories[colorNum][ballNum] = this.state.positions[colorNum][ballNum]
-        }
-      })
-    })
-
-    this.setState({
-      positions : histories
-    })
-    histories = null
-  }
-  handleNumObjects=(e)=>{
-    console.log("num objects", e.target.value)
-    this.setState({
-      numObjects : e.target.value
-    },()=>{
-      this.setColorRange()
-    })
-  }
-  handleTotalNumColors=(e)=>{
-    this.setState({
-      totalNumColors : e.target.value
-    })
-  }
-  handleTailLength=(e)=>{
-    this.setState({
-      tailLength : e.target.value
-    })
-  }
-  toggleConnectSameColor=()=>{
-    console.log("changing connect", this.state.connectSameColor, this.state.positions)
-    this.setState({
-      connectSameColor : !this.state.connectSameColor
-    })
-  }
-
-  handleDataAvailable=(event)=>{
+  /****
+  Recording Stuff
+  ****/
+ handleDataAvailable=(event)=>{
     let recordedBlobs = this.state.recordedBlobs
     if (event.data && event.data.size > 0) {
       recordedBlobs.push(event.data);
@@ -562,13 +246,307 @@ class App extends Component {
     }, 100);
   }
 
+
+  /****
+    CV STUFF
+  ****/
+  trackBall=(src,colorNum)=>{
+    let allPositions = this.state.positions
+
+    //initialize contour finding data
+    let dst = cv.Mat.zeros(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+    cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
+
+    const sortedContourIndices = utils.sortContours(contours)
+    if(sortedContourIndices.length > 0){
+      const tempNumObjects = 2
+      for(let i = 0; i < Math.min(sortedContourIndices.length, tempNumObjects); ++i){
+        const circle = cv.minEnclosingCircle(contours.get(sortedContourIndices[i]))
+        if(!allPositions[colorNum]){
+          allPositions[colorNum] = []
+        }
+        if(!allPositions[colorNum][i]){
+          allPositions[colorNum][i]={
+            'x':[],
+            'y':[],
+            'r':[]
+          }
+        }
+        allPositions[colorNum][i]['x'].push(circle.center.x)
+        allPositions[colorNum][i]['y'].push(circle.center.y)
+        allPositions[colorNum][i]['r'].push(circle.radius)
+      }
+
+      this.setState({
+        positions : allPositions
+      })
+    }
+
+    src.delete();dst.delete(); contours.delete(); hierarchy.delete();
+  }
+  
+  drawCircle = (context, x,y,r, color)=>{
+    context.beginPath();
+    context.arc(x, y, r, 0, 2 * Math.PI, false);
+    context.fillStyle = color;
+    context.fill();
+    context.strokeStyle = color;
+    context.stroke();
+  }
+  drawTails =(context)=>{
+    let ballNum = 0
+    this.state.allColors.forEach((ballColors,colorNum)=>{
+      if(this.state.positions[colorNum]){
+        
+        for(let i = 0; i < this.state.positions[colorNum].length-1; ++i){
+          
+          if(this.state.positions[colorNum][i]){
+            const xHistory = this.state.positions[colorNum][i]['x']
+            const yHistory = this.state.positions[colorNum][i]['y']
+            const rHistory = this.state.positions[colorNum][i]['r']
+
+            const maxWindowSize = this.state.tailLength
+            let currentWindowSize
+            if(this.state.connectSameColor){
+              currentWindowSize = 1
+            }else{
+              currentWindowSize = Math.min(xHistory.length, maxWindowSize)
+            }
+            for (let t=0; t < currentWindowSize; ++t){
+              const lastX = xHistory[xHistory.length - 1 - t]
+              const lastY = yHistory[yHistory.length - 1 - t]
+              const lastR = rHistory[rHistory.length - 1 - t]
+              console.log("tail color", utils.calculateCurrentHSVString(ballColors,(1-(t/currentWindowSize))))
+              const color = utils.calculateCurrentHSVString(ballColors,(1-(t/currentWindowSize)))
+              this.drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), color)
+            }
+          }
+          ballNum += 1
+        }
+      }
+    })
+  }
+  drawConnections=(context)=>{
+    let ballNum = 0
+    this.state.allColors.forEach((ballColors,colorNum)=>{
+      if(!this.state.positions[colorNum]){
+        return
+      }
+      const numObjects = this.state.positions[colorNum].length
+      if(numObjects > 1){
+        for(let i = 0; i < numObjects; ++i){
+          let nextBallIndex = i+1
+          if(i == numObjects-1){
+            nextBallIndex = 0
+          }
+          if(this.state.positions[colorNum][i] && this.state.positions[colorNum][nextBallIndex]){
+            const curBallX = this.state.positions[colorNum][i]['x'][this.state.positions[colorNum][i]['x'].length-1]
+            const curBallY = this.state.positions[colorNum][i]['y'][this.state.positions[colorNum][i]['y'].length-1]
+
+            const nextBallX = this.state.positions[colorNum][nextBallIndex]['x'][this.state.positions[colorNum][nextBallIndex]['x'].length-1]
+            const nextBallY = this.state.positions[colorNum][nextBallIndex]['y'][this.state.positions[colorNum][nextBallIndex]['y'].length-1]
+
+            context.beginPath();
+            context.moveTo(curBallX, curBallY)
+            context.lineTo(nextBallX, nextBallY)
+            console.log(utils.calculateCurrentHSVString(ballColors, 1))
+            context.strokeStyle = utils.calculateCurrentHSVString(ballColors, 1);
+            context.lineWidth = 4;
+            context.stroke();
+          }
+          ++ballNum
+        }
+      }
+    })
+  }
+
+  
+  colorFilter=(src)=>{
+    let previousDst
+    let dst = new cv.Mat();
+
+    // Create a two new mat objects for the image in different color spaces
+    let temp = new cv.Mat();
+    let hsv = new cv.Mat();
+
+    this.state.allColors.forEach((colorRange,colorNum)=>{
+      if(colorNum > 0){
+
+        // Convert the RGBA source image to RGB
+        cv.cvtColor(src, temp, cv.COLOR_RGBA2RGB)
+
+        // Blur the temporary image
+        let ksize = new cv.Size(11,11);
+        let anchor = new cv.Point(-1, -1);
+        cv.blur(temp, temp, ksize, anchor, cv.BORDER_DEFAULT);
+
+        // Convert the RGB temporary image to HSV
+        cv.cvtColor(temp, hsv, cv.COLOR_RGB2HSV)
+        // Get values for the color ranges from the trackbars
+
+        let lowerHSV = utils.htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
+        lowerHSV.push(0)
+        let higherHSV = utils.htmlToOpenCVHSV([colorRange.hh, colorRange.hs, colorRange.hv])
+        higherHSV.push(255)
+        let lower = [colorRange.lh, colorRange.ls, colorRange.lv,0];
+        let higher = [colorRange.hh, colorRange.hs, colorRange.hv,255];
+        // Create the new mat objects that are the lower and upper ranges of the color
+        let low = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), lowerHSV);
+        let high = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), higherHSV);
+
+        // Find the colors that are within (low, high)
+        cv.inRange(hsv, low, high, dst);
+
+        // Track the balls - arguments: mask image, and number of balls
+        this.trackBall(dst.clone(),colorNum)
+
+        previousDst = dst.clone()
+        low.delete();high.delete();
+      }
+    })
+    src.delete();temp.delete();hsv.delete();
+    return dst
+  }
+  processVideo=()=> {
+    if(this.canvasOutput){
+
+      let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
+      const context = document.getElementById("canvasOutput").getContext("2d")
+      //Draw video frame onto canvas context
+      context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
+      //Extra image data from canvas context
+      let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
+      srcMat.data.set(imageData.data);
+      //Flip horizontally because camera feed is pre-flipped
+      cv.flip(srcMat, srcMat,1)
+      //Filters by color AND tracks ball positions by color
+      const combinedColorMat = this.colorFilter(srcMat.clone())
+
+      if(this.state.showRaw){
+        // Initialize final canvas with raw video
+        cv.imshow('canvasOutput',srcMat)
+      }else{
+        // Initialize final canvas with the mask of the colors within the color ranges
+        // This setting is used when calibrating the colors
+        cv.imshow('canvasOutput',combinedColorMat)
+      }
+
+      //Draw balls and tails
+      this.drawTails(context)
+
+
+      //Draw lines between balls of same color
+      if(this.state.connectSameColor){
+        this.drawConnections(context)
+      }
+
+      //Trim histories to tail length
+      this.trimHistories()
+
+      //Clean up all possible data
+      combinedColorMat.delete();srcMat.delete()
+      imageData = null
+
+      //Process next frame
+      requestAnimationFrame(this.processVideo);
+    }
+  }
+
+
+
+  handleHSVSliderChange=(e)=>{
+    let state = this.state
+    state[e.target.name] =parseFloat(e.target.value)
+    this.setState({
+      state
+    },()=>{
+      this.setColorRange()
+    })
+  }
+  setColorRange=()=>{
+    let colorRanges = this.state.allColors
+    colorRanges[this.state.colorNum] = {
+      'lh' : this.state.lh,
+      'ls' : this.state.ls,
+      'lv' : this.state.lv,
+      'hh' : this.state.hh,
+      'hs' : this.state.hs,
+      'hv' : this.state.hv,
+    }
+    this.setState({
+      allColors : colorRanges,
+      pickedColor : utils.calculateCurrentHSV(colorRanges[this.state.colorNum])
+
+    })
+  }
+
+  addColor=()=>{
+    this.setColorRange()
+    let colorNum = this.state.allColors.length
+
+    this.setState(initialHSV)
+    this.setState({
+      colorNum
+    },()=>{
+      this.setColorRange()
+    })
+  }
+  selectColor=(i)=>{
+    this.setState(this.state.allColors[i])
+    this.setState({
+      colorNum : i
+    },()=>{
+      this.setColorRange()
+    }) 
+  }
+  toggleShowRaw=()=>{
+    this.setState({
+      showRaw : !this.state.showRaw
+    })
+  }
+  trimHistories=()=>{
+    let histories = []
+
+    this.state.positions.forEach((colorPositions, colorNum)=>{
+      histories[colorNum] = []
+      colorPositions.forEach((history,ballNum)=>{
+        histories[colorNum][ballNum] = []
+        if(history['x'].length > this.state.tailLength){
+          histories[colorNum][ballNum]['x'] = history['x'].slice(history['x'].length - 1 - this.state.tailLength, history['x'].length)
+          histories[colorNum][ballNum]['y'] = history['y'].slice(history['y'].length - 1 - this.state.tailLength, history['y'].length)
+          histories[colorNum][ballNum]['r'] = history['r'].slice(history['r'].length - 1 - this.state.tailLength, history['r'].length)
+        }else{
+          histories[colorNum][ballNum] = this.state.positions[colorNum][ballNum]
+        }
+      })
+    })
+
+    this.setState({
+      positions : histories
+    })
+    histories = null
+  }
+
+  handleTailLength=(e)=>{
+    this.setState({
+      tailLength : e.target.value
+    })
+  }
+  toggleConnectSameColor=()=>{
+    this.setState({
+      connectSameColor : !this.state.connectSameColor
+    })
+  }
+
   handleChangeComplete = (color) => {
     this.setState({ pickedColor: color.hsv });
-    console.log(color)
     let colorRanges = this.state.allColors
-    const hRange = 60
-    console.log(Math.round(color.hsv.h) - hRange, 0)
+    const hRange = 30
     let lowH = Math.max(Math.round(color.hsv.h) - hRange, 0)
+    let highH = Math.min(Math.round(color.hsv.h) + hRange, 360)
+
     colorRanges[this.state.colorNum]['hh'] = Math.round(color.hsv.h)
     colorRanges[this.state.colorNum]['lh'] = lowH
 
@@ -597,6 +575,20 @@ class App extends Component {
           <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.hv}</span><label>max V</label><input name="hv" type="range" min={0} max={1} step={.01} value={this.state.hv} onChange={this.handleHSVSliderChange}/>
         </div> : null
 
+    const colorSwatches = this.state.allColors.map((colorRange,index)=>{
+      return(
+        <div 
+          onClick={()=>{this.selectColor(index)}} 
+          style={{ 
+            'marginRight': '20px', 
+            'display':'inline-block',
+            'backgroundColor' : utils.calculateCurrentHSVString(colorRange,1), 
+            'width' : '50px',
+            'height' : '50px'
+          }}>
+        </div>
+      )
+    })
     return (
       <div className="App" >
         <br/>
@@ -612,20 +604,28 @@ class App extends Component {
         <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
 
         <br/>
+
+        <h3 style={{'fontSize':'12pt'}}>Choose Colors to Animate</h3>
+        {colorSwatches}
+        <br/>
+        <button style={{'fontSize':'12pt'}} onClick={this.addColor}>Add Color</button>
+        <br/>
+        <br/>
+
+        <div 
+         style={{
+          position: 'absolute',
+          left : '35%',
+        }}>
           <HuePicker
-            style={{'margin':'0 auto'}}
             color={ this.state.pickedColor }
             onChangeComplete={ this.handleChangeComplete }
           />
+        </div>
         {sliders}
 
         <br/>
         <br/>
-        <label>Color Number</label><input type="input" value={this.state.colorNum} onChange={this.handleColorNum}/>
-        <button onClick={this.nextColor}>Next Color</button>
-       
-
-        
 
         <h1>Animation Controls</h1>
         <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
