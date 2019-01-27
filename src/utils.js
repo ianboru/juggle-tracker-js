@@ -60,7 +60,8 @@ function htmlToOpenCVHSV(htmlHSV){
 function sortContours(contours){
     let contourAreas = []
     for (let i = 0; i < contours.size(); ++i) {
-      contourAreas.push(cv.contourArea(contours.get(i), false))
+      const contourArea = cv.contourArea(contours.get(i), false)
+      contourAreas.push(contourArea)
     }
     const len = contourAreas.length
     var indices = new Array(len);
