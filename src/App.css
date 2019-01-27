@@ -1,7 +1,8 @@
 .App {
   text-align: center;
-}
+  position : relative;
 
+}
 .App-logo {
   animation: App-logo-spin infinite 20s linear;
   height: 40vmin;
@@ -17,6 +18,7 @@
   font-size: calc(10px + 2vmin);
   color: white;
 }
+
 canvas{
   margin : 0 auto;
   display: block; 

@@ -44,16 +44,24 @@ function RGBtoHSV(r, g, b) {
 
     return [h,s,v];
 }
-function calculateCurrentColor(ballColorRange,opacity){ 
-    const r = this.mean(ballColorRange['lr'],ballColorRange['hr'])
-    const g = this.mean(ballColorRange['lg'],ballColorRange['hg'])
-    const b = this.mean(ballColorRange['lb'],ballColorRange['hb'])
-    return "rgb(" + r + "," + g + "," + b + ","+opacity+")"
+function calculateCurrentHSVString(ballColorRange,opacity){
+    return "hsl(" + ballColorRange['hh'] + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
 }
+function calculateCurrentHSV(ballColorRange,opacity){ 
+    return "hsl(" + ballColorRange['hh'] + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
+}
+function htmlToOpenCVHSV(htmlHSV){
+    let openCVHSV  = htmlHSV
+    openCVHSV[0] =  180*openCVHSV[0]/360
+    openCVHSV[1] = openCVHSV[1] * 255
+    openCVHSV[2] = openCVHSV[2] * 255
+    return openCVHSV
+  }
 function sortContours(contours){
     let contourAreas = []
     for (let i = 0; i < contours.size(); ++i) {
-      contourAreas.push(cv.contourArea(contours.get(i), false))
+      const contourArea = cv.contourArea(contours.get(i), false)
+      contourAreas.push(contourArea)
     }
     const len = contourAreas.length
     var indices = new Array(len);
@@ -97,7 +105,9 @@ const white = {
     'hb' : 255,
   }
 export default { 
-    calculateCurrentColor,
+    calculateCurrentHSV,
+    calculateCurrentHSVString,
+    htmlToOpenCVHSV,
     mean,
     sortContours,
     RGBtoHSV,
