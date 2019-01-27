@@ -557,7 +557,7 @@ class App extends Component {
 
     const sliders =
         this.state.calibrating ?
-        <div className="sliders">
+        <div style={{"paddingTop": "15px"}} className="sliders">
           <h3>Adjust Color Range</h3>
           <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.lh}</span><label>min H</label><input name="lh" type="range" min={0} max={360} step={1} value={this.state.lh} onChange={this.handleHSVSliderChange}/>
           <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.hh}</span><label>max H</label><input name="hh" type="range" min={0} max={360} step={1} value={this.state.hh} onChange={this.handleHSVSliderChange}/>
@@ -572,18 +572,23 @@ class App extends Component {
         </div> : null
 
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
-      return(
-        <div 
-          onClick={()=>{this.selectColor(index)}} 
-          style={{ 
-            'marginRight': '20px', 
-            'display':'inline-block',
-            'backgroundColor' : utils.calculateCurrentHSVString(colorRange,1), 
-            'width' : '50px',
-            'height' : '50px'
-          }}>
-        </div>
-      )
+      if(index > 0){
+        return(
+          <div 
+            onClick={()=>{this.selectColor(index)}} 
+            style={{ 
+              'marginRight': '20px', 
+              'display':'inline-block',
+              'backgroundColor' : utils.calculateCurrentHSVString(colorRange,1), 
+              'width' : '50px',
+              'height' : '50px',
+              'left' : '0',
+              'position' : 'relative'
+            }}>
+          </div>
+        )
+      }
+      
     })
     return (
       <div className="App" >
@@ -602,17 +607,26 @@ class App extends Component {
         <br/>
 
         <h3 style={{'fontSize':'12pt'}}>Choose Colors to Animate</h3>
-        {colorSwatches}
+        <div 
+          style={{
+            width : '350px',
+            margin : '0 auto',
+          }}
+         >
+          {colorSwatches}
+        </div>
         <br/>
-        <button style={{'fontSize':'12pt'}} onClick={this.addColor}>Add Color</button>
+        <button style={{'fontSize':'12pt'}} onClick={this.addColor}>Add Another Color</button>
         <br/>
         <br/>
 
         <div 
-         style={{
-          position: 'absolute',
-          left : '35%',
-        }}>
+          style={{
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+          }}
+         >
           <HuePicker
             color={ this.state.pickedColor }
             onChangeComplete={ this.handleChangeComplete }
@@ -623,7 +637,7 @@ class App extends Component {
         <br/>
         <br/>
 
-        <h1>Animation Controls</h1>
+        <h3>Animation Controls</h3>
         <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
         <br/>
         <br/>
