@@ -3,10 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@tensorflow-models/posenet": "^0.2.3",
-    "@tensorflow/tfjs": "^0.14.2",
-    "mobx": "^5.9.0",
-    "mobx-react": "^5.4.3",
     "opencv.js": "^1.2.1",
     "react": "^16.5.2",
     "react-color": "^2.17.0",

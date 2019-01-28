@@ -242,7 +242,6 @@ class App extends Component {
   ****/
    processVideo=()=> {
     if(this.canvasOutput){
-
       let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
       const context = document.getElementById("canvasOutput").getContext("2d")
       //Draw video frame onto canvas context
@@ -253,7 +252,8 @@ class App extends Component {
       //Flip horizontally because camera feed is pre-flipped
       cv.flip(srcMat, srcMat,1)
       //Filters by color AND tracks ball positions by color
-      const combinedColorMat = this.colorFilter(srcMat.clone())
+
+      let combinedColorMat = this.colorFilter(srcMat.clone())
 
       if(this.state.showRaw){
         // Initialize final canvas with raw video
@@ -278,6 +278,7 @@ class App extends Component {
 
       //Clean up all possible data
       combinedColorMat.delete();srcMat.delete()
+      srcMat = null; combinedColorMat = null
       imageData = null
 
       //Process next frame
@@ -429,7 +430,6 @@ class App extends Component {
 
   
   colorFilter=(src)=>{
-    let previousDst
     let dst = new cv.Mat();
 
     // Create a two new mat objects for the image in different color spaces
@@ -467,7 +467,6 @@ class App extends Component {
         // Track the balls - arguments: mask image, and number of balls
         this.trackBall(dst.clone(),colorNum)
 
-        previousDst = dst.clone()
         low.delete();high.delete();
       }
     })
