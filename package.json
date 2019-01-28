@@ -3,21 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@tensorflow-models/posenet": "^0.2.3",
-    "@tensorflow/tfjs": "^0.14.2",
-    "mobx": "^5.9.0",
-    "mobx-react": "^5.4.3",
     "opencv.js": "^1.2.1",
     "react": "^16.5.2",
     "react-color": "^2.17.0",
     "react-dom": "^16.5.2",
-    "styled-components": "^4.1.3"
+    "styled-components": "^4.1.3",
+    "terminal-in-react": "^4.3.0"
   },
   "devDependencies": {
-    "react-scripts": "^1.1.5"
+    "react-scripts": "^2.0.3"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "HTTPS=true&&react-scripts start",
     "build": "react-scripts --max_old_space_size=8192 build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
