@@ -33,11 +33,10 @@ class App extends Component {
     net : null,
     allColors : [{},initialHSV],
     colorNum : 1,
-    calibrating : true,
     positions : [],
     totalNumColors : 1,
     showRaw : true,
-    tailLength : 1,
+    trailLength : 1,
     connectSameColor : false,
     mediaRecorder : null,
     recordedBlobs : null,
@@ -131,7 +130,7 @@ class App extends Component {
     }
   }
 
-  handleStop=(event)=>{
+  handleStopMediaRecorder=(event)=>{
     console.log('Recorder stopped: ', event);
     const superBuffer = new Blob(this.state.recordedBlobs, {type: 'video/webm'});
     this.recordedVideo.src = window.URL.createObjectURL(superBuffer);
@@ -148,7 +147,6 @@ class App extends Component {
       this.recordedVideo.hidden = true
       this.canvasOutput.hidden = false
       this.canvasOutput.style.display = "inline"
-
       this.startRecording();
     } else {
       this.stopRecording();
@@ -201,7 +199,7 @@ class App extends Component {
 
     recordButton.textContent = 'Stop Recording';
     downloadButton.disabled = true;
-    mediaRecorder.onstop = this.handleStop;
+    mediaRecorder.onstop = this.handleStopMediaRecorder;
     mediaRecorder.ondataavailable = this.handleDataAvailable;
     mediaRecorder.start(100); // collect 100ms of data
     this.setState({
@@ -261,8 +259,8 @@ class App extends Component {
         cv.imshow('canvasOutput',combinedColorMat)
       }
 
-      //Draw balls and tails
-      this.drawTails(context)
+      //Draw balls and trails
+      this.drawTrails(context)
 
 
       //Draw lines between balls of same color
@@ -270,7 +268,7 @@ class App extends Component {
         this.drawConnections(context)
       }
 
-      //Trim histories to tail length
+      //Trim histories to trail length
       this.trimHistories()
 
       //Clean up all possible data
@@ -285,33 +283,49 @@ class App extends Component {
 
 
   trackBall=(src,colorNum)=>{
+    //src is a frame filtered for the current color
     const sizeThreshold = 60
     let allPositions = this.state.positions
+    //Used to know how many contours to connect later
     let numContoursOverThreshold = 0
     //initialize contour finding data
     let dst = cv.Mat.zeros(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
-    cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
 
+    //find contours
+    cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
+    //sort contours by size
     const sortedContourIndices = utils.sortContours(contours)
+
+    //Catalogue the contour locations to draw later
     if(sortedContourIndices.length > 0){
+      
+      //initialize for the first contours
       if(!allPositions[colorNum]){
         allPositions[colorNum] = []
       }
+
       for(let i = 0; i < sortedContourIndices.length; ++i){
-        
         const contour = contours.get(sortedContourIndices[i])
-        const circle = cv.minEnclosingCircle(contour)
-        
-        let x = circle.center.x
+        let x; let y; let r
+        //Check if contour is big enough to be a real object
         if(cv.contourArea(contour) < sizeThreshold && this.state.positions[colorNum][i]){
-          x = -1
+          //If it is not big enough but an the current object has a history 
+          //then use -1 so this object isnt drawn for this frame and the history can continue 
+          x = -1; y = -1; r = -1 
         }else if (cv.contourArea(contour) < sizeThreshold && !this.state.positions[colorNum][i]){
+          //If it is not big enough and the current object hasn't been seen yet then throw it away
           continue
         }
-        ++numContoursOverThreshold
 
+        //Find circle that encloses contour
+        const circle = cv.minEnclosingCircle(contour)
+        x = circle.center.x
+        y = circle.center.y
+        r = circle.radius
+        ++numContoursOverThreshold
+        //Initialize current object
         if(!allPositions[colorNum][i]){
           allPositions[colorNum][i]={
             'x':[],
@@ -319,42 +333,45 @@ class App extends Component {
             'r':[]
           }
         }
+        //Add latest coordinates to history
         allPositions[colorNum][i]['x'].push(x)
-        allPositions[colorNum][i]['y'].push(circle.center.y)
-        allPositions[colorNum][i]['r'].push(circle.radius)
+        allPositions[colorNum][i]['y'].push(y)
+        allPositions[colorNum][i]['r'].push(r)
       }
       allPositions[colorNum]["currentNumContours"] = numContoursOverThreshold
-
-      
     }else if( sortedContourIndices.length == 0 && this.state.positions[colorNum]){
+      // For any existing object histories push -1 to not be drawn later
       for(let i = 0; i < this.state.positions[colorNum].length; ++i){
         allPositions[colorNum][i]['x'].push(-1)
         allPositions[colorNum][i]['y'].push(-1)
         allPositions[colorNum][i]['r'].push(-1)
       }
     }
+    
+    // Update position histories
     this.setState({
       positions : allPositions
     })
+    // Cleanup open cv objects
     src.delete();dst.delete(); contours.delete(); hierarchy.delete();
   }
-   trimHistories=()=>{
+  trimHistories=()=>{
+    // Trim the position history of each object of each color
     let histories = []
-
     this.state.positions.forEach((colorPositions, colorNum)=>{
       histories[colorNum] = []
       colorPositions.forEach((history,ballNum)=>{
         histories[colorNum][ballNum] = []
-        if(history['x'].length > this.state.tailLength){
-          histories[colorNum][ballNum]['x'] = history['x'].slice(history['x'].length - 1 - this.state.tailLength, history['x'].length)
-          histories[colorNum][ballNum]['y'] = history['y'].slice(history['y'].length - 1 - this.state.tailLength, history['y'].length)
-          histories[colorNum][ballNum]['r'] = history['r'].slice(history['r'].length - 1 - this.state.tailLength, history['r'].length)
+        if(history['x'].length > this.state.trailLength){
+          histories[colorNum][ballNum]['x'] = history['x'].slice(history['x'].length - 1 - this.state.trailLength, history['x'].length)
+          histories[colorNum][ballNum]['y'] = history['y'].slice(history['y'].length - 1 - this.state.trailLength, history['y'].length)
+          histories[colorNum][ballNum]['r'] = history['r'].slice(history['r'].length - 1 - this.state.trailLength, history['r'].length)
         }else{
           histories[colorNum][ballNum] = this.state.positions[colorNum][ballNum]
         }
       })
     })
-
+    // Update state
     this.setState({
       positions : histories
     })
@@ -362,6 +379,7 @@ class App extends Component {
   }
 
   drawCircle = (context, x,y,r, color)=>{
+    //Draw circle for coordinate and color
     context.beginPath();
     context.arc(x, y, r, 0, 2 * Math.PI, false);
     context.fillStyle = color;
@@ -369,26 +387,31 @@ class App extends Component {
     context.strokeStyle = color;
     context.stroke();
   }
-  drawTails =(context)=>{
+  drawTrails =(context)=>{
+    //Draw circle and trail
     this.state.allColors.forEach((ballColors,colorNum)=>{
       if(this.state.positions[colorNum]){
         
         for(let i = 0; i < this.state.positions[colorNum].length; ++i){
-          
+          //Don't draw if x oordinate is -1 
           if(this.state.positions[colorNum][i] && this.state.positions[colorNum][i]['x'] != -1 ){
+            //Rename for convenience 
             const xHistory = this.state.positions[colorNum][i]['x']
             const yHistory = this.state.positions[colorNum][i]['y']
             const rHistory = this.state.positions[colorNum][i]['r']
 
-            const maxWindowSize = this.state.tailLength
+            //Don't draw a trail longer than the window 
+            const maxWindowSize = this.state.trailLength
             let currentWindowSize
             if(this.state.connectSameColor){
               currentWindowSize = 1
             }else{
               currentWindowSize = Math.min(xHistory.length, maxWindowSize)
             }
+            //Draw circle and trail
             for (let t=0; t < currentWindowSize; ++t){
               if(xHistory[xHistory.length - 1 - t] > -1){
+                //Look backwards in history stepping by t
                 const lastX = xHistory[xHistory.length - 1 - t]
                 const lastY = yHistory[yHistory.length - 1 - t]
                 const lastR = rHistory[rHistory.length - 1 - t]
@@ -402,17 +425,22 @@ class App extends Component {
     })
   }
   drawConnections=(context)=>{
+    //Draw connection between balls of same color 
     this.state.allColors.forEach((ballColors,colorNum)=>{
+      //Check if no there is an object history for this color
       if(!this.state.positions[colorNum]){
         return
       }
+      //Draw connection between currentNumContours contours
       const numObjects = this.state.positions[colorNum].currentNumContours
       if(numObjects > 1){
         for(let i = 0; i < numObjects; ++i){
           let nextBallIndex = i+1
+          //Connect last ball to first ball
           if(i == numObjects-1){
             nextBallIndex = 0
           }
+          //Draw
           if(this.state.positions[colorNum][i] && this.state.positions[colorNum][nextBallIndex]){
             const curBallX = this.state.positions[colorNum][i]['x'][this.state.positions[colorNum][i]['x'].length-1]
             const curBallY = this.state.positions[colorNum][i]['y'][this.state.positions[colorNum][i]['y'].length-1]
@@ -527,9 +555,9 @@ class App extends Component {
       showRaw : !this.state.showRaw
     })
   }
-  handleTailLength=(e)=>{
+  handleTrailLength=(e)=>{
     this.setState({
-      tailLength : e.target.value
+      trailLength : e.target.value
     })
   }
   toggleConnectSameColor=()=>{
@@ -557,7 +585,6 @@ class App extends Component {
   render() {
 
     const sliders =
-        this.state.calibrating ?
         <div style={{"paddingTop": "15px"}} className="sliders">
           <h3>Adjust Color Range</h3>
           <span>Hue</span><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lh}/><label>min</label><input name="lh" type="range" min={0} max={360} step={1} value={this.state.lh} onChange={this.handleHSVSliderChange}/>
@@ -570,7 +597,7 @@ class App extends Component {
           <br/>
           <span>Value</span><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lv}/><label>min</label><input name="lv" type="range" min={0} max={1} step={.01} value={this.state.lv} onChange={this.handleHSVSliderChange}/>
           <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hv}/><label>max</label><input name="hv" type="range" min={0} max={1} step={.01} value={this.state.hv} onChange={this.handleHSVSliderChange}/>
-        </div> : null
+        </div> 
 
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
       if(index > 0){
@@ -632,7 +659,7 @@ class App extends Component {
         <h3>Animation Controls</h3>
         <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
         <br/>
-        <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.tailLength}/><label>Tail Length</label><input name="ls" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
+        <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label><input name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
         <video hidden={true} width={320} height={240} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
         <div style={{"height" : "100vh"}}>
         </div>
