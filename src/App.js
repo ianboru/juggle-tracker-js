@@ -618,16 +618,31 @@ class App extends Component {
       }
       
     })
-    return (
-      <div className="App" >
+
+    const videoControls = 
+      <div>
         <h3>Video Controls</h3>
         <div style={{'marginBottom' :'10px'}}>
           <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
           <button style={{'fontSize':'12pt'}} onClick={this.toggleShowRaw}>Filtered/Raw Video</button>       
           <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
         </div>
-        <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
         <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
+      </div>
+
+    const animationControls = 
+      <div>
+        <h3>Animation Controls</h3>
+        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
+        <br/>
+        <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label><input name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
+        <video hidden={true} width={320} height={240} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
+        
+      </div>
+    return (
+      <div className="App" >
+        {videoControls}
+        <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
         <h3 style={{'fontSize':'12pt'}}>Choose Colors to Animate</h3>
         <div 
           style={{
@@ -656,13 +671,7 @@ class App extends Component {
           />
         </div>
         {sliders}
-        <h3>Animation Controls</h3>
-        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
-        <br/>
-        <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label><input name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
-        <video hidden={true} width={320} height={240} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
-        <div style={{"height" : "100vh"}}>
-        </div>
+        {animationControls}
       </div>
     );
   }
