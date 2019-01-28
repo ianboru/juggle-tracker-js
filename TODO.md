@@ -10,7 +10,7 @@ Unprioritized
 	- "disco" color change mode for colors to change at some rate
 	- Allow connecting all balls of any color
 	- Add body points 
-	- Export mp4 instead of webm
+	- Export mp4 instead of webm (involves codecs)
 
 Refactors:
 	- Move some CV stuff to utils
