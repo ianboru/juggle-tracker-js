@@ -3,6 +3,7 @@ import './App.css';
 import cv from 'opencv.js';
 import utils from './utils'
 import { HuePicker } from 'react-color';
+import Terminal from 'terminal-in-react';
 
 //@observer
 const initialHSV = {
@@ -40,8 +41,6 @@ class App extends Component {
     connectSameColor : false,
     mediaRecorder : null,
     recordedBlobs : null,
-    mediaSource : new MediaSource(),
-    mediaSource : null,
     visiblePlayer : "live",
     canvasStream : null,
   }
@@ -55,16 +54,16 @@ class App extends Component {
   startCamera=()=> {
     let that = this
     if (this.state.streaming) return;
-
-      navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user', width:320, height:240}, audio: false})
+    console.log("starting camera")
+      navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user', width:320}, audio: false})
         .then(function(s) {
-
+          console.log("got user media")
         that.setState({
           stream : s,
         })
         that.video.srcObject = s;
         that.video.play();
-    })
+      })
       .catch(function(err) {
       console.log("An error occured! " + err);
     });
@@ -99,20 +98,15 @@ class App extends Component {
 
   }
   startVideoProcessing=()=> {
-    //store.setVisiblePlayer("live")
-    const context = this.canvasOutput.getContext('2d')
     this.setState({
       canvasStream : this.canvasOutput.captureStream()
     })
-    var vidLength = 30 //seconds
-    var fps = 24;
     if (!this.state.streaming) { console.warn("Please startup your webcam"); return; }
     this.stopVideoProcessing();
     requestAnimationFrame(this.processVideo);
   }
 
   stopVideoProcessing = () =>{
-    //store.setVisiblePlayer("recorded")
     let src = this.state.src
     if (src != null && !src.isDeleted()) src.delete();
 
@@ -302,13 +296,16 @@ class App extends Component {
       for(let i = 0; i < sortedContourIndices.length; ++i){
         
         const contour = contours.get(sortedContourIndices[i])
-        if(cv.contourArea(contour) < sizeThreshold){
+        const circle = cv.minEnclosingCircle(contour)
+        
+        let x = circle.center.x
+        if(cv.contourArea(contour) < sizeThreshold && this.state.positions[colorNum][i]){
+          x = -1
+        }else if (cv.contourArea(contour) < sizeThreshold && !this.state.positions[colorNum][i]){
           continue
         }
         ++numContoursOverThreshold
 
-        const circle = cv.minEnclosingCircle(contour)
-        
         if(!allPositions[colorNum][i]){
           allPositions[colorNum][i]={
             'x':[],
@@ -316,17 +313,23 @@ class App extends Component {
             'r':[]
           }
         }
-        allPositions[colorNum][i]['x'].push(circle.center.x)
+        allPositions[colorNum][i]['x'].push(x)
         allPositions[colorNum][i]['y'].push(circle.center.y)
         allPositions[colorNum][i]['r'].push(circle.radius)
       }
       allPositions[colorNum]["currentNumContours"] = numContoursOverThreshold
 
-      this.setState({
-        positions : allPositions
-      })
+      
+    }else if( sortedContourIndices.length == 0 && this.state.positions[colorNum]){
+      for(let i = 0; i < this.state.positions[colorNum].length; ++i){
+        allPositions[colorNum][i]['x'].push(-1)
+        allPositions[colorNum][i]['y'].push(-1)
+        allPositions[colorNum][i]['r'].push(-1)
+      }
     }
-
+    this.setState({
+      positions : allPositions
+    })
     src.delete();dst.delete(); contours.delete(); hierarchy.delete();
   }
    trimHistories=()=>{
@@ -361,13 +364,12 @@ class App extends Component {
     context.stroke();
   }
   drawTails =(context)=>{
-    let ballNum = 0
     this.state.allColors.forEach((ballColors,colorNum)=>{
       if(this.state.positions[colorNum]){
         
-        for(let i = 0; i < this.state.positions[colorNum].currentNumContours; ++i){
+        for(let i = 0; i < this.state.positions[colorNum].length; ++i){
           
-          if(this.state.positions[colorNum][i]){
+          if(this.state.positions[colorNum][i] && this.state.positions[colorNum][i]['x'] != -1 ){
             const xHistory = this.state.positions[colorNum][i]['x']
             const yHistory = this.state.positions[colorNum][i]['y']
             const rHistory = this.state.positions[colorNum][i]['r']
@@ -380,20 +382,20 @@ class App extends Component {
               currentWindowSize = Math.min(xHistory.length, maxWindowSize)
             }
             for (let t=0; t < currentWindowSize; ++t){
-              const lastX = xHistory[xHistory.length - 1 - t]
-              const lastY = yHistory[yHistory.length - 1 - t]
-              const lastR = rHistory[rHistory.length - 1 - t]
-              const color = utils.calculateCurrentHSVString(ballColors,(1-(t/currentWindowSize)))
-              this.drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), color)
+              if(xHistory[xHistory.length - 1 - t] > -1){
+                const lastX = xHistory[xHistory.length - 1 - t]
+                const lastY = yHistory[yHistory.length - 1 - t]
+                const lastR = rHistory[rHistory.length - 1 - t]
+                const color = utils.calculateCurrentHSVString(ballColors,(1-(t/currentWindowSize)))
+                this.drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), color)
+              }
             }
           }
-          ballNum += 1
         }
       }
     })
   }
   drawConnections=(context)=>{
-    let ballNum = 0
     this.state.allColors.forEach((ballColors,colorNum)=>{
       if(!this.state.positions[colorNum]){
         return
@@ -419,7 +421,6 @@ class App extends Component {
             context.lineWidth = 4;
             context.stroke();
           }
-          ++ballNum
         }
       }
     })
@@ -452,8 +453,7 @@ class App extends Component {
         lowerHSV.push(0)
         let higherHSV = utils.htmlToOpenCVHSV([colorRange.hh, colorRange.hs, colorRange.hv])
         higherHSV.push(255)
-        let lower = [colorRange.lh, colorRange.ls, colorRange.lv,0];
-        let higher = [colorRange.hh, colorRange.hs, colorRange.hv,255];
+
         // Create the new mat objects that are the lower and upper ranges of the color
         let low = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), lowerHSV);
         let high = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), higherHSV);
@@ -539,13 +539,12 @@ class App extends Component {
     let lowH = Math.max(Math.round(color.hsv.h) - hRange, 0)
     let highH = Math.min(Math.round(color.hsv.h) + hRange, 360)
 
-    colorRanges[this.state.colorNum]['hh'] = Math.round(color.hsv.h)
+    colorRanges[this.state.colorNum]['hh'] = highH
     colorRanges[this.state.colorNum]['lh'] = lowH
 
     this.setState({
       allColors : colorRanges,
-      'hh' : Math.round(color.hsv.h),
-
+      'hh' : highH,
       'lh' : lowH,
     })
   };
@@ -641,12 +640,13 @@ class App extends Component {
         <br/>
         <br/>   
         <video hidden={true} width={320} height={240} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
-        
-
+        <div style={{"height" : "100vh"}}>
+        </div>
       </div>
     );
   }
 }
+//          <Terminal watchConsoleLogging />
 
 export default App;
 

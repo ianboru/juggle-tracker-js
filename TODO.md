@@ -10,12 +10,10 @@ v0.3
 	- Add info about H S V (either question mark button or adjacent description)
 	- Add RGB/HSV toggle for sliders
 	- Add thresholding to capture white
-	- allow non circular contours
 	- "disco" color change mode for colors to change at some rate
 	- Allow connecting all balls of any color
 	- Add body points 
-
-	
+	- Export mp4 instead of webm
 
 
 
