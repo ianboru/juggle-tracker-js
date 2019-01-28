@@ -2,8 +2,6 @@ import React, { Component } from 'react';
 import './App.css';
 import cv from 'opencv.js';
 import utils from './utils'
-import Recorder from './recorder'
-import store from "./store"
 import { HuePicker } from 'react-color';
 
 //@observer
