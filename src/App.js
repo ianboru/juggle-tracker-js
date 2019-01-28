@@ -47,24 +47,30 @@ class App extends Component {
 
   componentDidMount=()=>{
     this.startCamera()
+    const downloadButton = document.querySelector('button#download');
+    downloadButton.disabled = true
   }
   /****
   Camera Stuff
   ****/
   startCamera=()=> {
     let that = this
+
     if (this.state.streaming) return;
-    console.log("starting camera")
-      navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user', width:320}, audio: false})
-        .then(function(s) {
-          console.log("got user media")
-        that.setState({
-          stream : s,
-        })
-        that.video.srcObject = s;
-        that.video.play();
+
+    //get video 
+    navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user', width:320}, audio: false})
+    .then(function(s) {
+      console.log("got user media")
+      //Set stream to stop later
+      that.setState({
+        stream : s,
       })
-      .catch(function(err) {
+      //Set stream to video tag
+      that.video.srcObject = s;
+      that.video.play();
+    })
+    .catch(function(err) {
       console.log("An error occured! " + err);
     });
 
@@ -159,7 +165,7 @@ class App extends Component {
   startRecording=()=>{
     this.recordedVideo.hidden = true
     
-    let options = {mimeType: 'video/webm'};
+    let options = {mimeType: 'video/webm;codecs=h264'};
     this.setState({
       recordedBlobs : []
     })
@@ -554,16 +560,16 @@ class App extends Component {
         this.state.calibrating ?
         <div style={{"paddingTop": "15px"}} className="sliders">
           <h3>Adjust Color Range</h3>
-          <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.lh}</span><label>min H</label><input name="lh" type="range" min={0} max={360} step={1} value={this.state.lh} onChange={this.handleHSVSliderChange}/>
-          <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.hh}</span><label>max H</label><input name="hh" type="range" min={0} max={360} step={1} value={this.state.hh} onChange={this.handleHSVSliderChange}/>
+          <span>Hue</span><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lh}/><label>min</label><input name="lh" type="range" min={0} max={360} step={1} value={this.state.lh} onChange={this.handleHSVSliderChange}/>
+          <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hh}/><label>max</label><input name="hh" type="range" min={0} max={360} step={1} value={this.state.hh} onChange={this.handleHSVSliderChange}/>
           <br/>
           <br/>
-          <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.ls}</span><label>min S</label><input name="ls" type="range" min={0} max={1} step={.01} value={this.state.ls} onChange={this.handleHSVSliderChange}/>
-          <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.hs}</span><label>max S</label><input name="hs" type="range" min={0} max={1} step={.01} value={this.state.hs} onChange={this.handleHSVSliderChange}/>
+          <span>Saturation</span><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.ls}/><label>min</label><input name="ls" type="range" min={0} max={1} step={.01} value={this.state.ls} onChange={this.handleHSVSliderChange}/>
+          <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hs}/><label>max</label><input name="hs" type="range" min={0} max={1} step={.01} value={this.state.hs} onChange={this.handleHSVSliderChange}/>
           <br/>
           <br/>
-          <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.lv}</span><label>min V</label><input name="lv" type="range" min={0} max={1} step={.01} value={this.state.lv} onChange={this.handleHSVSliderChange}/>
-          <span style={{"margin": "10px", "padding": "5px","border": "1px solid black"}}>{this.state.hv}</span><label>max V</label><input name="hv" type="range" min={0} max={1} step={.01} value={this.state.hv} onChange={this.handleHSVSliderChange}/>
+          <span>Value</span><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lv}/><label>min</label><input name="lv" type="range" min={0} max={1} step={.01} value={this.state.lv} onChange={this.handleHSVSliderChange}/>
+          <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hv}/><label>max</label><input name="hv" type="range" min={0} max={1} step={.01} value={this.state.hv} onChange={this.handleHSVSliderChange}/>
         </div> : null
 
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
@@ -587,39 +593,34 @@ class App extends Component {
     })
     return (
       <div className="App" >
-        <br/>
-        <h1>Video Controls</h1>
-        <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
-        <button style={{'fontSize':'12pt'}} onClick={this.toggleShowRaw}>Filtered/Raw Video</button>       
-        <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
-
-        <br/>
-        <br/>
-        
+        <h3>Video Controls</h3>
+        <div style={{'marginBottom' :'10px'}}>
+          <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
+          <button style={{'fontSize':'12pt'}} onClick={this.toggleShowRaw}>Filtered/Raw Video</button>       
+          <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
+        </div>
         <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
         <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
-
-        <br/>
-
         <h3 style={{'fontSize':'12pt'}}>Choose Colors to Animate</h3>
         <div 
           style={{
             width : '350px',
             margin : '0 auto',
+            marginBottom : '10px',
           }}
          >
           {colorSwatches}
         </div>
-        <br/>
+        
         <button style={{'fontSize':'12pt'}} onClick={this.addColor}>Add Another Color</button>
         <br/>
         <br/>
-
         <div 
           style={{
             position: 'absolute',
             left: '50%',
             transform: 'translateX(-50%)',
+
           }}
          >
           <HuePicker
@@ -628,17 +629,10 @@ class App extends Component {
           />
         </div>
         {sliders}
-
-        <br/>
-        <br/>
-
         <h3>Animation Controls</h3>
-        <button style={{'fontSize':'12pt'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
+        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
         <br/>
-        <br/>
-        <span style={{"padding" : "5px", "margin": "10px","border": "1px solid black"}}>{this.state.tailLength}</span><label>Tail Length</label><input name="ls" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
-        <br/>
-        <br/>   
+        <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.tailLength}/><label>Tail Length</label><input name="ls" type="range" min={0} max={20} value={this.state.tailLength} onChange={this.handleTailLength}/>
         <video hidden={true} width={320} height={240} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
         <div style={{"height" : "100vh"}}>
         </div>
@@ -646,7 +640,7 @@ class App extends Component {
     );
   }
 }
-//          <Terminal watchConsoleLogging />
+//<Terminal watchConsoleLogging />
 
 export default App;
 
