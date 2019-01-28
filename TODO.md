@@ -11,7 +11,9 @@ Unprioritized
 	- Allow connecting all balls of any color
 	- Add body points 
 	- Export mp4 instead of webm (involves codecs)
-
+	- Explanation of workflow
+	- Toggle of tails 
+	
 Refactors:
 	- Move some CV stuff to utils
 	- Create data store to separate UI from data changes (mob x)
