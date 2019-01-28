@@ -4,7 +4,6 @@ import cv from 'opencv.js';
 import utils from './utils'
 import Recorder from './recorder'
 import store from "./store"
-import { observer } from "mobx-react"
 import { HuePicker } from 'react-color';
 
 //@observer
