@@ -422,12 +422,21 @@ drawStars = (context)=>{
           // Create some stars
           for (let numStars=0; numStars<numStarsPerObject; numStars++){
             // A star is born!
+<<<<<<< HEAD
             newStarsX.push(x + (.5-Math.random())*30) // Around the xy coordinate
             newStarsY.push(y + (.5-Math.random())*30)
             newStarsDx.push(2*(.5-Math.random())) // With a random velocity
             newStarsDy.push(2*(.5-Math.random()))
             newStarsSize.push(2 + Math.random()*2) // And a random size
             newStarsColor.push('#'+Math.floor(Math.random()*16777215).toString(16))
+=======
+            newStarsX.push(x + (30-Math.random()*30)) // Around the xy coordinate
+            newStarsY.push(y + (30-Math.random()*30))
+            newStarsDx.push(1-2*Math.random()) // With a random velocity
+            newStarsDy.push(1-2*Math.random())
+            //stars should be much smaller than ball
+            newStarsSize.push(this.state.positions[colorNum][i]['r'].slice(-1).pop()/10 + Math.random()*2) // And a random size
+>>>>>>> 2766265f45af7298e31f52b33ba99ff83f50d600
           }
         }
       }
