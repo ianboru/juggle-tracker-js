@@ -48,6 +48,7 @@ class App extends Component {
     starsDx    : [],
     starsDy    : [],
     starsSize  : [],
+    starsColor : [],
   }
 
   componentDidMount=()=>{
@@ -64,7 +65,7 @@ class App extends Component {
 
     if (this.state.streaming) return;
 
-    //get video 
+    //get video
     navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user', width:320,height:240}, audio: false})
     .then(function(s) {
       console.log("got user media")
@@ -143,7 +144,7 @@ class App extends Component {
     console.log('Recorder stopped: ', event);
     const superBuffer = new Blob(this.state.recordedBlobs, {type: 'video/webm'});
     this.recordedVideo.src = window.URL.createObjectURL(superBuffer);
-    
+
   }
 
   toggleRecording=()=>{
@@ -171,7 +172,7 @@ class App extends Component {
   // The nested try blocks will be simplified when Chrome 47 moves to Stable
   startRecording=()=>{
     this.recordedVideo.hidden = true
-    
+
     let options = {mimeType: 'video/webm;codecs=h264'};
     this.setState({
       recordedBlobs : []
@@ -223,7 +224,7 @@ class App extends Component {
     })
   }
 
-  
+
   download=()=>{
     const blob = new Blob(this.state.recordedBlobs, {type: 'video/webm'});
     const url = window.URL.createObjectURL(blob);
@@ -308,7 +309,7 @@ class App extends Component {
 
     //Catalogue the contour locations to draw later
     if(sortedContourIndices.length > 0){
-      
+
       //initialize for the first contours
       if(!allPositions[colorNum]){
         allPositions[colorNum] = []
@@ -321,9 +322,9 @@ class App extends Component {
         let x; let y; let r
         //Check if contour is big enough to be a real object
         if(contourArea < sizeThreshold && this.state.positions[colorNum][i]){
-          //If it is not big enough but an the current object has a history 
-          //then use -1 so this object isnt drawn for this frame and the history can continue 
-          x = -1; y = -1; r = -1 
+          //If it is not big enough but an the current object has a history
+          //then use -1 so this object isnt drawn for this frame and the history can continue
+          x = -1; y = -1; r = -1
         }else if (contourArea < sizeThreshold && !this.state.positions[colorNum][i]){
           //If it is not big enough and the current object hasn't been seen yet then throw it away
           continue
@@ -334,10 +335,10 @@ class App extends Component {
           y = circle.center.y
           r = circle.radius
           //Find circle that encloses contour
-        
+
           ++numContoursOverThreshold
         }
-        
+
 
         //Initialize current object
         if(!allPositions[colorNum][i]){
@@ -352,7 +353,7 @@ class App extends Component {
         allPositions[colorNum][i]['y'].push(y)
         allPositions[colorNum][i]['r'].push(r)
         lastX = x
-        lastR = r 
+        lastR = r
       }
       allPositions[colorNum]["currentNumContours"] = numContoursOverThreshold
     }else if( sortedContourIndices.length == 0 && this.state.positions[colorNum]){
@@ -363,7 +364,7 @@ class App extends Component {
         allPositions[colorNum][i]['r'].push(-1)
       }
     }
-    
+
     // Update position histories
     this.setState({
       positions : allPositions
@@ -404,8 +405,9 @@ drawStars = (context)=>{
   let newStarsDx = []
   let newStarsDy = []
   let newStarsSize = []
+  let newStarsColor = []
 
-  const numStarsPerObject = 10
+  const numStarsPerObject = 5
   // Get the positions of the balls in this frame and create stars around them
   this.state.allColors.forEach((ballColors,colorNum)=>{
     // If data exists for this object, proceed
@@ -420,11 +422,12 @@ drawStars = (context)=>{
           // Create some stars
           for (let numStars=0; numStars<numStarsPerObject; numStars++){
             // A star is born!
-            newStarsX.push(x + (30-Math.random()*30)) // Around the xy coordinate
-            newStarsY.push(y + (30-Math.random()*30))
-            newStarsDx.push(1-2*Math.random()) // With a random velocity
-            newStarsDy.push(1-2*Math.random())
-            newStarsSize.push(4 + Math.random()*2) // And a random size
+            newStarsX.push(x + (.5-Math.random())*30) // Around the xy coordinate
+            newStarsY.push(y + (.5-Math.random())*30)
+            newStarsDx.push(2*(.5-Math.random())) // With a random velocity
+            newStarsDy.push(2*(.5-Math.random()))
+            newStarsSize.push(2 + Math.random()*2) // And a random size
+            newStarsColor.push('#'+Math.floor(Math.random()*16777215).toString(16))
           }
         }
       }
@@ -443,25 +446,26 @@ drawStars = (context)=>{
       newStarsDy.push(this.state.starsDy[i])
       // The star get smaller
       newStarsSize.push(this.state.starsSize[i]-.2)
+      // Preserve the color
+      newStarsColor.push(this.state.starsColor[i])
     }
   }
+  // Save the new and updated stars
   this.setState({
     starsX : newStarsX,
     starsY : newStarsY,
     starsDx : newStarsDx,
     starsDy : newStarsDy,
-    starsSize : newStarsSize
+    starsSize : newStarsSize,
+    starsColor : newStarsColor
   })
-
+  // Draw the stars
   for (let i=0; i< newStarsX.length; i++){
     const x = newStarsX[i]
     const y = newStarsY[i]
     const size = newStarsSize[i]
-    if(size>0){
-      //For random hex color
-      //const randomColor = '#'+Math.floor(Math.random()*16777215).toString(16);
-      this.drawCircle(context,x,y,size,"rgb(0,0,0,.6)")
-    }
+    const color = newStarsColor[i]
+    this.drawCircle(context,x,y,size,color)
   }
 }
   drawCircle = (context, x,y,r, color)=>{
@@ -478,16 +482,16 @@ drawStars = (context)=>{
     //Draw circle and trail
     this.state.allColors.forEach((ballColors,colorNum)=>{
       if(this.state.positions[colorNum]){
-        
+
         for(let i = 0; i < this.state.positions[colorNum].length; ++i){
-          //Don't draw if x oordinate is -1 
+          //Don't draw if x oordinate is -1
           if(this.state.positions[colorNum][i] && this.state.positions[colorNum][i]['x'] != -1 ){
-            //Rename for convenience 
+            //Rename for convenience
             const xHistory = this.state.positions[colorNum][i]['x']
             const yHistory = this.state.positions[colorNum][i]['y']
             const rHistory = this.state.positions[colorNum][i]['r']
 
-            //Don't draw a trail longer than the window 
+            //Don't draw a trail longer than the window
             const maxWindowSize = this.state.trailLength
             let currentWindowSize  = Math.min(xHistory.length, maxWindowSize)
             //Draw circle and trail
@@ -512,7 +516,7 @@ drawStars = (context)=>{
     })
   }
   drawConnections=(context)=>{
-    //Draw connection between balls of same color 
+    //Draw connection between balls of same color
     if(!this.state.showConnections){
       return
     }
@@ -534,7 +538,7 @@ drawStars = (context)=>{
           }
           //Draw
           if(
-            this.state.positions[colorNum][i] && this.state.positions[colorNum][i]['x'].slice(-1).pop() != -1 && 
+            this.state.positions[colorNum][i] && this.state.positions[colorNum][i]['x'].slice(-1).pop() != -1 &&
             this.state.positions[colorNum][nextBallIndex] && this.state.positions[colorNum][nextBallIndex]['x'].slice(-1).pop() != -1
           ){
             const curBallX = this.state.positions[colorNum][i]['x'].slice(-1).pop()
@@ -641,7 +645,7 @@ drawStars = (context)=>{
       colorNum : i
     },()=>{
       this.setColorRange()
-    }) 
+    })
   }
   toggleShowRaw=()=>{
     this.setState({
@@ -703,17 +707,17 @@ drawStars = (context)=>{
           <br/>
           <div style={{"width": "80px", "display" :"inline-block"}} >Value</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lv}/><label>min</label><input name="lv" type="range" min={0} max={1} step={.01} value={this.state.lv} onChange={this.handleHSVSliderChange}/>
           <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hv}/><label>max</label><input name="hv" type="range" min={0} max={1} step={.01} value={this.state.hv} onChange={this.handleHSVSliderChange}/>
-        </div> 
+        </div>
 
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
       if(index > 0){
         return(
-          <div 
-            onClick={()=>{this.selectColor(index)}} 
-            style={{ 
-              'marginRight': '20px', 
+          <div
+            onClick={()=>{this.selectColor(index)}}
+            style={{
+              'marginRight': '20px',
               'display':'inline-block',
-              'backgroundColor' : utils.calculateCurrentHSVString(colorRange,1), 
+              'backgroundColor' : utils.calculateCurrentHSVString(colorRange,1),
               'width' : '50px',
               'height' : '50px',
               'left' : '0',
@@ -722,21 +726,21 @@ drawStars = (context)=>{
           </div>
         )
       }
-      
+
     })
 
-    const videoControls = 
+    const videoControls =
       <div>
         <h3>Video Controls</h3>
         <div style={{'marginBottom' :'10px'}}>
           <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
-          <button style={{'fontSize':'12pt'}} onClick={this.toggleShowRaw}>Filtered/Raw Video</button>       
+          <button style={{'fontSize':'12pt'}} onClick={this.toggleShowRaw}>Filtered/Raw Video</button>
           <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
         </div>
         <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
       </div>
 
-    const animationControls = 
+    const animationControls =
       <div>
         <h3>Animation Controls</h3>
         <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleShowConnections}>Connect Same Colors</button>
@@ -756,7 +760,7 @@ drawStars = (context)=>{
         {videoControls}
         <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
         <h3 style={{'fontSize':'12pt'}}>Choose Colors to Animate</h3>
-        <div 
+        <div
           style={{
             width : '350px',
             margin : '0 auto',
@@ -765,11 +769,11 @@ drawStars = (context)=>{
          >
           {colorSwatches}
         </div>
-        
+
         <button style={{'fontSize':'12pt'}} onClick={this.addColor}>Add Another Color</button>
         <br/>
         <br/>
-        <div 
+        <div
           style={{
             position: 'absolute',
             left: '50%',
@@ -790,4 +794,3 @@ drawStars = (context)=>{
 }
 
 export default App;
-
