@@ -110,6 +110,7 @@ class App extends Component {
 
   }
   startVideoProcessing=()=> {
+    //Fix for firefox to have context available
     const context = document.getElementById("canvasOutput").getContext("2d")
     this.setState({
       canvasStream : this.canvasOutput.captureStream()
@@ -444,8 +445,6 @@ drawStars = (context)=>{
       newStarsSize.push(this.state.starsSize[i]-.2)
     }
   }
-  //console.log(newStarsX)
-  console.log("lengths" ,this.state.starsX.length,this.state.starsY.length)
   this.setState({
     starsX : newStarsX,
     starsY : newStarsY,
@@ -459,8 +458,9 @@ drawStars = (context)=>{
     const y = newStarsY[i]
     const size = newStarsSize[i]
     if(size>0){
-      const randomColor = '#'+Math.floor(Math.random()*16777215).toString(16);
-      this.drawCircle(context,x,y,size,randomColor)
+      //For random hex color
+      //const randomColor = '#'+Math.floor(Math.random()*16777215).toString(16);
+      this.drawCircle(context,x,y,size,"rgb(0,0,0,.6)")
     }
   }
 }
@@ -503,7 +503,6 @@ drawStars = (context)=>{
                 const lastY = yHistory[yHistory.length - 1 - t]
                 const lastR = rHistory[rHistory.length - 1 - t]
                 const color = utils.calculateCurrentHSVString(ballColors,(1-(t/currentWindowSize)))
-                console.log("trail colors", color)
                 this.drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), color)
               }
             }
@@ -789,7 +788,6 @@ drawStars = (context)=>{
     );
   }
 }
-//<Terminal watchConsoleLogging />
 
 export default App;
 
