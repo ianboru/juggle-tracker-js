@@ -13,9 +13,10 @@ Minor UI:
 	- Particle Effect
 
 "backend":
-	- Upload video instead of using Cam
+	- Allow upload video instead of using Cam
 	- Make it work on iOS (learn from react-video-recorder)
 	- Export mp4 instead of webm (involves codecs)
+	- Improve quality of recorded video
 
 Refactors:
 	- Move some CV stuff to utils
