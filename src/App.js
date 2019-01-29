@@ -263,11 +263,11 @@ class App extends Component {
       //Draw balls and trails
       this.drawTrails(context)
 
-
       //Draw lines between balls of same color
-      
       this.drawConnections(context)
 
+      //Draw stars from balls
+      this.drawStars(context)
       //Trim histories to trail length
       this.trimHistories()
 
@@ -387,6 +387,7 @@ class App extends Component {
     //Draw circle for coordinate and color
     context.beginPath();
     context.arc(x, y, r, 0, 2 * Math.PI, false);
+    console.log("draw " , color)
     context.fillStyle = color;
     context.fill();
     context.strokeStyle = color;
@@ -472,7 +473,6 @@ class App extends Component {
     })
   }
 
-  
   colorFilter=(src)=>{
     let dst = new cv.Mat();
 
