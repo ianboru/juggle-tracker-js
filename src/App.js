@@ -289,7 +289,7 @@ class App extends Component {
 
   trackBall=(src,colorNum)=>{
     //src is a frame filtered for the current color
-    const sizeThreshold = 80
+    const sizeThreshold = 60
     const maxNumContours = 15
     let allPositions = this.state.positions
     //Used to know how many contours to connect later
@@ -315,23 +315,27 @@ class App extends Component {
       let lastR
       for(let i = 0; i < Math.min(sortedContourIndices.length, maxNumContours); ++i){
         const contour = contours.get(sortedContourIndices[i])
+        const contourArea = cv.contourArea(contour)
         let x; let y; let r
         //Check if contour is big enough to be a real object
-        if(cv.contourArea(contour) < sizeThreshold && this.state.positions[colorNum][i]){
+        if(contourArea < sizeThreshold && this.state.positions[colorNum][i]){
           //If it is not big enough but an the current object has a history 
           //then use -1 so this object isnt drawn for this frame and the history can continue 
           x = -1; y = -1; r = -1 
-        }else if (cv.contourArea(contour) < sizeThreshold && !this.state.positions[colorNum][i]){
+        }else if (contourArea < sizeThreshold && !this.state.positions[colorNum][i]){
           //If it is not big enough and the current object hasn't been seen yet then throw it away
           continue
-        }
+        }else{
+          const circle = cv.minEnclosingCircle(contour)
 
-        //Find circle that encloses contour
-        const circle = cv.minEnclosingCircle(contour)
-        x = circle.center.x
-        y = circle.center.y
-        r = circle.radius
-        ++numContoursOverThreshold
+          x = circle.center.x
+          y = circle.center.y
+          r = circle.radius
+          //Find circle that encloses contour
+        
+          ++numContoursOverThreshold
+        }
+        
 
         //Initialize current object
         if(!allPositions[colorNum][i]){
