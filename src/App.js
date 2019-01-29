@@ -110,6 +110,7 @@ class App extends Component {
 
   }
   startVideoProcessing=()=> {
+    const context = document.getElementById("canvasOutput").getContext("2d")
     this.setState({
       canvasStream : this.canvasOutput.captureStream()
     })
