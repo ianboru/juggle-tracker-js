@@ -38,11 +38,17 @@ class App extends Component {
     showRaw : true,
     trailLength : 1,
     showConnections : false,
+    showStars     : false,
     mediaRecorder : null,
     recordedBlobs : null,
     visiblePlayer : "live",
     canvasStream : null,
     showTrails : true,
+    starsX     : [],
+    starsY     : [],
+    starsDx    : [],
+    starsDy    : [],
+    starsSize  : [],
   }
 
   componentDidMount=()=>{
@@ -266,7 +272,6 @@ class App extends Component {
       //Draw lines between balls of same color
       this.drawConnections(context)
 
-      //Draw stars from balls
       this.drawStars(context)
       //Trim histories to trail length
       this.trimHistories()
@@ -382,17 +387,88 @@ class App extends Component {
     })
     histories = null
   }
+// Function that draws stars
+drawStars = (context)=>{
+  if(!this.state.showStars){
+    return
+  }
+  // Create some temporary lists
+  let newStarsX = []
+  let newStarsY = []
+  let newStarsDx = []
+  let newStarsDy = []
+  let newStarsSize = []
 
+  const numStarsPerObject = 10
+  // Get the positions of the balls in this frame and create stars around them
+  this.state.allColors.forEach((ballColors,colorNum)=>{
+    // If data exists for this object, proceed
+    if(this.state.positions[colorNum]){
+      // Iterate though each contour for this color
+      for(let i = 0; i < this.state.positions[colorNum].currentNumContours; ++i){
+        // If this a contour in this colorNum exists, proceed
+        if(this.state.positions[colorNum][i]){
+          // Get the x and y values
+          const x = this.state.positions[colorNum][i]['x'].slice(-1).pop()
+          const y = this.state.positions[colorNum][i]['y'].slice(-1).pop()
+          // Create some stars
+          for (let numStars=0; numStars<numStarsPerObject; numStars++){
+            // A star is born!
+            newStarsX.push(x + (30-Math.random()*30)) // Around the xy coordinate
+            newStarsY.push(y + (30-Math.random()*30))
+            newStarsDx.push(1-2*Math.random()) // With a random velocity
+            newStarsDy.push(1-2*Math.random())
+            newStarsSize.push(4 + Math.random()*2) // And a random size
+          }
+        }
+      }
+    }
+  })
+
+  // Add the old stars to the list of new stars
+  for (let i=0; i<this.state.starsX.length; i++){
+    // Has the star burned out?
+    if (this.state.starsSize[i]-.2>1){
+      // The star needs to move. x and y change by dx and dy
+      newStarsX.push(this.state.starsX[i]+this.state.starsDx[i])
+      newStarsY.push(this.state.starsY[i]+this.state.starsDy[i])
+      // Save the dx, dy. They remain constant
+      newStarsDx.push(this.state.starsDx[i])
+      newStarsDy.push(this.state.starsDy[i])
+      // The star get smaller
+      newStarsSize.push(this.state.starsSize[i]-.2)
+    }
+  }
+  //console.log(newStarsX)
+  console.log("lengths" ,this.state.starsX.length,this.state.starsY.length)
+  this.setState({
+    starsX : newStarsX,
+    starsY : newStarsY,
+    starsDx : newStarsDx,
+    starsDy : newStarsDy,
+    starsSize : newStarsSize
+  })
+
+  for (let i=0; i< newStarsX.length; i++){
+    const x = newStarsX[i]
+    const y = newStarsY[i]
+    const size = newStarsSize[i]
+    if(size>0){
+      const randomColor = '#'+Math.floor(Math.random()*16777215).toString(16);
+      this.drawCircle(context,x,y,size,randomColor)
+    }
+  }
+}
   drawCircle = (context, x,y,r, color)=>{
     //Draw circle for coordinate and color
     context.beginPath();
     context.arc(x, y, r, 0, 2 * Math.PI, false);
-    console.log("draw " , color)
     context.fillStyle = color;
     context.fill();
     context.strokeStyle = color;
     context.stroke();
   }
+
   drawTrails =(context)=>{
     //Draw circle and trail
     this.state.allColors.forEach((ballColors,colorNum)=>{
@@ -411,6 +487,7 @@ class App extends Component {
             let currentWindowSize  = Math.min(xHistory.length, maxWindowSize)
             //Draw circle and trail
             for (let t=0; t < currentWindowSize; ++t){
+              //At least draw the ball itself
               if(!this.state.showTrails && t > 0){
                 return
               }
@@ -421,6 +498,7 @@ class App extends Component {
                 const lastY = yHistory[yHistory.length - 1 - t]
                 const lastR = rHistory[rHistory.length - 1 - t]
                 const color = utils.calculateCurrentHSVString(ballColors,(1-(t/currentWindowSize)))
+                console.log("trail colors", color)
                 this.drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), color)
               }
             }
@@ -460,7 +538,6 @@ class App extends Component {
 
             const nextBallX = this.state.positions[colorNum][nextBallIndex]['x'].slice(-1).pop()
             const nextBallY = this.state.positions[colorNum][nextBallIndex]['y'].slice(-1).pop()
-            console.log(i, curBallX, curBallY)
             context.beginPath();
             context.moveTo(curBallX, curBallY)
             context.lineTo(nextBallX, nextBallY)
@@ -577,6 +654,11 @@ class App extends Component {
       showConnections : !this.state.showConnections
     })
   }
+  toggleShowStars=()=>{
+    this.setState({
+      showStars : !this.state.showStars
+    })
+  }
   toggleShowTrails=()=>{
     this.setState({
       showTrails : !this.state.showTrails
@@ -655,7 +737,7 @@ class App extends Component {
         <h3>Animation Controls</h3>
         <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleShowConnections}>Connect Same Colors</button>
         <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleShowTrails}>Show Trails</button>
-
+        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleShowStars}>Show Stars</button>
         <br/>
         <div hidden={false} id="trailSlider">
           <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label>
