@@ -37,11 +37,12 @@ class App extends Component {
     totalNumColors : 1,
     showRaw : true,
     trailLength : 1,
-    connectSameColor : false,
+    showConnections : false,
     mediaRecorder : null,
     recordedBlobs : null,
     visiblePlayer : "live",
     canvasStream : null,
+    showTrails : true,
   }
 
   componentDidMount=()=>{
@@ -264,9 +265,8 @@ class App extends Component {
 
 
       //Draw lines between balls of same color
-      if(this.state.connectSameColor){
-        this.drawConnections(context)
-      }
+      
+      this.drawConnections(context)
 
       //Trim histories to trail length
       this.trimHistories()
@@ -402,14 +402,12 @@ class App extends Component {
 
             //Don't draw a trail longer than the window 
             const maxWindowSize = this.state.trailLength
-            let currentWindowSize
-            if(this.state.connectSameColor){
-              currentWindowSize = 1
-            }else{
-              currentWindowSize = Math.min(xHistory.length, maxWindowSize)
-            }
+            let currentWindowSize  = Math.min(xHistory.length, maxWindowSize)
             //Draw circle and trail
             for (let t=0; t < currentWindowSize; ++t){
+              if(!this.state.showTrails && t > 0){
+                return
+              }
               if(xHistory[xHistory.length - 1 - t] > -1){
                 //Look backwards in history stepping by t
                 const lastX = xHistory[xHistory.length - 1 - t]
@@ -426,6 +424,9 @@ class App extends Component {
   }
   drawConnections=(context)=>{
     //Draw connection between balls of same color 
+    if(!this.state.showConnections){
+      return
+    }
     this.state.allColors.forEach((ballColors,colorNum)=>{
       //Check if no there is an object history for this color
       if(!this.state.positions[colorNum]){
@@ -441,7 +442,10 @@ class App extends Component {
             nextBallIndex = 0
           }
           //Draw
-          if(this.state.positions[colorNum][i] && this.state.positions[colorNum][nextBallIndex]){
+          if(
+            this.state.positions[colorNum][i] && this.state.positions[colorNum][i] != -1 && 
+            this.state.positions[colorNum][nextBallIndex] && this.state.positions[colorNum][nextBallIndex] != -1
+          ){
             const curBallX = this.state.positions[colorNum][i]['x'][this.state.positions[colorNum][i]['x'].length-1]
             const curBallY = this.state.positions[colorNum][i]['y'][this.state.positions[colorNum][i]['y'].length-1]
 
@@ -560,12 +564,18 @@ class App extends Component {
       trailLength : e.target.value
     })
   }
-  toggleConnectSameColor=()=>{
+  toggleShowConnections=()=>{
     this.setState({
-      connectSameColor : !this.state.connectSameColor
+      showConnections : !this.state.showConnections
     })
   }
-
+  toggleShowTrails=()=>{
+    const slider = document.getElementById("trailSlider")
+    slider.hidden = !this.state.showTrails
+    this.setState({
+      showTrails : !this.state.showTrails
+    })
+  }
   handleChangeComplete = (color) => {
     this.setState({ pickedColor: color.hsv });
     let colorRanges = this.state.allColors
@@ -633,12 +643,18 @@ class App extends Component {
     const animationControls = 
       <div>
         <h3>Animation Controls</h3>
-        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleConnectSameColor}>Connect Same Colors</button>
+        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleShowConnections}>Connect Same Colors</button>
+        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleShowTrails}>Show Trails</button>
+
         <br/>
-        <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label><input name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
+        <div id="trailSlider">
+          <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label>
+          <input  name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
+        </div>
         <video hidden={true} width={320} height={240} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
-        
       </div>
+
+
     return (
       <div className="App" >
         {videoControls}
