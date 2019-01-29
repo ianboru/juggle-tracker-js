@@ -3,7 +3,6 @@ import './App.css';
 import cv from 'opencv.js';
 import utils from './utils'
 import { HuePicker } from 'react-color';
-import Terminal from 'terminal-in-react';
 
 //@observer
 const initialHSV = {
@@ -55,6 +54,7 @@ class App extends Component {
     this.startCamera()
     const downloadButton = document.querySelector('button#download');
     downloadButton.disabled = true
+    document.title = "AR Flow Arts"
   }
   /****
   Camera Stuff
@@ -65,7 +65,7 @@ class App extends Component {
     if (this.state.streaming) return;
 
     //get video 
-    navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user', width:320}, audio: false})
+    navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user', width:320,height:240}, audio: false})
     .then(function(s) {
       console.log("got user media")
       //Set stream to stop later
