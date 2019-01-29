@@ -284,7 +284,8 @@ class App extends Component {
 
   trackBall=(src,colorNum)=>{
     //src is a frame filtered for the current color
-    const sizeThreshold = 60
+    const sizeThreshold = 80
+    const maxNumContours = 15
     let allPositions = this.state.positions
     //Used to know how many contours to connect later
     let numContoursOverThreshold = 0
@@ -305,8 +306,9 @@ class App extends Component {
       if(!allPositions[colorNum]){
         allPositions[colorNum] = []
       }
-
-      for(let i = 0; i < sortedContourIndices.length; ++i){
+      let lastX
+      let lastR
+      for(let i = 0; i < Math.min(sortedContourIndices.length, maxNumContours); ++i){
         const contour = contours.get(sortedContourIndices[i])
         let x; let y; let r
         //Check if contour is big enough to be a real object
@@ -325,6 +327,7 @@ class App extends Component {
         y = circle.center.y
         r = circle.radius
         ++numContoursOverThreshold
+
         //Initialize current object
         if(!allPositions[colorNum][i]){
           allPositions[colorNum][i]={
@@ -337,6 +340,8 @@ class App extends Component {
         allPositions[colorNum][i]['x'].push(x)
         allPositions[colorNum][i]['y'].push(y)
         allPositions[colorNum][i]['r'].push(r)
+        lastX = x
+        lastR = r 
       }
       allPositions[colorNum]["currentNumContours"] = numContoursOverThreshold
     }else if( sortedContourIndices.length == 0 && this.state.positions[colorNum]){
@@ -408,7 +413,8 @@ class App extends Component {
               if(!this.state.showTrails && t > 0){
                 return
               }
-              if(xHistory[xHistory.length - 1 - t] > -1){
+              if(xHistory[xHistory.length - 1 - t] > -1 && xHistory[xHistory.length - 1 - t] != -1 ){
+
                 //Look backwards in history stepping by t
                 const lastX = xHistory[xHistory.length - 1 - t]
                 const lastY = yHistory[yHistory.length - 1 - t]
@@ -437,21 +443,23 @@ class App extends Component {
       if(numObjects > 1){
         for(let i = 0; i < numObjects; ++i){
           let nextBallIndex = i+1
-          //Connect last ball to first ball
-          if(i == numObjects-1){
+          //Connect last ball to first ball if there are 3 or more objects
+          if(i == numObjects-1 && numObjects > 2){
             nextBallIndex = 0
+          }else if(i == numObjects-1 && numObjects <= 2){
+            continue
           }
           //Draw
           if(
-            this.state.positions[colorNum][i] && this.state.positions[colorNum][i] != -1 && 
-            this.state.positions[colorNum][nextBallIndex] && this.state.positions[colorNum][nextBallIndex] != -1
+            this.state.positions[colorNum][i] && this.state.positions[colorNum][i]['x'].slice(-1).pop() != -1 && 
+            this.state.positions[colorNum][nextBallIndex] && this.state.positions[colorNum][nextBallIndex]['x'].slice(-1).pop() != -1
           ){
-            const curBallX = this.state.positions[colorNum][i]['x'][this.state.positions[colorNum][i]['x'].length-1]
-            const curBallY = this.state.positions[colorNum][i]['y'][this.state.positions[colorNum][i]['y'].length-1]
+            const curBallX = this.state.positions[colorNum][i]['x'].slice(-1).pop()
+            const curBallY = this.state.positions[colorNum][i]['y'].slice(-1).pop()
 
-            const nextBallX = this.state.positions[colorNum][nextBallIndex]['x'][this.state.positions[colorNum][nextBallIndex]['x'].length-1]
-            const nextBallY = this.state.positions[colorNum][nextBallIndex]['y'][this.state.positions[colorNum][nextBallIndex]['y'].length-1]
-
+            const nextBallX = this.state.positions[colorNum][nextBallIndex]['x'].slice(-1).pop()
+            const nextBallY = this.state.positions[colorNum][nextBallIndex]['y'].slice(-1).pop()
+            console.log(i, curBallX, curBallY)
             context.beginPath();
             context.moveTo(curBallX, curBallY)
             context.lineTo(nextBallX, nextBallY)
@@ -570,10 +578,12 @@ class App extends Component {
     })
   }
   toggleShowTrails=()=>{
-    const slider = document.getElementById("trailSlider")
-    slider.hidden = !this.state.showTrails
     this.setState({
       showTrails : !this.state.showTrails
+    },()=>{
+      const slider = document.getElementById("trailSlider")
+      slider.hidden = !this.state.showTrails
+
     })
   }
   handleChangeComplete = (color) => {
@@ -597,15 +607,15 @@ class App extends Component {
     const sliders =
         <div style={{"paddingTop": "15px"}} className="sliders">
           <h3>Adjust Color Range</h3>
-          <span>Hue</span><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lh}/><label>min</label><input name="lh" type="range" min={0} max={360} step={1} value={this.state.lh} onChange={this.handleHSVSliderChange}/>
+          <div style={{"width": "80px", "display" :"inline-block"}} >Hue</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lh}/><label>min</label><input name="lh" type="range" min={0} max={360} step={1} value={this.state.lh} onChange={this.handleHSVSliderChange}/>
           <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hh}/><label>max</label><input name="hh" type="range" min={0} max={360} step={1} value={this.state.hh} onChange={this.handleHSVSliderChange}/>
           <br/>
           <br/>
-          <span>Saturation</span><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.ls}/><label>min</label><input name="ls" type="range" min={0} max={1} step={.01} value={this.state.ls} onChange={this.handleHSVSliderChange}/>
+          <div style={{"width": "80px", "display" :"inline-block"}} >Saturation</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.ls}/><label>min</label><input name="ls" type="range" min={0} max={1} step={.01} value={this.state.ls} onChange={this.handleHSVSliderChange}/>
           <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hs}/><label>max</label><input name="hs" type="range" min={0} max={1} step={.01} value={this.state.hs} onChange={this.handleHSVSliderChange}/>
           <br/>
           <br/>
-          <span>Value</span><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lv}/><label>min</label><input name="lv" type="range" min={0} max={1} step={.01} value={this.state.lv} onChange={this.handleHSVSliderChange}/>
+          <div style={{"width": "80px", "display" :"inline-block"}} >Value</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lv}/><label>min</label><input name="lv" type="range" min={0} max={1} step={.01} value={this.state.lv} onChange={this.handleHSVSliderChange}/>
           <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hv}/><label>max</label><input name="hv" type="range" min={0} max={1} step={.01} value={this.state.hv} onChange={this.handleHSVSliderChange}/>
         </div> 
 
@@ -647,7 +657,7 @@ class App extends Component {
         <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleShowTrails}>Show Trails</button>
 
         <br/>
-        <div id="trailSlider">
+        <div hidden={false} id="trailSlider">
           <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label>
           <input  name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
         </div>
