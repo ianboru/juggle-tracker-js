@@ -135,7 +135,7 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
     const y = newStarsY[i]
     const size = newStarsSize[i]
     const color = newStarsColor[i]
-    this.drawCircle(context,x,y,size,color)
+    drawCircle(context,x,y,size,color)
   }
   return {
     starsX : newStarsX,
@@ -148,5 +148,6 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
 }
 export default { 
     drawTrails,
-    drawConnections
+    drawConnections,
+    drawStars
 }

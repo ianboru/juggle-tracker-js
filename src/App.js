@@ -280,7 +280,8 @@ class App extends Component {
         }
         if(this.state.showStars){
           //Draw stars coming from balls
-          const newStars = this.drawStars(context, this.state.starsX,this.state.starsY,this.state.starsDx,this.state.starsDy,this.state.starsSize,this.state.starsColor)
+          const newStars = drawingUtils.drawStars(context, this.state.positions[colorNum],this.state.starsX,this.state.starsY,this.state.starsDx,this.state.starsDy,this.state.starsSize,this.state.starsColor)
+          console.log(newStars)
           this.setState(newStars)
         }
       })
@@ -368,90 +369,6 @@ class App extends Component {
       positions : histories
     })
     histories = null
-  }
-// Function that draws stars
-drawStars = (context)=>{
-  if(!this.state.showStars){
-    return
-  }
-  // Create some temporary lists
-  let newStarsX = []
-  let newStarsY = []
-  let newStarsDx = []
-  let newStarsDy = []
-  let newStarsSize = []
-  let newStarsColor = []
-
-  const numStarsPerObject = 5
-  // Get the positions of the balls in this frame and create stars around them
-  this.state.allColors.forEach((ballColors,colorNum)=>{
-    // If data exists for this object, proceed
-    if(this.state.positions[colorNum]){
-      // Iterate though each contour for this color
-      for(let i = 0; i < this.state.positions[colorNum].currentNumContours; ++i){
-        // If this a contour in this colorNum exists, proceed
-        if(this.state.positions[colorNum][i]){
-          // Get the x and y values
-          const x = this.state.positions[colorNum][i]['x'].slice(-1).pop()
-          const y = this.state.positions[colorNum][i]['y'].slice(-1).pop()
-          // Create some stars
-          for (let numStars=0; numStars<numStarsPerObject; numStars++){
-            // A star is born!
-            newStarsX.push(x + (.5-Math.random())*30) // Around the xy coordinate
-            newStarsY.push(y + (.5-Math.random())*30)
-            newStarsDx.push(2*(.5-Math.random())) // With a random velocity
-            newStarsDy.push(2*(.5-Math.random()))
-            newStarsSize.push(2 + Math.random()*2) // And a random size
-            newStarsColor.push('#'+Math.floor(Math.random()*16777215).toString(16))
-            newStarsSize.push(this.state.positions[colorNum][i]['r'].slice(-1).pop()/10 + Math.random()*2) // And a random size
-          }
-        }
-      }
-    }
-  })
-
-  // Add the old stars to the list of new stars
-  for (let i=0; i<this.state.starsX.length; i++){
-    // Has the star burned out?
-    if (this.state.starsSize[i]-.2>1){
-      // The star needs to move. x and y change by dx and dy
-      newStarsX.push(this.state.starsX[i]+this.state.starsDx[i])
-      newStarsY.push(this.state.starsY[i]+this.state.starsDy[i])
-      // Save the dx, dy. They remain constant
-      newStarsDx.push(this.state.starsDx[i])
-      newStarsDy.push(this.state.starsDy[i])
-      // The star get smaller
-      newStarsSize.push(this.state.starsSize[i]-.2)
-      // Preserve the color
-      newStarsColor.push(this.state.starsColor[i])
-    }
-  }
-  // Save the new and updated stars
-  this.setState({
-    starsX : newStarsX,
-    starsY : newStarsY,
-    starsDx : newStarsDx,
-    starsDy : newStarsDy,
-    starsSize : newStarsSize,
-    starsColor : newStarsColor
-  })
-  // Draw the stars
-  for (let i=0; i< newStarsX.length; i++){
-    const x = newStarsX[i]
-    const y = newStarsY[i]
-    const size = newStarsSize[i]
-    const color = newStarsColor[i]
-    this.drawCircle(context,x,y,size,color)
-  }
-}
-  drawCircle = (context, x,y,r, color)=>{
-    //Draw circle for coordinate and color
-    context.beginPath();
-    context.arc(x, y, r, 0, 2 * Math.PI, false);
-    context.fillStyle = color;
-    context.fill();
-    context.strokeStyle = color;
-    context.stroke();
   }
 
   handleHSVSliderChange=(e)=>{
