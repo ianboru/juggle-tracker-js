@@ -78,6 +78,74 @@ function drawConnections(context,positions, colorRange){
     }
   }
 }
+function drawStars(context,positions, existingStarsX, existingStarsY, existingStarsDx, existingStarsDy, existingStarsSize, existingStarsColor){
+
+  // Create some temporary lists
+  let newStarsX = []
+  let newStarsY = []
+  let newStarsDx = []
+  let newStarsDy = []
+  let newStarsSize = []
+  let newStarsColor = []
+
+  const numStarsPerObject = 5
+  // If data exists for this object, proceed
+  if(positions){
+    // Iterate though each contour for this color
+    for(let i = 0; i < positions.currentNumContours; ++i){
+      // If this a contour in this colorNum exists, proceed
+      if(positions[i]){
+        // Get the x and y values
+        const x = positions[i]['x'].slice(-1).pop()
+        const y = positions[i]['y'].slice(-1).pop()
+        // Create some stars
+        for (let numStars=0; numStars<numStarsPerObject; numStars++){
+          // A star is born!
+          newStarsX.push(x + (.5-Math.random())*30) // Around the xy coordinate
+          newStarsY.push(y + (.5-Math.random())*30)
+          newStarsDx.push(2*(.5-Math.random())) // With a random velocity
+          newStarsDy.push(2*(.5-Math.random()))
+          newStarsSize.push(2 + Math.random()*2) // And a random size
+          newStarsColor.push('#'+Math.floor(Math.random()*16777215).toString(16))
+          newStarsSize.push(positions[i]['r'].slice(-1).pop()/10 + Math.random()*2) // And a random size
+        }
+      }
+    }
+  }
+
+  // Add the old stars to the list of new stars
+  for (let i=0; i<existingStarsX.length; i++){
+    // Has the star burned out?
+    if (existingStarsSize[i]-.2>1){
+      // The star needs to move. x and y change by dx and dy
+      newStarsX.push(existingStarsX[i]+existingStarsDx[i])
+      newStarsY.push(existingStarsY[i]+existingStarsDy[i])
+      // Save the dx, dy. They remain constant
+      newStarsDx.push(existingStarsDx[i])
+      newStarsDy.push(existingStarsDy[i])
+      // The star get smaller
+      newStarsSize.push(existingStarsSize[i]-.2)
+      // Preserve the color
+      newStarsColor.push(existingStarsColor[i])
+    }
+  }
+  // Draw the stars
+  for (let i=0; i< newStarsX.length; i++){
+    const x = newStarsX[i]
+    const y = newStarsY[i]
+    const size = newStarsSize[i]
+    const color = newStarsColor[i]
+    this.drawCircle(context,x,y,size,color)
+  }
+  return {
+    starsX : newStarsX,
+    starsY : newStarsY,
+    starsDx : newStarsDx,
+    starsDy : newStarsDy,
+    starsSize : newStarsSize,
+    starsColor : newStarsColor
+  }
+}
 export default { 
     drawTrails,
     drawConnections

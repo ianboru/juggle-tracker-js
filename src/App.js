@@ -278,9 +278,14 @@ class App extends Component {
           //Draw lines between balls of same color
           drawingUtils.drawConnections(context, this.state.positions[colorNum], colorRange)
         }
+        if(this.state.showStars){
+          //Draw stars coming from balls
+          const newStars = this.drawStars(context, this.state.starsX,this.state.starsY,this.state.starsDx,this.state.starsDy,this.state.starsSize,this.state.starsColor)
+          this.setState(newStars)
+        }
       })
 
-      this.drawStars(context)
+      
       //Trim histories to trail length
       this.trimHistories()
 
