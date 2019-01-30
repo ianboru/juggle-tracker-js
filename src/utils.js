@@ -94,12 +94,6 @@ export default {
     htmlToOpenCVHSV,
     mean,
     sortContours,
-    RGBtoHSV,
-    HSVtoRGB,
-    red,
-    green,
-    blue,
-    white,
     colorFilter,
     findBalls
 }
