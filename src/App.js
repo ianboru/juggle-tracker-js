@@ -295,17 +295,12 @@ class App extends Component {
   
 
   updateBallHistories=(contourPositions, colorNum)=>{
-    //src is a frame filtered for the current color
-   
     const maxNumContours = 15
     //Used to know how many contours to connect later
     let numContoursOverThreshold = 0
-
     let allPositions = this.state.positions
-
     //Catalogue the contour locations to draw later
     if(contourPositions.length > 0){
-
       //initialize for the first contours
       if(!allPositions[colorNum]){
         allPositions[colorNum] = []
@@ -313,7 +308,6 @@ class App extends Component {
       //Shouldn't be more than max contours realistically
       for(let i = 0; i < Math.min(contourPositions.length, maxNumContours); ++i){
         //Initialize current object
-
         if(!allPositions[colorNum][i]){
           allPositions[colorNum][i]={
             'x':[],
@@ -322,7 +316,6 @@ class App extends Component {
           }
         }
         ++numContoursOverThreshold
-        
         //Add latest coordinates to history
         allPositions[colorNum][i]['x'].push(contourPositions[i].x)
         allPositions[colorNum][i]['y'].push(contourPositions[i].y)
@@ -334,7 +327,6 @@ class App extends Component {
       return
     }
     // For any existing object histories push -1 to not be drawn later
-    console.log(allPositions[colorNum].length, contourPositions.length)
     for(let i = 0 ; 
       i < allPositions[colorNum].length; ++i
     ){
@@ -344,7 +336,6 @@ class App extends Component {
         allPositions[colorNum][i]['r'].push(-1)
       }
     }
-    
     // Update position histories
     this.setState({
       positions : allPositions
