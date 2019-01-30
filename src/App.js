@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import './App.css';
 import cv from 'opencv.js';
-import utils from './utils'
+import cvutils from './cvutils';
+import drawingUtils from './drawingUtils'
 import { HuePicker } from 'react-color';
 
 //@observer
@@ -256,26 +257,28 @@ class App extends Component {
       srcMat.data.set(imageData.data);
       //Flip horizontally because camera feed is pre-flipped
       cv.flip(srcMat, srcMat,1)
+      cv.imshow('canvasOutput',srcMat)
       //Filters by color AND tracks ball positions by color
       let colorFilteredImage
       this.state.allColors.forEach((colorRange,colorNum)=>{
 
-        colorFilteredImage = utils.colorFilter(srcMat.clone(), colorRange)
-        const ballLocations = utils.findBalls(colorFilteredImage.clone())
+        colorFilteredImage = cvutils.colorFilter(srcMat.clone(), colorRange)
+        const ballLocations = cvutils.findBalls(colorFilteredImage.clone())
         this.updateBallHistories(ballLocations, colorNum)
+        if(!this.state.showRaw){
+          // Initialize final canvas with the mask of the colors within the color ranges
+          // This setting is used when calibrating the colors
+          cv.imshow('canvasOutput',colorFilteredImage)
+        }
+        //Draw balls and trails
+        if(this.state.showTrails){
+          drawingUtils.drawTrails(context,this.state.positions[colorNum], colorRange, this.state.trailLength)
+        }
+
       })
-      if(this.state.showRaw){
-        // Initialize final canvas with raw video
-        cv.imshow('canvasOutput',srcMat)
-      }else{
-        // Initialize final canvas with the mask of the colors within the color ranges
-        // This setting is used when calibrating the colors
-        cv.imshow('canvasOutput',colorFilteredImage)
-      }
+      
 
-      //Draw balls and trails
-      this.drawTrails(context)
-
+      
       //Draw lines between balls of same color
       this.drawConnections(context)
 
@@ -448,43 +451,7 @@ drawStars = (context)=>{
     context.stroke();
   }
 
-  drawTrails =(context)=>{
-    //Draw circle and trail
-    this.state.allColors.forEach((ballColors,colorNum)=>{
-      if(this.state.positions[colorNum]){
 
-        for(let i = 0; i < this.state.positions[colorNum].length; ++i){
-          //Don't draw if x oordinate is -1
-          if(this.state.positions[colorNum][i] && this.state.positions[colorNum][i]['x'] != -1 ){
-            //Rename for convenience
-            const xHistory = this.state.positions[colorNum][i]['x']
-            const yHistory = this.state.positions[colorNum][i]['y']
-            const rHistory = this.state.positions[colorNum][i]['r']
-
-            //Don't draw a trail longer than the window
-            const maxWindowSize = this.state.trailLength
-            let currentWindowSize  = Math.min(xHistory.length, maxWindowSize)
-            //Draw circle and trail
-            for (let t=0; t < currentWindowSize; ++t){
-              //At least draw the ball itself
-              if(!this.state.showTrails && t > 0){
-                return
-              }
-              if(xHistory[xHistory.length - 1 - t] > -1 && xHistory[xHistory.length - 1 - t] != -1 ){
-
-                //Look backwards in history stepping by t
-                const lastX = xHistory[xHistory.length - 1 - t]
-                const lastY = yHistory[yHistory.length - 1 - t]
-                const lastR = rHistory[rHistory.length - 1 - t]
-                const color = utils.calculateCurrentHSVString(ballColors,(1-(t/currentWindowSize)))
-                this.drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), color)
-              }
-            }
-          }
-        }
-      }
-    })
-  }
   drawConnections=(context)=>{
     //Draw connection between balls of same color
     if(!this.state.showConnections){
@@ -519,7 +486,7 @@ drawStars = (context)=>{
             context.beginPath();
             context.moveTo(curBallX, curBallY)
             context.lineTo(nextBallX, nextBallY)
-            context.strokeStyle = utils.calculateCurrentHSVString(ballColors, 1);
+            context.strokeStyle = cvutils.calculateCurrentHSVString(ballColors, 1);
             context.lineWidth = 4;
             context.stroke();
           }
@@ -551,7 +518,7 @@ drawStars = (context)=>{
     }
     this.setState({
       allColors : colorRanges,
-      pickedColor : utils.calculateCurrentHSV(colorRanges[this.state.colorNum])
+      pickedColor : cvutils.calculateCurrentHSV(colorRanges[this.state.colorNum])
 
     })
   }
@@ -646,7 +613,7 @@ drawStars = (context)=>{
             style={{
               'marginRight': '20px',
               'display':'inline-block',
-              'backgroundColor' : utils.calculateCurrentHSVString(colorRange,1),
+              'backgroundColor' : cvutils.calculateCurrentHSVString(colorRange,1),
               'width' : '50px',
               'height' : '50px',
               'left' : '0',
