@@ -1,3 +1,5 @@
+Workflow: 
+	- Calibrate on snapshot of real juggling
 
 Image processing: 
 	- Allow connecting all balls of any color
@@ -10,7 +12,8 @@ Minor UI:
 	- Show active state on buttons
 	- info button with explanation of workflow
 	- highlight selected color on click/hover
-
+	- Make sliders responsive 
+	- Allow large video option but default should be responsive
 "backend":
 	- Allow upload video instead of using Cam
 	- Make it work on iOS (learn from react-video-recorder)
