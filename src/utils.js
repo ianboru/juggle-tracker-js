@@ -38,6 +38,43 @@ function colorFilter(src, colorRange){
     src.delete();temp.delete();hsv.delete();
     return dst
 }
+function findBalls(src){
+    //src is a frame filtered for the current color
+    const sizeThreshold = 60
+    const maxNumContours = 15
+    //Used to know how many contours to connect later
+    let numContoursOverThreshold = 0
+    //initialize contour finding data
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+
+    //find contours
+    cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
+    //sort contours by size
+    const sortedContourIndices = this.sortContours(contours)
+
+    let contourPositions = []
+    //Catalogue the contour locations to draw later
+    if(sortedContourIndices.length > 0){
+      for(let i = 0; i < Math.min(sortedContourIndices.length, maxNumContours); ++i){
+        const contour = contours.get(sortedContourIndices[i])
+        const contourArea = cv.contourArea(contour)
+        //Check if contour is big enough to be a real object
+        if(contourArea > sizeThreshold){
+          const circle = cv.minEnclosingCircle(contour)
+          contourPositions.push({
+            'x' : circle.center.x,
+            'y' : circle.center.y,
+            'r' : circle.radius,
+          })
+        }       
+      }
+    }
+    // Cleanup open cv objects
+    src.delete();contours.delete(); hierarchy.delete();
+    return contourPositions
+
+}
 function HSVtoRGB(h, s, v) {
     var r, g, b, i, f, p, q, t;
     if (arguments.length === 1) {
@@ -154,5 +191,6 @@ export default {
     green,
     blue,
     white,
-    colorFilter
+    colorFilter,
+    findBalls
 }

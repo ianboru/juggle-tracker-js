@@ -261,7 +261,8 @@ class App extends Component {
       this.state.allColors.forEach((colorRange,colorNum)=>{
 
         colorFilteredImage = utils.colorFilter(srcMat.clone(), colorRange)
-        this.trackBall(colorFilteredImage.clone(),colorNum)
+        const ballLocations = utils.findBalls(colorFilteredImage.clone())
+        this.updateBallHistories(ballLocations, colorNum)
       })
       if(this.state.showRaw){
         // Initialize final canvas with raw video
@@ -291,59 +292,28 @@ class App extends Component {
       requestAnimationFrame(this.processVideo);
     }
   }
+  
 
-
-  trackBall=(src,colorNum)=>{
+  updateBallHistories=(contourPositions, colorNum)=>{
     //src is a frame filtered for the current color
-    const sizeThreshold = 60
+   
     const maxNumContours = 15
-    let allPositions = this.state.positions
     //Used to know how many contours to connect later
     let numContoursOverThreshold = 0
-    //initialize contour finding data
-    let dst = cv.Mat.zeros(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
-    let contours = new cv.MatVector();
-    let hierarchy = new cv.Mat();
 
-    //find contours
-    cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
-    //sort contours by size
-    const sortedContourIndices = utils.sortContours(contours)
+    let allPositions = this.state.positions
 
     //Catalogue the contour locations to draw later
-    if(sortedContourIndices.length > 0){
+    if(contourPositions.length > 0){
 
       //initialize for the first contours
       if(!allPositions[colorNum]){
         allPositions[colorNum] = []
       }
-      let lastX
-      let lastR
-      for(let i = 0; i < Math.min(sortedContourIndices.length, maxNumContours); ++i){
-        const contour = contours.get(sortedContourIndices[i])
-        const contourArea = cv.contourArea(contour)
-        let x; let y; let r
-        //Check if contour is big enough to be a real object
-        if(contourArea < sizeThreshold && this.state.positions[colorNum][i]){
-          //If it is not big enough but an the current object has a history
-          //then use -1 so this object isnt drawn for this frame and the history can continue
-          x = -1; y = -1; r = -1
-        }else if (contourArea < sizeThreshold && !this.state.positions[colorNum][i]){
-          //If it is not big enough and the current object hasn't been seen yet then throw it away
-          continue
-        }else{
-          const circle = cv.minEnclosingCircle(contour)
-
-          x = circle.center.x
-          y = circle.center.y
-          r = circle.radius
-          //Find circle that encloses contour
-
-          ++numContoursOverThreshold
-        }
-
-
+      //Shouldn't be more than max contours realistically
+      for(let i = 0; i < Math.min(contourPositions.length, maxNumContours); ++i){
         //Initialize current object
+
         if(!allPositions[colorNum][i]){
           allPositions[colorNum][i]={
             'x':[],
@@ -351,29 +321,34 @@ class App extends Component {
             'r':[]
           }
         }
+        ++numContoursOverThreshold
+        
         //Add latest coordinates to history
-        allPositions[colorNum][i]['x'].push(x)
-        allPositions[colorNum][i]['y'].push(y)
-        allPositions[colorNum][i]['r'].push(r)
-        lastX = x
-        lastR = r
+        allPositions[colorNum][i]['x'].push(contourPositions[i].x)
+        allPositions[colorNum][i]['y'].push(contourPositions[i].y)
+        allPositions[colorNum][i]['r'].push(contourPositions[i].r)
       }
       allPositions[colorNum]["currentNumContours"] = numContoursOverThreshold
-    }else if( sortedContourIndices.length == 0 && this.state.positions[colorNum]){
-      // For any existing object histories push -1 to not be drawn later
-      for(let i = 0; i < this.state.positions[colorNum].length; ++i){
+    }
+    if(!allPositions[colorNum]){
+      return
+    }
+    // For any existing object histories push -1 to not be drawn later
+    console.log(allPositions[colorNum].length, contourPositions.length)
+    for(let i = 0 ; 
+      i < allPositions[colorNum].length; ++i
+    ){
+      if(i > contourPositions.length-1){
         allPositions[colorNum][i]['x'].push(-1)
         allPositions[colorNum][i]['y'].push(-1)
         allPositions[colorNum][i]['r'].push(-1)
       }
     }
-
+    
     // Update position histories
     this.setState({
       positions : allPositions
     })
-    // Cleanup open cv objects
-    src.delete();dst.delete(); contours.delete(); hierarchy.delete();
   }
   trimHistories=()=>{
     // Trim the position history of each object of each color
@@ -609,16 +584,17 @@ drawStars = (context)=>{
       this.setColorRange()
     })
   }
-  toggleShowRaw=()=>{
-    this.setState({
-      showRaw : !this.state.showRaw
-    })
-  }
   handleTrailLength=(e)=>{
     this.setState({
       trailLength : e.target.value
     })
   }
+  toggleShowRaw=()=>{
+    this.setState({
+      showRaw : !this.state.showRaw
+    })
+  }
+  
   toggleShowConnections=()=>{
     this.setState({
       showConnections : !this.state.showConnections
@@ -638,7 +614,7 @@ drawStars = (context)=>{
 
     })
   }
-  handleChangeComplete = (color) => {
+  handleColorPickerChangeComplete = (color) => {
     this.setState({ pickedColor: color.hsv });
     let colorRanges = this.state.allColors
     const hRange = 30
@@ -745,7 +721,7 @@ drawStars = (context)=>{
          >
           <HuePicker
             color={ this.state.pickedColor }
-            onChangeComplete={ this.handleChangeComplete }
+            onChangeComplete={ this.handleColorPickerChangeComplete }
           />
         </div>
         {sliders}

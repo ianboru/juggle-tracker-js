@@ -10,7 +10,6 @@ Minor UI:
 	- Show active state on buttons
 	- info button with explanation of workflow
 	- highlight selected color on click/hover
-	- Particle Effect
 
 "backend":
 	- Allow upload video instead of using Cam
@@ -19,6 +18,5 @@ Minor UI:
 	- Improve quality of recorded video
 
 Refactors:
-	- Move some CV stuff to utils
 	- Create data store to separate UI from data changes (mob x)
 
