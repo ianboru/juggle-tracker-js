@@ -1,5 +1,43 @@
 import cv from 'opencv.js';
+function colorFilter(src, colorRange){
+    let dst = new cv.Mat();
 
+    // Create a two new mat objects for the image in different color spaces
+    let temp = new cv.Mat();
+    let hsv = new cv.Mat();
+
+
+    // Convert the RGBA source image to RGB
+    cv.cvtColor(src, temp, cv.COLOR_RGBA2RGB)
+
+    // Blur the temporary image
+    let ksize = new cv.Size(11,11);
+    let anchor = new cv.Point(-1, -1);
+    cv.blur(temp, temp, ksize, anchor, cv.BORDER_DEFAULT);
+
+    // Convert the RGB temporary image to HSV
+    cv.cvtColor(temp, hsv, cv.COLOR_RGB2HSV)
+    // Get values for the color ranges from the trackbars
+
+    let lowerHSV = this.htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
+    lowerHSV.push(0)
+    let higherHSV = this.htmlToOpenCVHSV([colorRange.hh, colorRange.hs, colorRange.hv])
+    higherHSV.push(255)
+
+    // Create the new mat objects that are the lower and upper ranges of the color
+    let low = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), lowerHSV);
+    let high = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), higherHSV);
+
+    // Find the colors that are within (low, high)
+    cv.inRange(hsv, low, high, dst);
+
+    // Track the balls - arguments: mask image, and number of balls
+
+    low.delete();high.delete();
+
+    src.delete();temp.delete();hsv.delete();
+    return dst
+}
 function HSVtoRGB(h, s, v) {
     var r, g, b, i, f, p, q, t;
     if (arguments.length === 1) {
@@ -115,5 +153,6 @@ export default {
     red,
     green,
     blue,
-    white
+    white,
+    colorFilter
 }

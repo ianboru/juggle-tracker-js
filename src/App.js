@@ -30,8 +30,8 @@ class App extends Component {
     hs : .9,
     hv : .9,
     net : null,
-    allColors : [{},initialHSV],
-    colorNum : 1,
+    allColors : [initialHSV],
+    colorNum : 0,
     positions : [],
     totalNumColors : 1,
     showRaw : true,
@@ -257,16 +257,19 @@ class App extends Component {
       //Flip horizontally because camera feed is pre-flipped
       cv.flip(srcMat, srcMat,1)
       //Filters by color AND tracks ball positions by color
+      let colorFilteredImage
+      this.state.allColors.forEach((colorRange,colorNum)=>{
 
-      let combinedColorMat = this.colorFilter(srcMat.clone())
-
+        colorFilteredImage = utils.colorFilter(srcMat.clone(), colorRange)
+        this.trackBall(colorFilteredImage.clone(),colorNum)
+      })
       if(this.state.showRaw){
         // Initialize final canvas with raw video
         cv.imshow('canvasOutput',srcMat)
       }else{
         // Initialize final canvas with the mask of the colors within the color ranges
         // This setting is used when calibrating the colors
-        cv.imshow('canvasOutput',combinedColorMat)
+        cv.imshow('canvasOutput',colorFilteredImage)
       }
 
       //Draw balls and trails
@@ -280,8 +283,8 @@ class App extends Component {
       this.trimHistories()
 
       //Clean up all possible data
-      combinedColorMat.delete();srcMat.delete()
-      srcMat = null; combinedColorMat = null
+      colorFilteredImage.delete();srcMat.delete()
+      srcMat = null; colorFilteredImage = null
       imageData = null
 
       //Process next frame
@@ -422,21 +425,13 @@ drawStars = (context)=>{
           // Create some stars
           for (let numStars=0; numStars<numStarsPerObject; numStars++){
             // A star is born!
-<<<<<<< HEAD
             newStarsX.push(x + (.5-Math.random())*30) // Around the xy coordinate
             newStarsY.push(y + (.5-Math.random())*30)
             newStarsDx.push(2*(.5-Math.random())) // With a random velocity
             newStarsDy.push(2*(.5-Math.random()))
             newStarsSize.push(2 + Math.random()*2) // And a random size
             newStarsColor.push('#'+Math.floor(Math.random()*16777215).toString(16))
-=======
-            newStarsX.push(x + (30-Math.random()*30)) // Around the xy coordinate
-            newStarsY.push(y + (30-Math.random()*30))
-            newStarsDx.push(1-2*Math.random()) // With a random velocity
-            newStarsDy.push(1-2*Math.random())
-            //stars should be much smaller than ball
             newStarsSize.push(this.state.positions[colorNum][i]['r'].slice(-1).pop()/10 + Math.random()*2) // And a random size
->>>>>>> 2766265f45af7298e31f52b33ba99ff83f50d600
           }
         }
       }
@@ -567,49 +562,7 @@ drawStars = (context)=>{
     })
   }
 
-  colorFilter=(src)=>{
-    let dst = new cv.Mat();
-
-    // Create a two new mat objects for the image in different color spaces
-    let temp = new cv.Mat();
-    let hsv = new cv.Mat();
-
-    this.state.allColors.forEach((colorRange,colorNum)=>{
-      if(colorNum > 0){
-
-        // Convert the RGBA source image to RGB
-        cv.cvtColor(src, temp, cv.COLOR_RGBA2RGB)
-
-        // Blur the temporary image
-        let ksize = new cv.Size(11,11);
-        let anchor = new cv.Point(-1, -1);
-        cv.blur(temp, temp, ksize, anchor, cv.BORDER_DEFAULT);
-
-        // Convert the RGB temporary image to HSV
-        cv.cvtColor(temp, hsv, cv.COLOR_RGB2HSV)
-        // Get values for the color ranges from the trackbars
-
-        let lowerHSV = utils.htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
-        lowerHSV.push(0)
-        let higherHSV = utils.htmlToOpenCVHSV([colorRange.hh, colorRange.hs, colorRange.hv])
-        higherHSV.push(255)
-
-        // Create the new mat objects that are the lower and upper ranges of the color
-        let low = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), lowerHSV);
-        let high = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), higherHSV);
-
-        // Find the colors that are within (low, high)
-        cv.inRange(hsv, low, high, dst);
-
-        // Track the balls - arguments: mask image, and number of balls
-        this.trackBall(dst.clone(),colorNum)
-
-        low.delete();high.delete();
-      }
-    })
-    src.delete();temp.delete();hsv.delete();
-    return dst
-  }
+ 
 
   handleHSVSliderChange=(e)=>{
     let state = this.state
