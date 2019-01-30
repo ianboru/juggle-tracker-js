@@ -274,13 +274,11 @@ class App extends Component {
         if(this.state.showTrails){
           drawingUtils.drawTrails(context,this.state.positions[colorNum], colorRange, this.state.trailLength)
         }
-
+        if(this.state.showConnections){
+          //Draw lines between balls of same color
+          drawingUtils.drawConnections(context, this.state.positions[colorNum], colorRange)
+        }
       })
-      
-
-      
-      //Draw lines between balls of same color
-      this.drawConnections(context)
 
       this.drawStars(context)
       //Trim histories to trail length
@@ -450,52 +448,6 @@ drawStars = (context)=>{
     context.strokeStyle = color;
     context.stroke();
   }
-
-
-  drawConnections=(context)=>{
-    //Draw connection between balls of same color
-    if(!this.state.showConnections){
-      return
-    }
-    this.state.allColors.forEach((ballColors,colorNum)=>{
-      //Check if no there is an object history for this color
-      if(!this.state.positions[colorNum]){
-        return
-      }
-      //Draw connection between currentNumContours contours
-      const numObjects = this.state.positions[colorNum].currentNumContours
-      if(numObjects > 1){
-        for(let i = 0; i < numObjects; ++i){
-          let nextBallIndex = i+1
-          //Connect last ball to first ball if there are 3 or more objects
-          if(i == numObjects-1 && numObjects > 2){
-            nextBallIndex = 0
-          }else if(i == numObjects-1 && numObjects <= 2){
-            continue
-          }
-          //Draw
-          if(
-            this.state.positions[colorNum][i] && this.state.positions[colorNum][i]['x'].slice(-1).pop() != -1 &&
-            this.state.positions[colorNum][nextBallIndex] && this.state.positions[colorNum][nextBallIndex]['x'].slice(-1).pop() != -1
-          ){
-            const curBallX = this.state.positions[colorNum][i]['x'].slice(-1).pop()
-            const curBallY = this.state.positions[colorNum][i]['y'].slice(-1).pop()
-
-            const nextBallX = this.state.positions[colorNum][nextBallIndex]['x'].slice(-1).pop()
-            const nextBallY = this.state.positions[colorNum][nextBallIndex]['y'].slice(-1).pop()
-            context.beginPath();
-            context.moveTo(curBallX, curBallY)
-            context.lineTo(nextBallX, nextBallY)
-            context.strokeStyle = cvutils.calculateCurrentHSVString(ballColors, 1);
-            context.lineWidth = 4;
-            context.stroke();
-          }
-        }
-      }
-    })
-  }
-
- 
 
   handleHSVSliderChange=(e)=>{
     let state = this.state

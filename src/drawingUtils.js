@@ -42,7 +42,43 @@ function drawTrails(context, contourPositions, colorRange, trailLength){
     }
   }
 }
+function drawConnections(context,positions, colorRange){
 
+  if(!positions){
+    return
+  }
+  //Draw connection between currentNumContours contours
+  const numObjects = positions.currentNumContours
+  if(numObjects > 1){
+    for(let i = 0; i < numObjects; ++i){
+      let nextBallIndex = i+1
+      //Connect last ball to first ball if there are 3 or more objects
+      if(i == numObjects-1 && numObjects > 2){
+        nextBallIndex = 0
+      }else if(i == numObjects-1 && numObjects <= 2){
+        continue
+      }
+      //Draw
+      if(
+        positions[i] && positions[i]['x'].slice(-1).pop() != -1 &&
+        positions[nextBallIndex] && positions[nextBallIndex]['x'].slice(-1).pop() != -1
+      ){
+        const curBallX = positions[i]['x'].slice(-1).pop()
+        const curBallY = positions[i]['y'].slice(-1).pop()
+
+        const nextBallX = positions[nextBallIndex]['x'].slice(-1).pop()
+        const nextBallY = positions[nextBallIndex]['y'].slice(-1).pop()
+        context.beginPath();
+        context.moveTo(curBallX, curBallY)
+        context.lineTo(nextBallX, nextBallY)
+        context.strokeStyle = cvutils.calculateCurrentHSVString(colorRange, 1);
+        context.lineWidth = 4;
+        context.stroke();
+      }
+    }
+  }
+}
 export default { 
-    drawTrails
+    drawTrails,
+    drawConnections
 }
