@@ -11,8 +11,8 @@ const initialHSV = {
       ls : .2,
       lv : .2,
       hh : 230,
-      hs : .9,
-      hv : .9,
+      hs : 1,
+      hv : 1,
     }
 class App extends Component {
 
@@ -28,8 +28,8 @@ class App extends Component {
     ls : .2,
     lv : .2,
     hh : 230,
-    hs : .9,
-    hv : .9,
+    hs : 1,
+    hv : 1,
     net : null,
     allColors : [initialHSV],
     colorNum : 0,
@@ -285,7 +285,7 @@ class App extends Component {
         }
       })
 
-      
+
       //Trim histories to trail length
       this.trimHistories()
 
@@ -298,9 +298,10 @@ class App extends Component {
       requestAnimationFrame(this.processVideo);
     }
   }
-  
+
 
   updateBallHistories=(contourPositions, colorNum)=>{
+    // Maximum number of contours that will be interpreted as objects
     const maxNumContours = 15
     //Used to know how many contours to connect later
     let numContoursOverThreshold = 0
@@ -333,7 +334,7 @@ class App extends Component {
       return
     }
     // For any existing object histories push -1 to not be drawn later
-    for(let i = 0 ; 
+    for(let i = 0 ;
       i < allPositions[colorNum].length; ++i
     ){
       if(i > contourPositions.length-1){
@@ -421,22 +422,41 @@ class App extends Component {
     })
   }
   toggleShowRaw=()=>{
+
+      // Toggle the text on the button
+      const starsButton = document.querySelector('button#calibration');
+      if (starsButton.textContent === 'Show Raw') {starsButton.textContent = 'Calibration';}
+      else {starsButton.textContent = 'Show Raw';}
     this.setState({
       showRaw : !this.state.showRaw
     })
   }
-  
+
   toggleShowConnections=()=>{
+    // Toggle the text on the button
+    const connectionsButton = document.querySelector('button#connections');
+    if (connectionsButton.textContent === 'Show Connections') {connectionsButton.textContent = 'Hide Connections';}
+    else {connectionsButton.textContent = 'Show Connections';}
+    // Change the state so that connections are shown or not
     this.setState({
       showConnections : !this.state.showConnections
     })
   }
   toggleShowStars=()=>{
+    // Toggle the text on the button
+    const starsButton = document.querySelector('button#starsButton');
+    if (starsButton.textContent === 'Show Stars') {starsButton.textContent = 'Hide Stars';}
+    else {starsButton.textContent = 'Show Stars';}
+    // Change the state so that stars are shown or not
     this.setState({
       showStars : !this.state.showStars
     })
   }
   toggleShowTrails=()=>{
+    //Toggle the text on the trailsButton
+    const trailsButton = document.querySelector('button#trailsButton');
+    if (trailsButton.textContent === 'Show Trails') {trailsButton.textContent = 'Hide Trails';}
+    else {trailsButton.textContent = 'Show Trails';}
     this.setState({
       showTrails : !this.state.showTrails
     },()=>{
@@ -464,18 +484,21 @@ class App extends Component {
   render() {
 
     const sliders =
-        <div style={{"paddingTop": "15px"}} className="sliders">
-          <h3>Adjust Color Range</h3>
-          <div style={{"width": "80px", "display" :"inline-block"}} >Hue</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lh}/><label>min</label><input name="lh" type="range" min={0} max={360} step={1} value={this.state.lh} onChange={this.handleHSVSliderChange}/>
-          <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hh}/><label>max</label><input name="hh" type="range" min={0} max={360} step={1} value={this.state.hh} onChange={this.handleHSVSliderChange}/>
+        <div style={{"paddingTop": "5px"}} className="sliders">
+          <h3>Lower Range</h3>
+          <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lh}/><label>Hue</label><input name="lh" type="range" min={0} max={360} step={1} value={this.state.lh} onChange={this.handleHSVSliderChange}/>
           <br/>
+          <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.ls}/><label>Saturation</label><input name="ls" type="range" min={0} max={1} step={.01} value={this.state.ls} onChange={this.handleHSVSliderChange}/>
           <br/>
-          <div style={{"width": "80px", "display" :"inline-block"}} >Saturation</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.ls}/><label>min</label><input name="ls" type="range" min={0} max={1} step={.01} value={this.state.ls} onChange={this.handleHSVSliderChange}/>
-          <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hs}/><label>max</label><input name="hs" type="range" min={0} max={1} step={.01} value={this.state.hs} onChange={this.handleHSVSliderChange}/>
+          <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lv}/><label>Value</label><input name="lv" type="range" min={0} max={1} step={.01} value={this.state.lv} onChange={this.handleHSVSliderChange}/>
           <br/>
+          <h3>Upper Range</h3>
           <br/>
-          <div style={{"width": "80px", "display" :"inline-block"}} >Value</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lv}/><label>min</label><input name="lv" type="range" min={0} max={1} step={.01} value={this.state.lv} onChange={this.handleHSVSliderChange}/>
-          <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hv}/><label>max</label><input name="hv" type="range" min={0} max={1} step={.01} value={this.state.hv} onChange={this.handleHSVSliderChange}/>
+          <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hh}/><label>Hue</label><input name="hh" type="range" min={0} max={360} step={1} value={this.state.hh} onChange={this.handleHSVSliderChange}/>
+          <br/>
+          <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hs}/><label>Saturation</label><input name="hs" type="range" min={0} max={1} step={.01} value={this.state.hs} onChange={this.handleHSVSliderChange}/>
+          <br/>
+          <input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hv}/><label>Value</label><input name="hv" type="range" min={0} max={1} step={.01} value={this.state.hv} onChange={this.handleHSVSliderChange}/>
         </div>
 
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
@@ -498,10 +521,9 @@ class App extends Component {
 
     const videoControls =
       <div>
-        <h3>Video Controls</h3>
         <div style={{'marginBottom' :'10px'}}>
           <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
-          <button style={{'fontSize':'12pt'}} onClick={this.toggleShowRaw}>Filtered/Raw Video</button>
+          <button style={{'fontSize':'12pt'}} id="calibration" onClick={this.toggleShowRaw}>Calibration</button>
           <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
         </div>
         <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
@@ -509,10 +531,10 @@ class App extends Component {
 
     const animationControls =
       <div>
-        <h3>Animation Controls</h3>
-        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleShowConnections}>Connect Same Colors</button>
-        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleShowTrails}>Show Trails</button>
-        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}} onClick={this.toggleShowStars}>Show Stars</button>
+        <br/>
+        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="connections" onClick={this.toggleShowConnections}>Show Connections</button>
+        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="trailsButton" onClick={this.toggleShowTrails}>Hide Trails</button>
+        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="starsButton" onClick={this.toggleShowStars}>Show Stars</button>
         <br/>
         <div hidden={false} id="trailSlider">
           <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label>
@@ -526,7 +548,7 @@ class App extends Component {
       <div className="App" >
         {videoControls}
         <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={320} height={240}></canvas>
-        <h3 style={{'fontSize':'12pt'}}>Choose Colors to Animate</h3>
+
         <div
           style={{
             width : '350px',
@@ -553,8 +575,8 @@ class App extends Component {
             onChangeComplete={ this.handleColorPickerChangeComplete }
           />
         </div>
-        {sliders}
         {animationControls}
+        {sliders}
       </div>
     );
   }
