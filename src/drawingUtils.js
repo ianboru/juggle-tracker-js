@@ -43,7 +43,7 @@ function drawTrails(context, contourPositions, colorRange, trailLength){
   }
 }
 function drawConnections(context,positions, colorRange){
-
+  const thickness = 5
   if(!positions){
     return
   }
@@ -72,7 +72,7 @@ function drawConnections(context,positions, colorRange){
         context.moveTo(curBallX, curBallY)
         context.lineTo(nextBallX, nextBallY)
         context.strokeStyle = cvutils.calculateCurrentHSVString(colorRange, 1);
-        context.lineWidth = 4;
+        context.lineWidth = thickness;
         context.stroke();
       }
     }
