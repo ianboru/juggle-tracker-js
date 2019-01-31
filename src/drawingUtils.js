@@ -107,7 +107,7 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
           newStarsY.push(y + (.5-Math.random())*r)
           newStarsDx.push(2*(.5-Math.random())) // With a random velocity
           newStarsDy.push(2*(.5-Math.random()))
-          newStarsSize.push(2 + Math.random()*2) // And a random size
+          newStarsSize.push(positions[i]['r'].slice(-1).pop()/10 + Math.random()*2) // And a random size
           newStarsColor.push('#'+Math.floor(Math.random()*16777215).toString(16))
           //newStarsSize.push(positions[i]['r'].slice(-1).pop()/10 + Math.random()*2) // And a random size
         }

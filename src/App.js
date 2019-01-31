@@ -484,7 +484,7 @@ class App extends Component {
   render() {
 
     const sliders =
-        <div style={{"marginTop" : '20px' ,"paddingTop": "5px", "marginBottom" : '20px'}} className="sliders">
+        <div style={{"paddingTop" : '15px', "marginBottom" : '15px'}} className="sliders">
           <h3 className="secondary-header">Lower Range</h3>
           <div style={{"width": "80px", "display" :"inline-block"}}>Hue</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lh}/><input name="lh" type="range" min={0} max={360} step={1} value={this.state.lh} onChange={this.handleHSVSliderChange}/>
           <br/>
@@ -504,7 +504,7 @@ class App extends Component {
           <div
             onClick={()=>{this.selectColor(index)}}
             style={{
-              'marginRight': '20px',
+              'marginRight': '15px',
               'display':'inline-block',
               'backgroundColor' : cvutils.calculateCurrentHSVString(colorRange,1),
               'width' : '50px',
@@ -551,13 +551,13 @@ class App extends Component {
           style={{
             width : '350px',
             margin : '0 auto',
-            marginBottom : '20px;'
+            marginBottom : '15px'
           }}
          >
-         <h3>Animated Colors</h3>
+         <h3 className="secondary-header">Animated Colors</h3>
           {colorSwatches}
         </div>
-        <h3>Adjust Color Range</h3>
+        <h3 className="primary-header">Adjust Color Range</h3>
         <h3 className="secondary-header">Hue Center</h3>
         <div
           style={{
@@ -567,7 +567,6 @@ class App extends Component {
           }}  
          >
           <HuePicker
-
             color={ this.state.pickedColor }
             onChangeComplete={ this.handleColorPickerChangeComplete }
           />
