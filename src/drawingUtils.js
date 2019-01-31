@@ -87,7 +87,7 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
   let newStarsDy = []
   let newStarsSize = []
   let newStarsColor = []
-
+  // Number of stars created for each object detected
   const numStarsPerObject = 5
   // If data exists for this object, proceed
   if(positions){
@@ -98,16 +98,18 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
         // Get the x and y values
         const x = positions[i]['x'].slice(-1).pop()
         const y = positions[i]['y'].slice(-1).pop()
+        // Get the radius
+        const r = positions[i]['r'].slice(-1).pop()
         // Create some stars
         for (let numStars=0; numStars<numStarsPerObject; numStars++){
           // A star is born!
-          newStarsX.push(x + (.5-Math.random())*30) // Around the xy coordinate
-          newStarsY.push(y + (.5-Math.random())*30)
+          newStarsX.push(x + (.5-Math.random())*r) // Around the xy coordinate
+          newStarsY.push(y + (.5-Math.random())*r)
           newStarsDx.push(2*(.5-Math.random())) // With a random velocity
           newStarsDy.push(2*(.5-Math.random()))
           newStarsSize.push(2 + Math.random()*2) // And a random size
           newStarsColor.push('#'+Math.floor(Math.random()*16777215).toString(16))
-          newStarsSize.push(positions[i]['r'].slice(-1).pop()/10 + Math.random()*2) // And a random size
+          //newStarsSize.push(positions[i]['r'].slice(-1).pop()/10 + Math.random()*2) // And a random size
         }
       }
     }
@@ -146,7 +148,7 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
     starsColor : newStarsColor
   }
 }
-export default { 
+export default {
     drawTrails,
     drawConnections,
     drawStars

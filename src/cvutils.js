@@ -22,47 +22,53 @@ function colorFilter(src, colorRange){
     let high = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), higherHSV);
     // Find the colors that are within (low, high)
     cv.inRange(hsv, low, high, dst);
-    // Track the balls - arguments: mask image, and number of balls
     low.delete();high.delete();
     src.delete();temp.delete();hsv.delete();
+    // Return the masked image (objects are white, background is black)
     return dst
 }
 function findBalls(src){
-    //src is a frame filtered for the current color
-    const sizeThreshold = 60
+    // Minimum size of a contour to interpret as an object
+    const sizeThreshold = 30
+    // Maximum number of contours to interpret as objects
     const maxNumContours = 15
-    //initialize contour finding data
+    // Initialize contour finding data
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
-    //find contours
+    // Find contours - src is a frame filtered for the current color
     cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
-    //sort contours by size
+    // Sort contours by size
     const sortedContourIndices = this.sortContours(contours)
     let contourPositions = []
-    //Catalogue the contour locations to draw later
+    // Catalogue the contour locations to draw later
     if(sortedContourIndices.length > 0){
+      // Iterate though the largest contours
       for(let i = 0; i < Math.min(sortedContourIndices.length, maxNumContours); ++i){
+        // Find the contour area
         const contour = contours.get(sortedContourIndices[i])
         const contourArea = cv.contourArea(contour)
         //Check if contour is big enough to be a real object
         if(contourArea > sizeThreshold){
+          // Use circle to get x,y coordinates and radius
           const circle = cv.minEnclosingCircle(contour)
+          // Push the coordinates of the contour and the radius to the list of objects
           contourPositions.push({
             'x' : circle.center.x,
             'y' : circle.center.y,
             'r' : circle.radius,
           })
-        }       
+        }
       }
     }
     // Cleanup open cv objects
     src.delete();contours.delete(); hierarchy.delete();
+    // Return list of contour positions and sizes
     return contourPositions
 }
 function calculateCurrentHSVString(ballColorRange,opacity){
     return "hsl(" + ballColorRange['hh'] + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
 }
-function calculateCurrentHSV(ballColorRange,opacity){ 
+function calculateCurrentHSV(ballColorRange,opacity){
     return "hsl(" + ballColorRange['hh'] + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
 }
 function htmlToOpenCVHSV(htmlHSV){
@@ -88,7 +94,7 @@ function mean(x,y){
     return (x + y)/2
 }
 
-export default { 
+export default {
     calculateCurrentHSV,
     calculateCurrentHSVString,
     htmlToOpenCVHSV,
