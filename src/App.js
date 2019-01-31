@@ -281,7 +281,6 @@ class App extends Component {
         if(this.state.showStars){
           //Draw stars coming from balls
           const newStars = drawingUtils.drawStars(context, this.state.positions[colorNum],this.state.starsX,this.state.starsY,this.state.starsDx,this.state.starsDy,this.state.starsSize,this.state.starsColor)
-          console.log(newStars)
           this.setState(newStars)
         }
       })
@@ -480,7 +479,6 @@ class App extends Component {
         </div>
 
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
-      if(index > 0){
         return(
           <div
             onClick={()=>{this.selectColor(index)}}
@@ -495,7 +493,6 @@ class App extends Component {
             }}>
           </div>
         )
-      }
 
     })
 
