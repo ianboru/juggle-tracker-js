@@ -67,7 +67,7 @@ class App extends Component {
     if (this.state.streaming) return;
 
     //get video
-    navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user', width:500,height:375}, audio: false})
+    navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user', width:640,height:480}, audio: false})
     .then(function(s) {
       console.log("got user media")
       //Set stream to stop later
@@ -433,7 +433,7 @@ class App extends Component {
     })
     if(this.state.showRaw){
       alert(
-        `Calibration Process: 
+        `Calibration Process:\n 
         1: Click 'Calibrate' 
         2: Set 'Hue Center' slider to approximate color of prop
         3: Adjust HSV Sliders until prop is completely white 
@@ -493,10 +493,10 @@ class App extends Component {
   }
   showCalibrateHelp = (asdf) =>{
     alert(
-`Calibration Process: 
+`Calibration Process:\n 
 1: Click 'Calibrate' 
 2: Set 'Hue Center' slider to approximate color of prop 
-3: Adjust HSV Sliders until prop is completely white
+3: Adjust HSV Sliders until prop is completely white\n
 Tips:
 1: Use bright balls that are distinct colors from background and clothes
 2: White and Red won't work well until next version
@@ -564,14 +564,16 @@ Tips:
           <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label>
           <input  name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
         </div>
-        <video hidden={true} width={500} height={375} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
+        <video hidden={true} width={640} height={480} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
       </div>
 
 
     return (
       <div className="App" >
+        <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
+        <div style={{marginBottom : '15px'}}>Send feedback to @arflowarts on Instagram</div>
         {videoControls}
-        <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={500} height={375}></canvas>
+        <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={640} height={480}></canvas>
 
         <div
           style={{
