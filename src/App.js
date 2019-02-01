@@ -423,21 +423,23 @@ class App extends Component {
   }
   toggleShowRaw=()=>{
 
-      // Toggle the text on the button
+    // Toggle the text on the button
 
-      const starsButton = document.querySelector('button#calibration');
-      if (starsButton.textContent === 'Show Raw') {starsButton.textContent = 'Calibration';}
-      else {starsButton.textContent = 'Show Raw';}
+    const starsButton = document.querySelector('button#calibration');
+    if (starsButton.textContent === 'Show Raw') {starsButton.textContent = 'Calibration';}
+    else {starsButton.textContent = 'Show Raw';}
     this.setState({
       showRaw : !this.state.showRaw
     })
-    alert(
-      `Calibration Process:\n 
-      1: Click 'Calibrate'\n 
-      2: Set 'Hue Center' slider to approximate color of prop
-      3: Adjust HSV Sliders until prop is completely white\n 
-      `
-    )
+    if(this.state.showRaw){
+      alert(
+        `Calibration Process: 
+        1: Click 'Calibrate' 
+        2: Set 'Hue Center' slider to approximate color of prop
+        3: Adjust HSV Sliders until prop is completely white 
+        `
+      )
+    }
   }
 
   toggleShowConnections=()=>{
@@ -491,17 +493,17 @@ class App extends Component {
   }
   showCalibrateHelp = (asdf) =>{
     alert(
-      `Calibration Process:\n 
-      1: Click 'Calibrate'\n 
-      2: Set 'Hue Center' slider to approximate color of prop\n 
-      3: Adjust HSV Sliders until prop is completely white\n
-      Tips:\n
-      1: Use bright balls that are distinct colors from background and clothes\n
-      2: White and Red won't work well until next version\n
-      3: Light should be behind the camera facing you\n
-      4: When you walk farther from the camera, the hue\n shouldn't change but the saturation and value likely decrease\n 
-      4: iOS not supported for now
-      `
+`Calibration Process: 
+1: Click 'Calibrate' 
+2: Set 'Hue Center' slider to approximate color of prop 
+3: Adjust HSV Sliders until prop is completely white
+Tips:
+1: Use bright balls that are distinct colors from background and clothes
+2: White and Red won't work well until next version
+3: Light should be behind the camera facing you
+4: When you walk farther from the camera, the hue shouldn't change but the saturation and value likely decrease 
+4: iOS not supported for now
+`
     )
   }
   render() {
