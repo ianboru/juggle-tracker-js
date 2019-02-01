@@ -426,7 +426,7 @@ class App extends Component {
     // Toggle the text on the button
 
     const starsButton = document.querySelector('button#calibration');
-    if (starsButton.textContent === 'Show Raw') {starsButton.textContent = 'Calibration';}
+    if (starsButton.textContent === 'Show Raw') {starsButton.textContent = 'Calibrate';}
     else {starsButton.textContent = 'Show Raw';}
     this.setState({
       showRaw : !this.state.showRaw
