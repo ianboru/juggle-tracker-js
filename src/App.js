@@ -67,7 +67,7 @@ class App extends Component {
     if (this.state.streaming) return;
 
     //get video
-    navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user', width:640,height:480}, audio: false})
+    navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user', width:500,height:375}, audio: false})
     .then(function(s) {
       console.log("got user media")
       //Set stream to stop later
@@ -424,12 +424,20 @@ class App extends Component {
   toggleShowRaw=()=>{
 
       // Toggle the text on the button
+
       const starsButton = document.querySelector('button#calibration');
       if (starsButton.textContent === 'Show Raw') {starsButton.textContent = 'Calibration';}
       else {starsButton.textContent = 'Show Raw';}
     this.setState({
       showRaw : !this.state.showRaw
     })
+    alert(
+      `Calibration Process:\n 
+      1: Click 'Calibrate'\n 
+      2: Set 'Hue Center' slider to approximate color of prop
+      3: Adjust HSV Sliders until prop is completely white\n 
+      `
+    )
   }
 
   toggleShowConnections=()=>{
@@ -480,7 +488,22 @@ class App extends Component {
       'hh' : highH,
       'lh' : lowH,
     })
-  };
+  }
+  showCalibrateHelp = (asdf) =>{
+    alert(
+      `Calibration Process:\n 
+      1: Click 'Calibrate'\n 
+      2: Set 'Hue Center' slider to approximate color of prop\n 
+      3: Adjust HSV Sliders until prop is completely white\n
+      Tips:\n
+      1: Use bright balls that are distinct colors from background and clothes\n
+      2: White and Red won't work well until next version\n
+      3: Light should be behind the camera facing you\n
+      4: When you walk farther from the camera, the hue\n shouldn't change but the saturation and value likely decrease\n 
+      4: iOS not supported for now
+      `
+    )
+  }
   render() {
 
     const sliders =
@@ -509,6 +532,7 @@ class App extends Component {
               'backgroundColor' : cvutils.calculateCurrentHSVString(colorRange,1),
               'width' : '50px',
               'height' : '50px',
+              'vertical-align' : 'middle'
 
             }}>
           </div>
@@ -519,8 +543,8 @@ class App extends Component {
     const videoControls =
       <div>
         <div style={{'marginBottom' :'10px'}}>
+          <button style={{'fontSize':'12pt'}} id="calibration" onClick={this.toggleShowRaw}>Calibrate</button>
           <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
-          <button style={{'fontSize':'12pt'}} id="calibration" onClick={this.toggleShowRaw}>Calibration</button>
           <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
         </div>
         <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
@@ -529,7 +553,7 @@ class App extends Component {
     const animationControls =
       <div>
 
-        <h3>Animation Effects</h3>
+        <h3 className="primary-header">Animation Effects</h3>
         <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="connections" onClick={this.toggleShowConnections}>Show Connections</button>
         <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="trailsButton" onClick={this.toggleShowTrails}>Hide Trails</button>
         <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="starsButton" onClick={this.toggleShowStars}>Show Stars</button>
@@ -538,14 +562,14 @@ class App extends Component {
           <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label>
           <input  name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
         </div>
-        <video hidden={true} width={640} height={480} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
+        <video hidden={true} width={500} height={375} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
       </div>
 
 
     return (
       <div className="App" >
         {videoControls}
-        <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={640} height={480}></canvas>
+        <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={500} height={375}></canvas>
 
         <div
           style={{
@@ -556,6 +580,21 @@ class App extends Component {
          >
          <h3 className="secondary-header">Animated Colors</h3>
           {colorSwatches}
+           <div  
+            style={{
+              'fontSize':'14px',
+              'margin' : '0 auto',
+              'border' : '1px solid gray',
+              'paddingTop' : '16px',
+              'paddingBottom' : '14px',
+
+              'width' : '50px',
+              'height' : '20px',
+              'display' : 'inline-block',
+              'vertical-align' : 'middle'
+            }} 
+            onClick={this.addColor}
+          >Add</div>
         </div>
         <h3 className="primary-header">Adjust Color Range</h3>
         <h3 className="secondary-header">Hue Center</h3>
@@ -572,9 +611,10 @@ class App extends Component {
           />
         </div>
         {sliders}
-        <button style={{'fontSize':'12pt'}} onClick={this.addColor}>Add Another Color</button>
+        <button style={{'fontSize':'12pt', 'backgroundColor' : '#FF6666'}} id="helpButton" onClick={this.showCalibrateHelp}>Can't Find My Ball!</button>
 
         {animationControls}
+
       </div>
     );
   }
