@@ -1,5 +1,5 @@
 Workflow: 
-	- Calibrate on snapshot of real juggling
+	- Calibrate with color picker.
 
 Image processing: 
 	- Allow connecting all balls of any color
@@ -7,7 +7,7 @@ Image processing:
 	- allow non ball contour drawing
 	- "disco" color change mode for colors to change at some rate
 	- optical flow 
-	-
+	- Background Subtraction
 UI:
 	- Show active state on buttons (darkening)
 	- highlight selected color on click/hover
@@ -17,6 +17,7 @@ UI:
 	- Trails that are original footage
 	- Icons for effect toggling
 	- Redesign video/calibration
+	- Ability to switch from front and rear facing cameras.
 
 
 "backend":
