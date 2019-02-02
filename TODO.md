@@ -6,17 +6,21 @@ Image processing:
 	- Add body points 
 	- allow non ball contour drawing
 	- "disco" color change mode for colors to change at some rate
-	- Add RGB/HSV toggle for sliders
-
-Minor UI:
-	- Show active state on buttons
-	- info button with explanation of workflow
+	- optical flow 
+	-
+UI:
+	- Show active state on buttons (darkening)
 	- highlight selected color on click/hover
-	- Make sliders responsive 
+	- make sliders larger
 	- Allow large video option but default should be responsive
+	- Color picker
+	- Trails that are original footage
+	- Icons for effect toggling
+	- Redesign video/calibration
+
+
 "backend":
 	- Allow upload video instead of using Cam
-	- Make it work on iOS (learn from react-video-recorder)
 	- Export mp4 instead of webm (involves codecs)
 	- Improve quality of recorded video
 
