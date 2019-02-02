@@ -50,6 +50,10 @@ class App extends Component {
     starsDy    : [],
     starsSize  : [],
     starsColor : [],
+    canvasMouseDownX : null,
+    canvasMouseDownY : null,
+    calibrationRect : null
+    
   }
 
   componentDidMount=()=>{
@@ -241,20 +245,24 @@ class App extends Component {
       window.URL.revokeObjectURL(url);
     }, 100);
   }
-
-
+  getMatFromCanvas=(context)=>{
+    let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
+    //Draw video frame onto canvas context
+    //Extra image data from canvas context
+    let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
+    srcMat.data.set(imageData.data);
+    imageData = null
+    return srcMat
+  }
   /****
     CV STUFF
   ****/
    processVideo=()=> {
     if(this.canvasOutput){
-      let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
       const context = document.getElementById("canvasOutput").getContext("2d")
-      //Draw video frame onto canvas context
       context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
-      //Extra image data from canvas context
-      let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
-      srcMat.data.set(imageData.data);
+
+      let srcMat = this.getMatFromCanvas(context)
       //Flip horizontally because camera feed is pre-flipped
       cv.flip(srcMat, srcMat,1)
       cv.imshow('canvasOutput',srcMat)
@@ -265,6 +273,7 @@ class App extends Component {
         colorFilteredImage = cvutils.colorFilter(srcMat.clone(), colorRange)
         const ballLocations = cvutils.findBalls(colorFilteredImage.clone())
         this.updateBallHistories(ballLocations, colorNum)
+
         if(!this.state.showRaw){
           // Initialize final canvas with the mask of the colors within the color ranges
           // This setting is used when calibrating the colors
@@ -284,7 +293,12 @@ class App extends Component {
           this.setState(newStars)
         }
       })
-
+      if(this.state.calibrationRect){
+        context.strokeStyle = "#ffffff"
+        const rect = this.state.calibrationRect
+        console.log(rect)
+        context.strokeRect(rect[0],rect[1],rect[2]-rect[0],rect[3]-rect[1])
+      }
 
       //Trim histories to trail length
       this.trimHistories()
@@ -292,7 +306,7 @@ class App extends Component {
       //Clean up all possible data
       colorFilteredImage.delete();srcMat.delete()
       srcMat = null; colorFilteredImage = null
-      imageData = null
+      
 
       //Process next frame
       requestAnimationFrame(this.processVideo);
@@ -496,15 +510,79 @@ class App extends Component {
 `Calibration Process:\n 
 1: Click 'Calibrate' 
 2: Set 'Hue Center' slider to approximate color of prop 
-3: Adjust HSV Sliders until prop is completely white\n
-Tips:
+3: Adjust HSV Sliders until prop is completely white
+4: When you walk farther from the camera, the hue shouldn't change but the saturation and value likely decrease
+
+Tips:\n
 1: Use bright balls that are distinct colors from background and clothes
 2: White and Red won't work well until next version
 3: Light should be behind the camera facing you
-4: When you walk farther from the camera, the hue shouldn't change but the saturation and value likely decrease 
-4: iOS not supported for now
 `
     )
+  }
+  calculateRelativeCoord = (e)=>{
+    const bounds = e.target.getBoundingClientRect();
+    console.log(e.clientX,bounds.left)
+    const x = e.clientX - bounds.left;
+    const y = e.clientY - bounds.top;
+    return [x,y]
+  }
+  handleCanvasMouseDown = (e)=>{
+    console.log("down " ,e)
+    const clickCoord = this.calculateRelativeCoord(e)
+    this.setState({
+      canvasMouseDownX : clickCoord[0],
+      canvasMouseDownY : clickCoord[1],
+    })
+  }
+  
+  handleCanvasMouseUp = (e)=>{
+    console.log("up " ,e)
+
+    const clickCoord = this.calculateRelativeCoord(e)
+    const context = document.getElementById("canvasOutput").getContext("2d")
+    let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
+    let rgbRange = cvutils.getColorFromImage(
+      imageData, 
+      this.state.canvasMouseDownX, 
+      this.state.canvasMouseDownY,  
+      clickCoord[0], 
+      clickCoord[1]
+    )
+    const lowerHSV = cvutils.RGBtoHSV(rgbRange['lr'],rgbRange['lg'],rgbRange['lb'])
+    const upperHSV = cvutils.RGBtoHSV(rgbRange['hr'],rgbRange['hg'],rgbRange['hb'])
+    // converted hsv ranges may have maxs and mins swapped
+    const hsvRange = {
+      'lh' : Math.min(lowerHSV[0],upperHSV[0]),
+      'ls' :  Math.min(lowerHSV[1],upperHSV[1]),
+      'lv' :  Math.min(lowerHSV[2],upperHSV[2]),
+      'hh' :  Math.max(lowerHSV[0],upperHSV[0]),
+      'hs' :  Math.max(lowerHSV[1],upperHSV[1]),
+      'hv' :  Math.max(lowerHSV[2],upperHSV[2]),
+    }
+
+    this.setState(hsvRange,()=>{
+      this.setColorRange()
+    })
+    this.setState({
+      canvasMouseDownX : null,
+      canvasMouseDownY : null,
+      calibrationRect : null
+    })
+  }
+  handleCanvasMouseDrag = (e)=>{
+    if(this.state.canvasMouseDownX){
+      const mouseCoord = this.calculateRelativeCoord(e)
+      const context = document.getElementById("canvasOutput").getContext("2d")
+      this.setState({
+        calibrationRect : [
+          this.state.canvasMouseDownX, 
+          this.state.canvasMouseDownY, 
+          mouseCoord[0], 
+          mouseCoord[1]
+        ]
+      })
+    }
   }
   render() {
 
@@ -567,13 +645,16 @@ Tips:
         <video hidden={true} width={640} height={480} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
       </div>
 
-
     return (
       <div className="App" >
         <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
         <div style={{marginBottom : '15px'}}>Send feedback to @arflowarts on Instagram</div>
         {videoControls}
-        <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={640} height={480}></canvas>
+        <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={640} height={480}
+          onMouseDown={this.handleCanvasMouseDown}
+          onMouseUp={this.handleCanvasMouseUp}
+          onMouseMove={this.handleCanvasMouseDrag}
+        ></canvas>
 
         <div
           style={{

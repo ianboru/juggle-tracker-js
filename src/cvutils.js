@@ -93,13 +93,60 @@ function sortContours(contours){
 function mean(x,y){
     return (x + y)/2
 }
+function getColorIndicesForCoord(x, y, width) {
+  var red = y * (width * 4) + x * 4;
+  return [red, red + 1, red + 2, red + 3];
+}
 
+function getColorFromImage(imageData,minX,minY,maxX,maxY){
+    minX = Math.round(minX);maxX = Math.round(maxX);
+    minY = Math.round(minY);maxY = Math.round(maxY);
+    let minR = 255;let minG = 255;let minB = 255;
+    let maxR = 0;let maxG = 0;let maxB = 0;
+    for(let x = minX;  x< maxX; ++x){
+        for(let y = minY;  y< maxY; ++y){
+            const colorIndices = getColorIndicesForCoord(x,y,imageData.width)
+            minR = Math.min(imageData.data[colorIndices[0]], minR)
+            minG = Math.min(imageData.data[colorIndices[1]], minG)
+            minB = Math.min(imageData.data[colorIndices[2]], minB)
+            maxR = Math.max(imageData.data[colorIndices[0]], maxR)
+            maxG = Math.max(imageData.data[colorIndices[1]], maxG)
+            maxB = Math.max(imageData.data[colorIndices[2]], maxB)
+        }
+    }
+    return {
+        'lr' : minR, 'lg' : minG, 'lb' : minB,
+        'hr' : maxR, 'hg' : maxG, 'hb' : maxB,
+    }
+}
+function RGBtoHSV(r, g, b) {
+    if (arguments.length === 1) {
+        g = r.g, b = r.b, r = r.r;
+    }
+    var max = Math.max(r, g, b), min = Math.min(r, g, b),
+        d = max - min,
+        h,
+        s = (max === 0 ? 0 : d / max),
+        v = max / 255;
+
+    switch (max) {
+        case min: h = 0; break;
+        case r: h = (g - b) + d * (g < b ? 6: 0); h /= 6 * d; break;
+        case g: h = (b - r) + d * 2; h /= 6 * d; break;
+        case b: h = (r - g) + d * 4; h /= 6 * d; break;
+    }
+    //Convert to opencv values
+    h = Math.round(h * 360)
+    return [h,s,v];
+}
 export default {
+    RGBtoHSV,
     calculateCurrentHSV,
     calculateCurrentHSVString,
     htmlToOpenCVHSV,
     mean,
     sortContours,
     colorFilter,
-    findBalls
+    findBalls,
+    getColorFromImage
 }
