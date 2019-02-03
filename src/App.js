@@ -643,7 +643,7 @@ class App extends Component {
           onMouseUp={this.handleCanvasMouseUp}
           onMouseMove={this.handleCanvasMouseDrag}
         ></canvas>
-        <canvas ref={ref => this.calibrationCanvas = ref} id="calibrationCanvas" width={640} height={480} display={false}></canvas>
+
         <div
           style={{
             width : '350px',
