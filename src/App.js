@@ -14,11 +14,23 @@ const initialHSV = {
       hs : 1,
       hv : 1,
     }
+const calibrateHelp = `Calibration Process:\n 
+1: Click 'Calibrate' 
+2: Set 'Hue Center' slider to approximate color of prop 
+3: Adjust HSV Sliders until prop is completely white
+4: When you walk farther from the camera, the hue shouldn't change but the saturation and value likely decrease
+
+Tips:\n
+1: Use bright balls that are distinct colors from background and clothes
+2: White and Red won't work well until next version
+3: Light should be behind the camera facing you
+`
 class App extends Component {
 
   state = {
     src : null,
     dst : null,
+    flippedFrame : null,
     stream : null,
     streaming : false,
     videoHeight : null,
@@ -129,7 +141,6 @@ class App extends Component {
   stopVideoProcessing = () =>{
     let src = this.state.src
     if (src != null && !src.isDeleted()) src.delete();
-
   }
 
   /****
@@ -265,6 +276,7 @@ class App extends Component {
       let srcMat = this.getMatFromCanvas(context)
       //Flip horizontally because camera feed is pre-flipped
       cv.flip(srcMat, srcMat,1)
+      if(this.state.canvasMouseDownX){this.setState({flippedFrame : srcMat.clone()})}
       cv.imshow('canvasOutput',srcMat)
       //Filters by color AND tracks ball positions by color
       let colorFilteredImage
@@ -296,7 +308,6 @@ class App extends Component {
       if(this.state.calibrationRect){
         context.strokeStyle = "#ffffff"
         const rect = this.state.calibrationRect
-        console.log(rect)
         context.strokeRect(rect[0],rect[1],rect[2]-rect[0],rect[3]-rect[1])
       }
 
@@ -506,44 +517,21 @@ class App extends Component {
     })
   }
   showCalibrateHelp = (asdf) =>{
-    alert(
-`Calibration Process:\n 
-1: Click 'Calibrate' 
-2: Set 'Hue Center' slider to approximate color of prop 
-3: Adjust HSV Sliders until prop is completely white
-4: When you walk farther from the camera, the hue shouldn't change but the saturation and value likely decrease
-
-Tips:\n
-1: Use bright balls that are distinct colors from background and clothes
-2: White and Red won't work well until next version
-3: Light should be behind the camera facing you
-`
-    )
-  }
-  calculateRelativeCoord = (e)=>{
-    const bounds = e.target.getBoundingClientRect();
-    console.log(e.clientX,bounds.left)
-    const x = e.clientX - bounds.left;
-    const y = e.clientY - bounds.top;
-    return [x,y]
+    alert(calibrateHelp)
   }
   handleCanvasMouseDown = (e)=>{
-    console.log("down " ,e)
-    const clickCoord = this.calculateRelativeCoord(e)
+    const clickCoord = cvutils.calculateRelativeCoord(e)
+    console.log("down",clickCoord)
     this.setState({
       canvasMouseDownX : clickCoord[0],
       canvasMouseDownY : clickCoord[1],
     })
   }
-  
   handleCanvasMouseUp = (e)=>{
-    console.log("up " ,e)
-
-    const clickCoord = this.calculateRelativeCoord(e)
-    const context = document.getElementById("canvasOutput").getContext("2d")
-    let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
+    const clickCoord = cvutils.calculateRelativeCoord(e)
+    //use flipped frame that has not been drawn on yet
     let rgbRange = cvutils.getColorFromImage(
-      imageData, 
+      this.state.flippedFrame, 
       this.state.canvasMouseDownX, 
       this.state.canvasMouseDownY,  
       clickCoord[0], 
@@ -572,7 +560,7 @@ Tips:\n
   }
   handleCanvasMouseDrag = (e)=>{
     if(this.state.canvasMouseDownX){
-      const mouseCoord = this.calculateRelativeCoord(e)
+      const mouseCoord = cvutils.calculateRelativeCoord(e)
       const context = document.getElementById("canvasOutput").getContext("2d")
       this.setState({
         calibrationRect : [
@@ -655,7 +643,7 @@ Tips:\n
           onMouseUp={this.handleCanvasMouseUp}
           onMouseMove={this.handleCanvasMouseDrag}
         ></canvas>
-
+        <canvas ref={ref => this.calibrationCanvas = ref} id="calibrationCanvas" width={640} height={480} display={false}></canvas>
         <div
           style={{
             width : '350px',

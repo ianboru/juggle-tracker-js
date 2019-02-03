@@ -97,15 +97,28 @@ function getColorIndicesForCoord(x, y, width) {
   var red = y * (width * 4) + x * 4;
   return [red, red + 1, red + 2, red + 3];
 }
-
+function calculateRelativeCoord(e){
+    //get mouse coordinates relative to parent element 
+    const bounds = e.target.getBoundingClientRect();
+    const x = e.clientX - bounds.left;
+    const y = e.clientY - bounds.top;
+    return [x,y]
+}
 function getColorFromImage(imageData,minX,minY,maxX,maxY){
-    minX = Math.round(minX);maxX = Math.round(maxX);
-    minY = Math.round(minY);maxY = Math.round(maxY);
+    //Round to get integer
+    //Check that min and max are in right order
+    //In case rectangle was made from bottom right
+    const trueMinX = Math.round(Math.min(minX,maxX))
+    const trueMaxX = Math.round(Math.max(minX,maxX))
+    const trueMinY = Math.round(Math.min(minY,maxY))
+    const trueMaxY = Math.round(Math.max(minY,maxY))
+
     let minR = 255;let minG = 255;let minB = 255;
     let maxR = 0;let maxG = 0;let maxB = 0;
-    for(let x = minX;  x< maxX; ++x){
-        for(let y = minY;  y< maxY; ++y){
-            const colorIndices = getColorIndicesForCoord(x,y,imageData.width)
+    //Loop through pixels to get RGB vals
+    for(let x = trueMinX;  x< trueMaxX; ++x){
+        for(let y = trueMinY;  y< trueMaxY; ++y){
+            const colorIndices = getColorIndicesForCoord(x,y,imageData.cols)
             minR = Math.min(imageData.data[colorIndices[0]], minR)
             minG = Math.min(imageData.data[colorIndices[1]], minG)
             minB = Math.min(imageData.data[colorIndices[2]], minB)
@@ -114,6 +127,7 @@ function getColorFromImage(imageData,minX,minY,maxX,maxY){
             maxB = Math.max(imageData.data[colorIndices[2]], maxB)
         }
     }
+    //return object with min and max rgb 
     return {
         'lr' : minR, 'lg' : minG, 'lb' : minB,
         'hr' : maxR, 'hg' : maxG, 'hb' : maxB,
@@ -148,5 +162,6 @@ export default {
     sortContours,
     colorFilter,
     findBalls,
-    getColorFromImage
+    getColorFromImage,
+    calculateRelativeCoord
 }
