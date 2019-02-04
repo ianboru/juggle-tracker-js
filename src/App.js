@@ -14,9 +14,9 @@ const initialHSV = {
       hs : 1,
       hv : 1,
     }
-const calibrateHelp = `Calibration Process:\n 
-1: Click 'Calibrate' 
-2: Set 'Hue Center' slider to approximate color of prop 
+const calibrateHelp = `Calibration Process:\n
+1: Click 'Calibrate'
+2: Set 'Hue Center' slider to approximate color of prop
 3: Adjust HSV Sliders until prop is completely white
 4: When you walk farther from the camera, the hue shouldn't change but the saturation and value likely decrease
 
@@ -48,6 +48,7 @@ class App extends Component {
     positions : [],
     totalNumColors : 1,
     showRaw : true,
+    usingWhite : false,
     trailLength : 1,
     showConnections : false,
     showStars     : false,
@@ -65,7 +66,7 @@ class App extends Component {
     canvasMouseDownX : null,
     canvasMouseDownY : null,
     calibrationRect : null
-    
+
   }
 
   componentDidMount=()=>{
@@ -162,6 +163,19 @@ class App extends Component {
     this.recordedVideo.src = window.URL.createObjectURL(superBuffer);
 
   }
+
+  // On click method for using white balls.
+  whiteBall=()=>{
+    // Toggle the text on the button
+    const connectionsButton = document.querySelector('button#whiteBall');
+    if (connectionsButton.textContent === 'useWhite') {connectionsButton.textContent = 'useColor';}
+    else {connectionsButton.textContent = 'useWhite';}
+    // Change the state so that connections are shown or not
+    this.setState({
+      usingWhite : !this.state.usingWhite
+    })
+  }
+
 
   toggleRecording=()=>{
     const recordButton = document.querySelector('button#record');
@@ -277,12 +291,14 @@ class App extends Component {
       //Flip horizontally because camera feed is pre-flipped
       cv.flip(srcMat, srcMat,1)
       if(this.state.canvasMouseDownX){this.setState({flippedFrame : srcMat.clone()})}
+      // Show the source image in the canvas
       cv.imshow('canvasOutput',srcMat)
       //Filters by color AND tracks ball positions by color
       let colorFilteredImage
       this.state.allColors.forEach((colorRange,colorNum)=>{
 
-        colorFilteredImage = cvutils.colorFilter(srcMat.clone(), colorRange)
+        if(!this.state.usingWhite){colorFilteredImage = cvutils.colorFilter(srcMat.clone(), colorRange)}
+        if( this.state.usingWhite){colorFilteredImage = cvutils.colorWhite(srcMat.clone(), colorRange)}
         const ballLocations = cvutils.findBalls(colorFilteredImage.clone())
         this.updateBallHistories(ballLocations, colorNum)
 
@@ -317,7 +333,7 @@ class App extends Component {
       //Clean up all possible data
       colorFilteredImage.delete();srcMat.delete()
       srcMat = null; colorFilteredImage = null
-      
+
 
       //Process next frame
       requestAnimationFrame(this.processVideo);
@@ -458,10 +474,10 @@ class App extends Component {
     })
     if(this.state.showRaw){
       alert(
-        `Calibration Process:\n 
-        1: Click 'Calibrate' 
+        `Calibration Process:\n
+        1: Click 'Calibrate'
         2: Set 'Hue Center' slider to approximate color of prop
-        3: Adjust HSV Sliders until prop is completely white 
+        3: Adjust HSV Sliders until prop is completely white
         `
       )
     }
@@ -531,10 +547,10 @@ class App extends Component {
     const clickCoord = cvutils.calculateRelativeCoord(e)
     //use flipped frame that has not been drawn on yet
     let rgbRange = cvutils.getColorFromImage(
-      this.state.flippedFrame, 
-      this.state.canvasMouseDownX, 
-      this.state.canvasMouseDownY,  
-      clickCoord[0], 
+      this.state.flippedFrame,
+      this.state.canvasMouseDownX,
+      this.state.canvasMouseDownY,
+      clickCoord[0],
       clickCoord[1]
     )
     const lowerHSV = cvutils.RGBtoHSV(rgbRange['lr'],rgbRange['lg'],rgbRange['lb'])
@@ -564,9 +580,9 @@ class App extends Component {
       const context = document.getElementById("canvasOutput").getContext("2d")
       this.setState({
         calibrationRect : [
-          this.state.canvasMouseDownX, 
-          this.state.canvasMouseDownY, 
-          mouseCoord[0], 
+          this.state.canvasMouseDownX,
+          this.state.canvasMouseDownY,
+          mouseCoord[0],
           mouseCoord[1]
         ]
       })
@@ -614,6 +630,7 @@ class App extends Component {
           <button style={{'fontSize':'12pt'}} id="calibration" onClick={this.toggleShowRaw}>Calibrate</button>
           <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
           <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
+          <button style={{'fontSize':'12pt'}} id="whiteBall" onClick={this.whiteBall} >useWhite</button>
         </div>
         <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
       </div>
@@ -653,7 +670,7 @@ class App extends Component {
          >
          <h3 className="secondary-header">Animated Colors</h3>
           {colorSwatches}
-           <div  
+           <div
             style={{
               'fontSize':'14px',
               'margin' : '0 auto',
@@ -665,7 +682,7 @@ class App extends Component {
               'height' : '20px',
               'display' : 'inline-block',
               'vertical-align' : 'middle'
-            }} 
+            }}
             onClick={this.addColor}
           >Add</div>
         </div>
@@ -676,7 +693,7 @@ class App extends Component {
             left: '50%',
             transform: 'translateX(-50%)',
             position : 'absolute',
-          }}  
+          }}
          >
           <HuePicker
             color={ this.state.pickedColor }
