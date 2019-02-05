@@ -1,5 +1,18 @@
 import cvutils from './cvutils';
 
+function drawSelectColorText(context, isMobile){
+  let text
+  if(isMobile){
+
+    text = "Hold finger down \non prop to set color"
+  }else{
+    text = "Click and drag box over prop to set color"
+  }
+  context.font = "30px Arial"
+  context.fillStyle = "#ffffff"
+  context.fillText(text,30,40)
+}
+
 function drawCircle(context, x,y,r, color){
     //Draw circle for coordinate and color
     context.beginPath();
@@ -151,5 +164,6 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
 export default {
     drawTrails,
     drawConnections,
-    drawStars
+    drawStars,
+    drawSelectColorText
 }

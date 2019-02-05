@@ -1,6 +1,5 @@
 .App {
   text-align: center;
-
 }
 button { 
   border-radius: 4px;
@@ -31,8 +30,36 @@ button {
   color : #787878;
 }
 canvas{
-  margin : 0 auto;
   display: block; 
+  margin : 0 auto;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+#canvas{
+   touch-action: none;
+}
+@media screen and (max-width: 992px) {
+  canvas{
+    width: 640px;
+    height: auto;
+  }
+}
+@media screen and (max-width: 600px) {
+  canvas{
+    display: block; 
+    width: 375px;
+    height: auto;
+  }
+}
+video{
+  width: 100%;
+  height: auto;
 }
 .App-link {
   color: #61dafb;

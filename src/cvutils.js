@@ -99,9 +99,19 @@ function getColorIndicesForCoord(x, y, width) {
 }
 function calculateRelativeCoord(e){
     //get mouse coordinates relative to parent element 
+    let targetX
+    let targetY
+    if(e.clientX){
+        targetX = e.clientX; targetY = e.clientY;
+    }else if(e.touches[0]){
+        targetX = e.touches[0].clientX; targetY = e.touches[0].clientY;
+    }else if(e.changedTouches[0]){
+        targetX = e.changedTouches[0].clientX; targetY = e.changedTouches[0].clientY;
+    }
     const bounds = e.target.getBoundingClientRect();
-    const x = e.clientX - bounds.left;
-    const y = e.clientY - bounds.top;
+    console.log(bounds.left, targetX, e.pageX, bounds.width)
+    const x = targetX - bounds.left;
+    const y = targetY - bounds.top;
     return [x,y]
 }
 function getColorFromImage(imageData,minX,minY,maxX,maxY){

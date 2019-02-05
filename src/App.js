@@ -25,6 +25,8 @@ Tips:\n
 2: White and Red won't work well until next version
 3: Light should be behind the camera facing you
 `
+const touchDuration = 500
+const isMobile = true ?  /Mobi|Android/i.test(navigator.userAgent) : false
 class App extends Component {
 
   state = {
@@ -64,8 +66,9 @@ class App extends Component {
     starsColor : [],
     canvasMouseDownX : null,
     canvasMouseDownY : null,
-    calibrationRect : null
-    
+    calibrationRect : null,
+    showSelectColorText : true,
+    touchTimer : null
   }
 
   componentDidMount=()=>{
@@ -83,7 +86,7 @@ class App extends Component {
     if (this.state.streaming) return;
 
     //get video
-    navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user', width:640,height:480}, audio: false})
+    navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user'}, audio: false})
     .then(function(s) {
       console.log("got user media")
       //Set stream to stop later
@@ -104,8 +107,8 @@ class App extends Component {
         let videoHeight = that.video.videoHeight;
         that.video.setAttribute("width", videoWidth);
         that.video.setAttribute("height", videoHeight);
-        that.canvasOutput.width = videoWidth;
-        that.canvasOutput.height = videoHeight;
+        //that.canvasOutput.width = videoWidth;
+        //that.canvasOutput.height = videoHeight;
         that.setState({
           videoWidth,
           videoHeight,
@@ -118,7 +121,7 @@ class App extends Component {
   stopCamera=()=> {
     if (!this.state.streaming) return;
     this.stopVideoProcessing();
-    document.getElementById("canvasOutput").getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
+    this.canvasOutput.getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
     this.video.pause();
     this.video.srcObject=null;
     this.state.stream.getVideoTracks()[0].stop();
@@ -129,7 +132,7 @@ class App extends Component {
   }
   startVideoProcessing=()=> {
     //Fix for firefox to have context available
-    const context = document.getElementById("canvasOutput").getContext("2d")
+    const context = this.canvasOutput.getContext("2d")
     this.setState({
       canvasStream : this.canvasOutput.captureStream()
     })
@@ -265,12 +268,10 @@ class App extends Component {
     imageData = null
     return srcMat
   }
-  /****
-    CV STUFF
-  ****/
+
    processVideo=()=> {
     if(this.canvasOutput){
-      const context = document.getElementById("canvasOutput").getContext("2d")
+      const context = this.canvasOutput.getContext("2d")
       context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
 
       let srcMat = this.getMatFromCanvas(context)
@@ -306,11 +307,15 @@ class App extends Component {
         }
       })
       if(this.state.calibrationRect){
+        //Draw color selection rectangle
         context.strokeStyle = "#ffffff"
         const rect = this.state.calibrationRect
-        context.strokeRect(rect[0],rect[1],rect[2]-rect[0],rect[3]-rect[1])
-      }
+        const scaleFactor = this.state.videoWidth/this.canvasOutput.clientWidth
+        console.log("rect",this.state.videoWidth, this.canvasOutput.width,this.canvasOutput)
 
+        context.strokeRect(rect[0]*scaleFactor,rect[1]*scaleFactor,(rect[2]-rect[0])*scaleFactor,(rect[3]-rect[1])*scaleFactor)
+      }
+      if(this.state.showSelectColorText){ drawingUtils.drawSelectColorText(context, isMobile) }
       //Trim histories to trail length
       this.trimHistories()
 
@@ -519,16 +524,74 @@ class App extends Component {
   showCalibrateHelp = (asdf) =>{
     alert(calibrateHelp)
   }
+  touchHeld = ()=>{
+    const rectWidth = 50
+    //use flipped frame that has not been drawn on yet
+    const rectLeft = this.state.canvasMouseDownX - rectWidth/2
+    const rectRight = this.state.canvasMouseDownX + rectWidth/2
+    const rectTop = this.state.canvasMouseDownY - rectWidth/2
+    const rectBottom = this.state.canvasMouseDownY + rectWidth/2
+    let rgbRange = cvutils.getColorFromImage(
+      this.state.flippedFrame, 
+      rectLeft, 
+      rectTop,  
+      rectRight,
+      rectBottom,
+    )
+    
+    const lowerHSV = cvutils.RGBtoHSV(rgbRange['lr'],rgbRange['lg'],rgbRange['lb'])
+    const upperHSV = cvutils.RGBtoHSV(rgbRange['hr'],rgbRange['hg'],rgbRange['hb'])
+    // converted hsv ranges may have maxs and mins swapped
+    const hsvRange = {
+      'lh' : Math.min(lowerHSV[0],upperHSV[0]),
+      'ls' :  Math.min(lowerHSV[1],upperHSV[1]),
+      'lv' :  Math.min(lowerHSV[2],upperHSV[2]),
+      'hh' :  Math.max(lowerHSV[0],upperHSV[0]),
+      'hs' :  Math.max(lowerHSV[1],upperHSV[1]),
+      'hv' :  Math.max(lowerHSV[2],upperHSV[2]),
+    }
+    hsvRange['hs'] = Math.max(hsvRange['hs'], .75)
+    hsvRange['hv'] = Math.max(hsvRange['hv'], .75)
+    this.setState(hsvRange,()=>{
+      this.setColorRange()
+    })
+    this.setState({
+      canvasMouseDownX : null,
+      canvasMouseDownY : null,
+      showSelectColorText : false,
+      calibrationRect : [
+          rectLeft, 
+          rectTop,  
+          rectRight,
+          rectBottom,
+      ]
+    })
+  }
+  handleTouchEnd = ()=>{
+    if (this.state.touchTimer)
+        clearTimeout(this.state.touchTimer);
+      this.setState({
+        calibrationRect : null,
+        canvasMouseDownX : null,
+        canvasMouseDownY : null,
+        showSelectColorText : false,
+      })
+  }
   handleCanvasMouseDown = (e)=>{
-    const clickCoord = cvutils.calculateRelativeCoord(e)
-    console.log("down",clickCoord)
+    if(isMobile){
+      this.setState({
+        touchTimer : setTimeout(this.touchHeld, touchDuration)
+      })
+    }
+    
+    const clickCoord = cvutils.calculateRelativeCoord(e, this.canvasOutput)
     this.setState({
       canvasMouseDownX : clickCoord[0],
       canvasMouseDownY : clickCoord[1],
     })
   }
   handleCanvasMouseUp = (e)=>{
-    const clickCoord = cvutils.calculateRelativeCoord(e)
+    const clickCoord = cvutils.calculateRelativeCoord(e, this.canvasOutput)
     //use flipped frame that has not been drawn on yet
     let rgbRange = cvutils.getColorFromImage(
       this.state.flippedFrame, 
@@ -548,20 +611,23 @@ class App extends Component {
       'hs' :  Math.max(lowerHSV[1],upperHSV[1]),
       'hv' :  Math.max(lowerHSV[2],upperHSV[2]),
     }
-
+    hsvRange['hs'] = Math.max(hsvRange['hs'], .85)
+    hsvRange['hv'] = Math.max(hsvRange['hv'], .85)
     this.setState(hsvRange,()=>{
       this.setColorRange()
     })
     this.setState({
       canvasMouseDownX : null,
       canvasMouseDownY : null,
-      calibrationRect : null
+      calibrationRect : null,
+      showSelectColorText : false,
     })
   }
   handleCanvasMouseDrag = (e)=>{
+    e.preventDefault()
     if(this.state.canvasMouseDownX){
-      const mouseCoord = cvutils.calculateRelativeCoord(e)
-      const context = document.getElementById("canvasOutput").getContext("2d")
+      const mouseCoord = cvutils.calculateRelativeCoord(e, this.canvasOutput)
+      const context = this.canvasOutput.getContext("2d")
       this.setState({
         calibrationRect : [
           this.state.canvasMouseDownX, 
@@ -630,7 +696,7 @@ class App extends Component {
           <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label>
           <input  name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
         </div>
-        <video hidden={true} width={640} height={480} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
+        <video hidden={true} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
       </div>
 
     return (
@@ -638,10 +704,14 @@ class App extends Component {
         <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
         <div style={{marginBottom : '15px'}}>Send feedback to @arflowarts on Instagram</div>
         {videoControls}
-        <canvas ref={ref => this.canvasOutput = ref}  className="center-block" id="canvasOutput" width={640} height={480}
+        <canvas ref={ref => this.canvasOutput = ref}
+        className="center-block" id="canvasOutput"
           onMouseDown={this.handleCanvasMouseDown}
           onMouseUp={this.handleCanvasMouseUp}
           onMouseMove={this.handleCanvasMouseDrag}
+          onTouchStart={this.handleCanvasMouseDown}
+          onTouchEnd={this.handleTouchEnd}
+          onTouchMove={this.handleTouchEnd}
         ></canvas>
 
         <div
