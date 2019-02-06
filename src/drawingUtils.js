@@ -1,12 +1,13 @@
 import cvutils from './cvutils';
 
-function drawSelectColorText(context, isMobile){
+function drawSelectColorText(context, isMobile, usingWhite){
   let text
-  if(isMobile){
-
-    text = "Hold finger down \non prop to set color"
-  }else{
+  if(isMobile && !usingWhite){
+    text = "Hold finger on prop to set color"
+  }else if(!isMobile && !usingWhite){
     text = "Click and drag box over prop to set color"
+  }else{
+    text = "Adjust brightness threshold to find prop"
   }
   context.font = "30px Arial"
   context.fillStyle = "#ffffff"
@@ -23,7 +24,7 @@ function drawCircle(context, x,y,r, color){
     context.stroke();
   }
 
-function drawTrails(context, contourPositions, colorRange, trailLength){
+function drawTrails(context, contourPositions, color, trailLength){
   //Draw circle and trail
   if(contourPositions){
 
@@ -47,7 +48,6 @@ function drawTrails(context, contourPositions, colorRange, trailLength){
             const lastX = xHistory[xHistory.length - 1 - t]
             const lastY = yHistory[yHistory.length - 1 - t]
             const lastR = rHistory[rHistory.length - 1 - t]
-            const color = cvutils.calculateCurrentHSVString(colorRange,(1-(t/currentWindowSize)))
             drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), color)
           }
         }

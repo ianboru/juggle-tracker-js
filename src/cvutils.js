@@ -27,6 +27,19 @@ function colorFilter(src, colorRange){
     // Return the masked image (objects are white, background is black)
     return dst
 }
+function colorWhite(src, colorRange){
+    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+    let ksize = new cv.Size(23,23);
+    let anchor = new cv.Point(-1, -1);
+    cv.blur(src, src, ksize, anchor, cv.BORDER_DEFAULT);
+    let dst = new cv.Mat();
+    // You can try more different parameters
+    cv.threshold(src, dst, Math.round(360*colorRange.tv/100), 255, cv.THRESH_BINARY);
+    src.delete();
+    // Return the masked image (objects are white, background is black)
+    return dst
+}
+
 function findBalls(src){
     // Minimum size of a contour to interpret as an object
     const sizeThreshold = 30
@@ -108,6 +121,7 @@ function calculateRelativeCoord(e){
     }else if(e.changedTouches[0]){
         targetX = e.changedTouches[0].clientX; targetY = e.changedTouches[0].clientY;
     }
+
     const bounds = e.target.getBoundingClientRect();
     console.log(bounds.left, targetX, e.pageX, bounds.width)
     const x = targetX - bounds.left;
@@ -137,7 +151,7 @@ function getColorFromImage(imageData,minX,minY,maxX,maxY){
             maxB = Math.max(imageData.data[colorIndices[2]], maxB)
         }
     }
-    //return object with min and max rgb 
+    //return object with min and max rgb
     return {
         'lr' : minR, 'lg' : minG, 'lb' : minB,
         'hr' : maxR, 'hg' : maxG, 'hb' : maxB,
@@ -171,6 +185,7 @@ export default {
     mean,
     sortContours,
     colorFilter,
+    colorWhite,
     findBalls,
     getColorFromImage,
     calculateRelativeCoord
