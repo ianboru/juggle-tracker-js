@@ -13,10 +13,11 @@ const initialHSV = {
       hh : 230,
       hs : 1,
       hv : 1,
+      tv : 123,
     }
-const calibrateHelp = `Calibration Process:\n 
-1: Click 'Calibrate' 
-2: Set 'Hue Center' slider to approximate color of prop 
+const calibrateHelp = `Calibration Process:\n
+1: Click 'Calibrate'
+2: Set 'Hue Center' slider to approximate color of prop
 3: Adjust HSV Sliders until prop is completely white
 4: When you walk farther from the camera, the hue shouldn't change but the saturation and value likely decrease
 
@@ -42,12 +43,14 @@ class App extends Component {
     hh : 230,
     hs : 1,
     hv : 1,
+    tv : 123,
     net : null,
     allColors : [initialHSV],
     colorNum : 0,
     positions : [],
     totalNumColors : 1,
     showRaw : true,
+    usingWhite : false,
     trailLength : 1,
     showConnections : false,
     showStars     : false,
@@ -65,7 +68,7 @@ class App extends Component {
     canvasMouseDownX : null,
     canvasMouseDownY : null,
     calibrationRect : null
-    
+
   }
 
   componentDidMount=()=>{
@@ -161,6 +164,17 @@ class App extends Component {
     const superBuffer = new Blob(this.state.recordedBlobs, {type: 'video/webm'});
     this.recordedVideo.src = window.URL.createObjectURL(superBuffer);
 
+  }
+  // On click method for using white balls.
+  whiteBall=()=>{
+    // Toggle the text on the button
+    const connectionsButton = document.querySelector('button#whiteBall');
+    if (connectionsButton.textContent === 'useWhite') {connectionsButton.textContent = 'useColor';}
+    else {connectionsButton.textContent = 'useWhite';}
+    // Change the state so that connections are shown or not
+    this.setState({
+      usingWhite : !this.state.usingWhite
+    })
   }
 
   toggleRecording=()=>{
@@ -281,8 +295,9 @@ class App extends Component {
       //Filters by color AND tracks ball positions by color
       let colorFilteredImage
       this.state.allColors.forEach((colorRange,colorNum)=>{
+        if(!this.state.usingWhite){colorFilteredImage = cvutils.colorFilter(srcMat.clone(), colorRange)}
+        if( this.state.usingWhite){colorFilteredImage = cvutils.colorWhite(srcMat.clone(), colorRange)}
 
-        colorFilteredImage = cvutils.colorFilter(srcMat.clone(), colorRange)
         const ballLocations = cvutils.findBalls(colorFilteredImage.clone())
         this.updateBallHistories(ballLocations, colorNum)
 
@@ -317,7 +332,7 @@ class App extends Component {
       //Clean up all possible data
       colorFilteredImage.delete();srcMat.delete()
       srcMat = null; colorFilteredImage = null
-      
+
 
       //Process next frame
       requestAnimationFrame(this.processVideo);
@@ -396,15 +411,15 @@ class App extends Component {
     histories = null
   }
 
-  handleHSVSliderChange=(e)=>{
-    let state = this.state
-    state[e.target.name] =parseFloat(e.target.value)
-    this.setState({
-      state
-    },()=>{
-      this.setColorRange()
-    })
-  }
+    handleHSVSliderChange=(e)=>{
+      let state = this.state
+      state[e.target.name] =parseFloat(e.target.value)
+      this.setState({
+        state
+      },()=>{
+        this.setColorRange()
+      })
+    }
   setColorRange=()=>{
     let colorRanges = this.state.allColors
     colorRanges[this.state.colorNum] = {
@@ -414,6 +429,7 @@ class App extends Component {
       'hh' : this.state.hh,
       'hs' : this.state.hs,
       'hv' : this.state.hv,
+      'tv' : this.state.tv
     }
     this.setState({
       allColors : colorRanges,
@@ -458,10 +474,10 @@ class App extends Component {
     })
     if(this.state.showRaw){
       alert(
-        `Calibration Process:\n 
-        1: Click 'Calibrate' 
+        `Calibration Process:\n
+        1: Click 'Calibrate'
         2: Set 'Hue Center' slider to approximate color of prop
-        3: Adjust HSV Sliders until prop is completely white 
+        3: Adjust HSV Sliders until prop is completely white
         `
       )
     }
@@ -531,10 +547,10 @@ class App extends Component {
     const clickCoord = cvutils.calculateRelativeCoord(e)
     //use flipped frame that has not been drawn on yet
     let rgbRange = cvutils.getColorFromImage(
-      this.state.flippedFrame, 
-      this.state.canvasMouseDownX, 
-      this.state.canvasMouseDownY,  
-      clickCoord[0], 
+      this.state.flippedFrame,
+      this.state.canvasMouseDownX,
+      this.state.canvasMouseDownY,
+      clickCoord[0],
       clickCoord[1]
     )
     const lowerHSV = cvutils.RGBtoHSV(rgbRange['lr'],rgbRange['lg'],rgbRange['lb'])
@@ -564,17 +580,27 @@ class App extends Component {
       const context = document.getElementById("canvasOutput").getContext("2d")
       this.setState({
         calibrationRect : [
-          this.state.canvasMouseDownX, 
-          this.state.canvasMouseDownY, 
-          mouseCoord[0], 
+          this.state.canvasMouseDownX,
+          this.state.canvasMouseDownY,
+          mouseCoord[0],
           mouseCoord[1]
         ]
       })
     }
   }
   render() {
-
+    // Renders the sliders
     const sliders =
+      // Is the user using white balls?
+      this.state.usingWhite ? (
+        // The user is using white balls, and should have a Threshold slider
+        <div>
+          <br/>
+          <div style={{"width": "80px", "display" :"inline-block"}}>Threshold</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.tv}/><input name="tv" type="range" min={0} max={360} step={1} value={this.state.tv} onChange={this.handleHSVSliderChange}/>
+          <br/>
+        </div>) :
+
+        // The user is using color, and should have HSV sliders
         <div style={{"paddingTop" : '15px', "marginBottom" : '15px'}} className="sliders">
           <h3 className="secondary-header">Lower Range</h3>
           <div style={{"width": "80px", "display" :"inline-block"}}>Hue</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lh}/><input name="lh" type="range" min={0} max={360} step={1} value={this.state.lh} onChange={this.handleHSVSliderChange}/>
@@ -592,6 +618,8 @@ class App extends Component {
 
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
         return(
+          // only return the color swatches if the user is on the color mode
+          !this.state.usingWhite ? (
           <div
             onClick={()=>{this.selectColor(index)}}
             style={{
@@ -603,7 +631,7 @@ class App extends Component {
               'vertical-align' : 'middle'
 
             }}>
-          </div>
+          </div>) : null
         )
 
     })
@@ -614,6 +642,7 @@ class App extends Component {
           <button style={{'fontSize':'12pt'}} id="calibration" onClick={this.toggleShowRaw}>Calibrate</button>
           <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
           <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
+          <button style={{'fontSize':'12pt'}} id="whiteBall" onClick={this.whiteBall} >useWhite</button>
         </div>
         <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
       </div>
@@ -633,6 +662,56 @@ class App extends Component {
         <video hidden={true} width={640} height={480} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
       </div>
 
+    const huePicker =
+    // only show this if the user is in color mode
+    !this.state.usingWhite ? (
+      <div>
+        <h3 className="primary-header">Adjust Color Range</h3>
+        <h3 className="secondary-header">Hue Center</h3>
+        <div
+          style={{
+            left: '50%',
+            transform: 'translateX(-50%)',
+            position : 'absolute',
+          }}
+         >
+          <HuePicker
+            color={ this.state.pickedColor }
+            onChangeComplete={ this.handleColorPickerChangeComplete }
+          />
+        </div>
+      </div>) : null
+
+      const addButton =
+      // only show this if the user is in color mode
+      !this.state.usingWhite ? (
+        <div>
+        <div
+          style={{
+            width : '350px',
+            margin : '0 auto',
+            marginBottom : '15px'
+          }}
+         >
+         <h3 className="secondary-header">Animated Colors</h3>
+          {colorSwatches}
+           <div
+            style={{
+              'fontSize':'14px',
+              'margin' : '0 auto',
+              'border' : '1px solid gray',
+              'paddingTop' : '16px',
+              'paddingBottom' : '14px',
+              'width' : '50px',
+              'height' : '20px',
+              'display' : 'inline-block',
+              'vertical-align' : 'middle'
+            }}
+            onClick={this.addColor}
+          >Add</div>
+        </div>
+        </div>) : null
+
     return (
       <div className="App" >
         <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
@@ -643,46 +722,8 @@ class App extends Component {
           onMouseUp={this.handleCanvasMouseUp}
           onMouseMove={this.handleCanvasMouseDrag}
         ></canvas>
-
-        <div
-          style={{
-            width : '350px',
-            margin : '0 auto',
-            marginBottom : '15px'
-          }}
-         >
-         <h3 className="secondary-header">Animated Colors</h3>
-          {colorSwatches}
-           <div  
-            style={{
-              'fontSize':'14px',
-              'margin' : '0 auto',
-              'border' : '1px solid gray',
-              'paddingTop' : '16px',
-              'paddingBottom' : '14px',
-
-              'width' : '50px',
-              'height' : '20px',
-              'display' : 'inline-block',
-              'vertical-align' : 'middle'
-            }} 
-            onClick={this.addColor}
-          >Add</div>
-        </div>
-        <h3 className="primary-header">Adjust Color Range</h3>
-        <h3 className="secondary-header">Hue Center</h3>
-        <div
-          style={{
-            left: '50%',
-            transform: 'translateX(-50%)',
-            position : 'absolute',
-          }}  
-         >
-          <HuePicker
-            color={ this.state.pickedColor }
-            onChangeComplete={ this.handleColorPickerChangeComplete }
-          />
-        </div>
+        {addButton}
+        {huePicker}
         {sliders}
         <button style={{'fontSize':'12pt', 'backgroundColor' : '#FF6666'}} id="helpButton" onClick={this.showCalibrateHelp}>Can't Find My Ball!</button>
 
