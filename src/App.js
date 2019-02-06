@@ -68,14 +68,27 @@ class App extends Component {
     canvasMouseDownY : null,
     calibrationRect : null,
     showSelectColorText : true,
-    touchTimer : null
+    touchTimer : null,
+    isFacebookApp : false,
   }
 
   componentDidMount=()=>{
-    this.startCamera()
+    const isFacebookApp = this.isFacebookApp()
+    console.log("is it", isFacebookApp)
+    if(!isFacebookApp){
+      this.startCamera()
+    }
+    this.setState({
+      isFacebookApp
+    })
     const downloadButton = document.querySelector('button#download');
     downloadButton.disabled = true
     document.title = "AR Flow Arts"
+    
+  }
+  isFacebookApp=()=>{
+    var ua = navigator.userAgent || navigator.vendor || window.opera;
+    return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1);;
   }
   /****
   Camera Stuff
@@ -639,7 +652,7 @@ class App extends Component {
     }
   }
   render() {
-
+    console.log("render ", this.state.isFacebookApp)
     const sliders =
         <div style={{"paddingTop" : '15px', "marginBottom" : '15px'}} className="sliders">
           <h3 className="secondary-header">Lower Range</h3>
@@ -654,7 +667,7 @@ class App extends Component {
           <div style={{"width": "80px", "display" :"inline-block"}}>Saturation</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hs}/><input name="hs" type="range" min={0} max={1} step={.01} value={this.state.hs} onChange={this.handleHSVSliderChange}/>
           <br/>
           <div style={{"width": "80px", "display" :"inline-block"}}>Value</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hv}/><input name="hv" type="range" min={0} max={1} step={.01} value={this.state.hv} onChange={this.handleHSVSliderChange}/>
-        </div>
+        </div> 
 
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
         return(
@@ -698,67 +711,77 @@ class App extends Component {
         </div>
         <video hidden={true} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
       </div>
+    const openInBrowser =  
+      this.state.isFacebookApp ? <div style={{fontSize : '16px'}}>
+        Does Not Work in Instagram/Facebook Preview.
+        <br/>
+        Please open in browser (Safari for iOS).
+        <a href="https://arflowarts.com" target="_blank">click me</a>
+      </div>   : null
 
     return (
-      <div className="App" >
-        <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
-        <div style={{marginBottom : '15px'}}>Send feedback to @arflowarts on Instagram</div>
-        {videoControls}
-        <canvas ref={ref => this.canvasOutput = ref}
-        className="center-block" id="canvasOutput"
-          onMouseDown={this.handleCanvasMouseDown}
-          onMouseUp={this.handleCanvasMouseUp}
-          onMouseMove={this.handleCanvasMouseDrag}
-          onTouchStart={this.handleCanvasMouseDown}
-          onTouchEnd={this.handleTouchEnd}
-          onTouchMove={this.handleTouchEnd}
-        ></canvas>
+      <div>
+        {openInBrowser}
+        <div className="App" display={!this.state.isFacebookApp}>
+          <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
+          <div style={{marginBottom : '15px'}}>Send feedback to @arflowarts on Instagram</div>
+          {videoControls}
+          <canvas ref={ref => this.canvasOutput = ref}
+          className="center-block" id="canvasOutput"
+            onMouseDown={this.handleCanvasMouseDown}
+            onMouseUp={this.handleCanvasMouseUp}
+            onMouseMove={this.handleCanvasMouseDrag}
+            onTouchStart={this.handleCanvasMouseDown}
+            onTouchEnd={this.handleTouchEnd}
+            onTouchMove={this.handleTouchEnd}
+          ></canvas>
 
-        <div
-          style={{
-            width : '350px',
-            margin : '0 auto',
-            marginBottom : '15px'
-          }}
-         >
-         <h3 className="secondary-header">Animated Colors</h3>
-          {colorSwatches}
-           <div  
+          <div
             style={{
-              'fontSize':'14px',
-              'margin' : '0 auto',
-              'border' : '1px solid gray',
-              'paddingTop' : '16px',
-              'paddingBottom' : '14px',
+              width : '350px',
+              margin : '0 auto',
+              marginBottom : '15px'
+            }}
+           >
+           <h3 className="secondary-header">Animated Colors</h3>
+            {colorSwatches}
+             <div  
+              style={{
+                'fontSize':'14px',
+                'margin' : '0 auto',
+                'border' : '1px solid gray',
+                'paddingTop' : '16px',
+                'paddingBottom' : '14px',
 
-              'width' : '50px',
-              'height' : '20px',
-              'display' : 'inline-block',
-              'vertical-align' : 'middle'
-            }} 
-            onClick={this.addColor}
-          >Add</div>
-        </div>
-        <h3 className="primary-header">Adjust Color Range</h3>
-        <h3 className="secondary-header">Hue Center</h3>
-        <div
-          style={{
-            left: '50%',
-            transform: 'translateX(-50%)',
-            position : 'absolute',
-          }}  
-         >
-          <HuePicker
-            color={ this.state.pickedColor }
-            onChangeComplete={ this.handleColorPickerChangeComplete }
-          />
-        </div>
-        {sliders}
-        <button style={{'fontSize':'12pt', 'backgroundColor' : '#FF6666'}} id="helpButton" onClick={this.showCalibrateHelp}>Can't Find My Ball!</button>
+                'width' : '50px',
+                'height' : '20px',
+                'display' : 'inline-block',
+                'vertical-align' : 'middle'
+              }} 
+              onClick={this.addColor}
+            >Add</div>
+          </div>
+          <h3 className="primary-header">Adjust Color Range</h3>
+          <h3 className="secondary-header">Hue Center</h3>
+          <div
+            style={{
+              left: '50%',
+              transform: 'translateX(-50%)',
+              position : 'absolute',
+            }}  
+           >
+            <HuePicker
+              color={ this.state.pickedColor }
+              onChangeComplete={ this.handleColorPickerChangeComplete }
+            />
+          </div>
+          {sliders}
+          <button style={{'fontSize':'12pt', 'backgroundColor' : '#FF6666'}} id="helpButton" onClick={this.showCalibrateHelp}>Can't Find My Ball!</button>
 
-        {animationControls}
+          {animationControls}
 
-      </div>
+        </div> 
+    </div>
     );
   }
 }
