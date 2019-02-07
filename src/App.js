@@ -4,18 +4,9 @@ import cv from 'opencv.js';
 import cvutils from './cvutils';
 import drawingUtils from './drawingUtils'
 import { HuePicker } from 'react-color';
-
+import ColorSliders from './colorSliders'
 //@observer
-const initalTV = 55
-const initialHSV = {
-      lh : 200,
-      ls : .2,
-      lv : .2,
-      hh : 230,
-      hs : 1,
-      hv : 1,
-      tv : initalTV,
-    }
+
 const calibrateHelp = `Calibration Process:\n
 1: Click 'Calibration View'
 2: Set 'Hue Center' slider to approximate color of prop
@@ -46,9 +37,9 @@ class App extends Component {
     hh : 230,
     hs : 1,
     hv : 1,
-    tv : initalTV,
+    tv : cvutils.initialHSV.tv,
     net : null,
-    allColors : [initialHSV],
+    allColors : [cvutils.initialHSV],
     colorNum : 0,
     positions : [],
     totalNumColors : 1,
@@ -440,8 +431,9 @@ class App extends Component {
   }
 
     handleHSVSliderChange=(e)=>{
+      console.log(e)
       let state = this.state
-      state[e.target.name] =parseFloat(e.target.value)
+      state[e.name] =parseFloat(e.value)
       this.setState({
         state
       },()=>{
@@ -472,7 +464,7 @@ class App extends Component {
     this.setColorRange()
     let colorNum = this.state.allColors.length
 
-    this.setState(initialHSV)
+    this.setState(cvutils.initialHSV)
     this.setState({
       colorNum
     },()=>{
@@ -680,32 +672,6 @@ class App extends Component {
     }
   }
   render() {
-    // Renders the sliders
-    const sliders =
-      // Is the user using white balls?
-      this.state.usingWhite ? (
-        // The user is using white balls, and should have a Threshold slider
-        <div>
-          <br/>
-          <div style={{"width": "190px", "display" :"inline-block"}}>Brightness Threshold (%)</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.tv}/><input name="tv" type="range" min={0} max={100} step={1} value={this.state.tv} onChange={this.handleHSVSliderChange}/>
-          <br/>
-        </div>) :
-
-        // The user is using color, and should have HSV sliders
-        <div style={{"paddingTop" : '15px', "marginBottom" : '15px'}} className="sliders">
-          <h3 className="secondary-header">Lower Range</h3>
-          <div style={{"width": "80px", "display" :"inline-block"}}>Hue</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lh}/><input name="lh" type="range" min={0} max={360} step={1} value={this.state.lh} onChange={this.handleHSVSliderChange}/>
-          <br/>
-          <div style={{"width": "80px", "display" :"inline-block"}}>Saturation</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.ls}/><input name="ls" type="range" min={0} max={1} step={.01} value={this.state.ls} onChange={this.handleHSVSliderChange}/>
-          <br/>
-          <div style={{"width": "80px", "display" :"inline-block"}}>Value</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.lv}/><input name="lv" type="range" min={0} max={1} step={.01} value={this.state.lv} onChange={this.handleHSVSliderChange}/>
-          <h3 className="secondary-header">Upper Range</h3>
-          <div style={{"width": "80px", "display" :"inline-block"}}>Hue</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hh}/><input name="hh" type="range" min={0} max={360} step={1} value={this.state.hh} onChange={this.handleHSVSliderChange}/>
-          <br/>
-          <div style={{"width": "80px", "display" :"inline-block"}}>Saturation</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hs}/><input name="hs" type="range" min={0} max={1} step={.01} value={this.state.hs} onChange={this.handleHSVSliderChange}/>
-          <br/>
-          <div style={{"width": "80px", "display" :"inline-block"}}>Value</div><input style={{"width": "30px", "marginRight" : "10px", "marginLeft" : "10px"}} value={this.state.hv}/><input name="hv" type="range" min={0} max={1} step={.01} value={this.state.hv} onChange={this.handleHSVSliderChange}/>
-        </div> 
 
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
         return(
@@ -756,28 +722,8 @@ class App extends Component {
         Does Not Work in Instagram/Facebook Preview.
         <br/>
         Please open in browser (Safari for iOS).
-        <a href="https://arflowarts.com" target="_blank">click me</a>
       </div>   : null
 
-    const huePicker =
-    // only show this if the user is in color mode
-    !this.state.usingWhite ? (
-      <div>
-        <h3 className="primary-header">Adjust Color Range</h3>
-        <h3 className="secondary-header">Hue Center</h3>
-        <div
-          style={{
-            left: '50%',
-            transform: 'translateX(-50%)',
-            position : 'absolute',
-          }}
-         >
-          <HuePicker
-            color={ this.state.pickedColor }
-            onChangeComplete={ this.handleColorPickerChangeComplete }
-          />
-        </div>
-      </div>) : null
 
       const addButton =
       // only show this if the user is in color mode
@@ -817,6 +763,10 @@ class App extends Component {
     const cantFindBallButton = 
       this.state.usingWhite ? null : <button style={{'fontSize':'12pt', 'backgroundColor' : '#FF6666'}} id="helpButton" onClick={this.showCalibrateHelp}>Can't Find My Ball!</button>
 
+    const detectionControls = 
+      <div>
+          <ColorSliders usingWhite = {this.state.usingWhite} handleHSVSliderChange={this.handleHSVSliderChange}/>
+      </div>
     const app = 
       //Don't show app if in-app browser
       //Because getUserMedia doesn't work
@@ -825,6 +775,7 @@ class App extends Component {
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
           <div style={{marginBottom : '15px'}}>Send feedback to @arflowarts on Instagram</div>
           {videoControls}
+          {detectionControls}
           <canvas ref={ref => this.canvasOutput = ref}
             className="center-block" id="canvasOutput"
               onMouseDown={this.handleCanvasMouseDown}
@@ -834,9 +785,6 @@ class App extends Component {
               onTouchEnd={this.handleTouchEnd}
               onTouchMove={this.handleTouchEnd}
             ></canvas>
-          {addButton}
-          {huePicker}
-          {sliders}
           {animationControls}
       </div> : null
 

@@ -177,6 +177,16 @@ function RGBtoHSV(r, g, b) {
     h = Math.round(h * 360)
     return [h,s,v];
 }
+const initalTV = 55
+const initialHSV = {
+      lh : 180,
+      ls : .2,
+      lv : .2,
+      hh : 230,
+      hs : 1,
+      hv : 1,
+      tv : initalTV,
+    }
 export default {
     RGBtoHSV,
     calculateCurrentHSV,
@@ -188,5 +198,6 @@ export default {
     colorWhite,
     findBalls,
     getColorFromImage,
-    calculateRelativeCoord
+    calculateRelativeCoord,
+    initialHSV
 }

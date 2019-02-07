@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "opencv.js": "^1.2.1",
+    "rc-slider": "^8.6.5",
+    "rc-tooltip": "^3.7.3",
     "react": "^16.5.2",
     "react-color": "^2.17.0",
     "react-dom": "^16.5.2"
