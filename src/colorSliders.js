@@ -8,7 +8,7 @@ import './colorSliders.css'
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
-const wrapperStyle = { width: '250px', margin: '0 auto' };
+const wrapperStyle = { width: '300px', margin: '0 auto' };
 const handle = (props) => {
   const { value, dragging, index, ...restProps } = props;
   return (
@@ -25,17 +25,8 @@ const handle = (props) => {
 };
 
 class ColorSliders extends Component {
-	state = {
-		lh : 200,
-	    ls : .2,
-	    lv : .2,
-	    hh : 230,
-	    hs : 1,
-	    hv : 1,
-	    tv : cvutils.initialHSV.tv,
-	}
+
 	onHChange = (values) =>{
-		console.log(values) 
 		let target = {
 			name : 'lh',
 			value : values[0]
@@ -48,7 +39,6 @@ class ColorSliders extends Component {
 		this.props.handleHSVSliderChange(target)
 	}
 	onSChange = (values) =>{
-		console.log(values) 
 		let target = {
 			name : 'ls',
 			value : values[0]
@@ -61,7 +51,6 @@ class ColorSliders extends Component {
 		this.props.handleHSVSliderChange(target)
 	}
 	onVChange = (values) =>{
-		console.log(values) 
 		let target = {
 			name : 'lv',
 			value : values[0]
@@ -73,21 +62,25 @@ class ColorSliders extends Component {
 		}
 		this.props.handleHSVSliderChange(target)
 	}
-	onBrightnessChange = (values) =>{
-		console.log(values) 
-		this.props.handleHSVSliderChange(this.state.hsv)
+	onBrightnessChange = (value) =>{
+		const target = {
+			name : "tv",
+			value : value
+		}
+		this.props.handleHSVSliderChange(target)
 	} 
+
 	render() {
 		const sliders = 
 			this.props.usingWhite ?
 				<div style={wrapperStyle}>
-					<div style={{"width": "80px", "display" :"inline-block"}}>Brightness</div><Slider min={0} max={100} step={1} defaultValue={cvutils.initialHSV.tv} handle={handle} onChange={this.onChange} />
+					<div style={{"width": "180px", "display" :"inline-block"}}>Minumum Brightness</div><Slider min={0} max={100} step={1} defaultValue={this.props.HSV.tv} handle={handle} onChange={this.onBrightnessChange} />
 				</div> 
 					:
 				<div style={wrapperStyle}>
-					<div style={{"width": "80px", "display" :"inline-block"}}>Hue</div><Range className="hue-slider" min={0} max={360} step={1} defaultValue={[cvutils.initialHSV.lh,cvutils.initialHSV.hh]} handle={handle} onChange={this.onHChange} />
-					<div style={{"width": "80px", "display" :"inline-block"}}>Saturation</div><Range min={0} max={1} step={.01} defaultValue={[cvutils.initialHSV.ls,cvutils.initialHSV.hs]}  handle={handle} onChange={this.onSChange}/>
-					<div style={{"width": "80px", "display" :"inline-block"}}>Brightness</div><Range min={0} max={1} step={.01} defaultValue={[cvutils.initialHSV.lv,cvutils.initialHSV.hv]}  handle={handle} onChange={this.onVChange} />
+					<div style={{"width": "80px", "display" :"inline-block"}}>Hue</div><Range className="hue-slider" allowCross={false} min={0} max={360} step={1} value={[this.props.HSV.lh,this.props.HSV.hh]} handle={handle} onChange={this.onHChange} />
+					<div style={{"width": "80px", "display" :"inline-block"}}>Saturation</div><Range allowCross={false} min={0} max={1} step={.01} value={[this.props.HSV.ls,this.props.HSV.hs]}  handle={handle} onChange={this.onSChange}/>
+					<div style={{"width": "80px", "display" :"inline-block"}}>Brightness</div><Range allowCross={false}  min={0} max={1} step={.01} value={[this.props.HSV.lv,this.props.HSV.hv]}  handle={handle} onChange={this.onVChange} />
 				</div>
 
 		return (

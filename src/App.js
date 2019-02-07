@@ -641,11 +641,16 @@ class App extends Component {
       'ls' :  Math.min(lowerHSV[1],upperHSV[1]),
       'lv' :  Math.min(lowerHSV[2],upperHSV[2]),
       'hh' :  Math.max(lowerHSV[0],upperHSV[0]),
-      'hs' :  Math.max(lowerHSV[1],upperHSV[1]),
+      'hs' :  255,
       'hv' :  Math.max(lowerHSV[2],upperHSV[2]),
     }
-    hsvRange['hs'] = Math.max(hsvRange['hs'], .85)
-    hsvRange['hv'] = Math.max(hsvRange['hv'], .85)
+    const hDiff = hsvRange['hh'] - hsvRange['lh'] 
+    const minHDiff = 20
+    if( hDiff < minHDiff && hsvRange['hh'] < 350){
+      hsvRange['hh'] = hsvRange['hh'] + minHDiff - hDiff
+    }else if( hDiff < minHDiff && hsvRange['hh'] > 350){
+      hsvRange['lh'] = hsvRange['lh'] - minHDiff + hDiff
+    }
     this.setState(hsvRange,()=>{
       this.setColorRange()
     })
@@ -721,7 +726,7 @@ class App extends Component {
       this.state.isFacebookApp ? <div style={{fontSize : '16px'}}>
         Does Not Work in Instagram/Facebook Preview.
         <br/>
-        Please open in browser (Safari for iOS).
+        Please copy and paste link in browser (Safari for iOS).
       </div>   : null
 
 
@@ -762,11 +767,21 @@ class App extends Component {
 
     const cantFindBallButton = 
       this.state.usingWhite ? null : <button style={{'fontSize':'12pt', 'backgroundColor' : '#FF6666'}} id="helpButton" onClick={this.showCalibrateHelp}>Can't Find My Ball!</button>
-
+    const HSV = {
+                  lh : this.state.lh,
+                  hh : this.state.hh,
+                  ls : this.state.ls,
+                  hs : this.state.hs,
+                  lv : this.state.lv,
+                  hv : this.state.hv,
+                  tv : this.state.tv
+                } 
+                
     const detectionControls = 
       <div>
-          <ColorSliders usingWhite = {this.state.usingWhite} handleHSVSliderChange={this.handleHSVSliderChange}/>
+          <ColorSliders HSV = {HSV} usingWhite = {this.state.usingWhite} handleHSVSliderChange={this.handleHSVSliderChange}/>
       </div>
+
     const app = 
       //Don't show app if in-app browser
       //Because getUserMedia doesn't work
@@ -774,7 +789,7 @@ class App extends Component {
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
           <div style={{marginBottom : '15px'}}>Send feedback to @arflowarts on Instagram</div>
-          {videoControls}
+          {addButton}
           {detectionControls}
           <canvas ref={ref => this.canvasOutput = ref}
             className="center-block" id="canvasOutput"
@@ -785,9 +800,12 @@ class App extends Component {
               onTouchEnd={this.handleTouchEnd}
               onTouchMove={this.handleTouchEnd}
             ></canvas>
+            {cantFindBallButton}
+            {videoControls}
+
           {animationControls}
       </div> : null
-
+    // TOP LAYER
     return (
       <div>
         {app}
