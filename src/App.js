@@ -319,14 +319,15 @@ class App extends Component {
           // This setting is used when calibrating the colors
           cv.imshow('canvasOutput',colorFilteredImage)
         }
+        const color = this.state.usingWhite ? "white" : cvutils.calculateCurrentHSVString(colorRange)
+
         //Draw balls and trails
         if(this.state.showTrails){
-          const color = this.state.usingWhite ? "white" : cvutils.calculateCurrentHSVString(colorRange)
           drawingUtils.drawTrails(context,this.state.positions[colorNum], color, this.state.trailLength)
         }
         if(this.state.showConnections){
           //Draw lines between balls of same color
-          drawingUtils.drawConnections(context, this.state.positions[colorNum], colorRange)
+          drawingUtils.drawConnections(context, this.state.positions[colorNum], color)
         }
         if(this.state.showStars){
           //Draw stars coming from balls
