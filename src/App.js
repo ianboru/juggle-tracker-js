@@ -3,6 +3,8 @@ import './App.css';
 import cv from 'opencv.js';
 import cvutils from './cvutils';
 import drawingUtils from './drawingUtils'
+import trackingUtils from './trackingUtils'
+
 import { HuePicker } from 'react-color';
 import ColorSliders from './colorSliders'
 //@observer
@@ -312,8 +314,9 @@ class App extends Component {
         }
 
         const ballLocations = cvutils.findBalls(colorFilteredImage.clone())
-        this.updateBallHistories(ballLocations, colorNum)
-
+        console.log("before ", this.state.positions)
+        this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
+        console.log("after ", this.state.positions)
         if(!this.state.showRaw){
           // Initialize final canvas with the mask of the colors within the color ranges
           // This setting is used when calibrating the colors
@@ -347,7 +350,7 @@ class App extends Component {
         drawingUtils.drawSelectColorText(context, isMobile, this.state.usingWhite) 
       }
       //Trim histories to trail length
-      this.trimHistories()
+      this.state.positions = trackingUtils.trimHistories(this.state.positions, this.state.trailLength)
 
       //Clean up all possible data
       colorFilteredImage.delete();srcMat.delete()
@@ -357,78 +360,6 @@ class App extends Component {
       //Process next frame
       requestAnimationFrame(this.processVideo);
     }
-  }
-
-  updateBallHistories=(contourPositions, colorNum)=>{
-    // Maximum number of contours that will be interpreted as objects
-    const maxNumContours = 15
-    //Used to know how many contours to connect later
-    let numContoursOverThreshold = 0
-    let allPositions = this.state.positions
-    //Catalogue the contour locations to draw later
-    if(contourPositions.length > 0){
-      //initialize for the first contours
-      if(!allPositions[colorNum]){
-        allPositions[colorNum] = []
-      }
-      //Shouldn't be more than max contours realistically
-      for(let i = 0; i < Math.min(contourPositions.length, maxNumContours); ++i){
-        //Initialize current object
-        if(!allPositions[colorNum][i]){
-          allPositions[colorNum][i]={
-            'x':[],
-            'y':[],
-            'r':[]
-          }
-        }
-        ++numContoursOverThreshold
-        //Add latest coordinates to history
-        allPositions[colorNum][i]['x'].push(contourPositions[i].x)
-        allPositions[colorNum][i]['y'].push(contourPositions[i].y)
-        allPositions[colorNum][i]['r'].push(contourPositions[i].r)
-      }
-      //allPositions[colorNum] = this.reorderNearestContours(allPositions[colorNum])
-      allPositions[colorNum]["currentNumContours"] = numContoursOverThreshold
-    }
-    if(!allPositions[colorNum]){
-      return
-    }
-    // For any existing object histories push -1 to not be drawn later
-    for(let i = 0 ;
-      i < allPositions[colorNum].length; ++i
-    ){
-      if(i > contourPositions.length-1){
-        allPositions[colorNum][i]['x'].push(-1)
-        allPositions[colorNum][i]['y'].push(-1)
-        allPositions[colorNum][i]['r'].push(-1)
-      }
-    }
-    // Update position histories
-    this.setState({
-      positions : allPositions
-    })
-  }
-  trimHistories=()=>{
-    // Trim the position history of each object of each color
-    let histories = []
-    this.state.positions.forEach((colorPositions, colorNum)=>{
-      histories[colorNum] = []
-      colorPositions.forEach((history,ballNum)=>{
-        histories[colorNum][ballNum] = []
-        if(history['x'].length > this.state.trailLength){
-          histories[colorNum][ballNum]['x'] = history['x'].slice(history['x'].length - 1 - this.state.trailLength, history['x'].length)
-          histories[colorNum][ballNum]['y'] = history['y'].slice(history['y'].length - 1 - this.state.trailLength, history['y'].length)
-          histories[colorNum][ballNum]['r'] = history['r'].slice(history['r'].length - 1 - this.state.trailLength, history['r'].length)
-        }else{
-          histories[colorNum][ballNum] = this.state.positions[colorNum][ballNum]
-        }
-      })
-    })
-    // Update state
-    this.setState({
-      positions : histories
-    })
-    histories = null
   }
 
   handleHSVSliderChange=(e)=>{
