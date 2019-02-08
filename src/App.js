@@ -227,9 +227,7 @@ class App extends Component {
         }
 
         const ballLocations = cvutils.findBalls(colorFilteredImage.clone())
-        console.log("before ", this.state.positions)
         this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
-        console.log("after ", this.state.positions)
         if(!this.state.showRaw){
           // Initialize final canvas with the mask of the colors within the color ranges
           // This setting is used when calibrating the colors
