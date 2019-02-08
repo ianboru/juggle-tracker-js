@@ -7,6 +7,7 @@ import trackingUtils from './trackingUtils'
 
 import { HuePicker } from 'react-color';
 import ColorSliders from './colorSliders'
+import Recorder from './recorder'
 //@observer
 
 const calibrateHelp = `Calibration Process:\n
@@ -50,9 +51,6 @@ class App extends Component {
     trailLength : 1,
     showConnections : false,
     showStars     : false,
-    mediaRecorder : null,
-    recordedBlobs : null,
-    visiblePlayer : "live",
     canvasStream : null,
     showTrails : true,
     starsX     : [],
@@ -68,6 +66,7 @@ class App extends Component {
     touchTimer : null,
     isFacebookApp : false,
     colorModeButtonText : 'Use White Props',
+    recording : null
   }
 
   componentDidMount=()=>{
@@ -78,10 +77,7 @@ class App extends Component {
     this.setState({
       isFacebookApp
     })
-    const downloadButton = document.querySelector('button#download');
-    downloadButton.disabled = true
     document.title = "AR Flow Arts"
-    
   }
   isFacebookApp=()=>{
     var ua = navigator.userAgent || navigator.vendor || window.opera;
@@ -143,9 +139,6 @@ class App extends Component {
   startVideoProcessing=()=> {
     //Fix for firefox to have context available
     const context = this.canvasOutput.getContext("2d")
-    this.setState({
-      canvasStream : this.canvasOutput.captureStream()
-    })
     if (!this.state.streaming) { console.warn("Please startup your webcam"); return; }
     this.stopVideoProcessing();
     requestAnimationFrame(this.processVideo);
@@ -159,22 +152,7 @@ class App extends Component {
   /****
   Recording Stuff
   ****/
- handleDataAvailable=(event)=>{
-    let recordedBlobs = this.state.recordedBlobs
-    if (event.data && event.data.size > 0) {
-      recordedBlobs.push(event.data);
-      this.setState({
-        recordedBlobs
-      })
-    }
-  }
 
-  handleStopMediaRecorder=(event)=>{
-    console.log('Recorder stopped: ', event);
-    const superBuffer = new Blob(this.state.recordedBlobs, {type: 'video/webm'});
-    this.recordedVideo.src = window.URL.createObjectURL(superBuffer);
-
-  }
   // On click method for using white balls.
   toggleWhiteMode=()=>{
     // Toggle the text on the button
@@ -193,97 +171,32 @@ class App extends Component {
 
   toggleRecording=()=>{
     const recordButton = document.querySelector('button#record');
-    const downloadButton = document.querySelector('button#download');
     if (recordButton.textContent === 'Start Recording') {
+      
+      
       if(!this.state.streaming){
         this.startCamera()
       }
-      this.recordedVideo.hidden = true
       this.canvasOutput.hidden = false
       this.canvasOutput.style.display = "inline"
-      this.startRecording();
+      this.setState({
+        canvasStream : this.canvasOutput.captureStream(),
+        recording : true
+      })
+      const recordButton = document.querySelector('button#record');
+      recordButton.textContent = 'Stop Recording';
     } else {
-      this.stopRecording();
+      this.setState({
+        canvasStream : null,
+        recording : false
+      })
       this.stopCamera();
-      this.recordedVideo.controls = true
-      this.recordedVideo.hidden = false
       this.canvasOutput.style.display = "none"
       recordButton.textContent = 'Start Recording';
-      downloadButton.disabled = false;
     }
   }
 
-  // The nested try blocks will be simplified when Chrome 47 moves to Stable
-  startRecording=()=>{
-    this.recordedVideo.hidden = true
-
-    let options = {mimeType: 'video/webm;codecs=h264'};
-    this.setState({
-      recordedBlobs : []
-    })
-    let mediaRecorder
-    if(!this.state.canvasStream){
-      alert('video not running');
-      console.error('Exception while creating MediaRecorder:');
-      return
-    }
-    try {
-      mediaRecorder = new MediaRecorder(this.state.canvasStream, options);
-    } catch (e0) {
-      console.log('Unable to create MediaRecorder with options Object: ', e0);
-      try {
-        options = {mimeType: 'video/webm,codecs=vp9'};
-        mediaRecorder = new MediaRecorder(this.state.canvasStream, options);
-      } catch (e1) {
-        console.log('Unable to create MediaRecorder with options Object: ', e1);
-        try {
-          options = 'video/vp8'; // Chrome 47
-          mediaRecorder = new MediaRecorder(this.state.canvasStream, options);
-        } catch (e2) {
-          alert('MediaRecorder is not supported by this browser.\n\n' +
-            'Try Firefox 29 or later, or Chrome 47 or later, ' +
-            'with Enable experimental Web Platform features enabled from chrome://flags.');
-          console.error('Exception while creating MediaRecorder:', e2);
-          return;
-        }
-      }
-    }
-    const recordButton = document.querySelector('button#record');
-    const downloadButton = document.querySelector('button#download');
-
-    recordButton.textContent = 'Stop Recording';
-    downloadButton.disabled = true;
-    mediaRecorder.onstop = this.handleStopMediaRecorder;
-    mediaRecorder.ondataavailable = this.handleDataAvailable;
-    mediaRecorder.start(100); // collect 100ms of data
-    this.setState({
-        mediaRecorder
-      })
-  }
-  stopRecording=()=>{
-    const mediaRecorder = this.state.mediaRecorder
-    mediaRecorder.stop()
-    this.setState({
-      mediaRecorder,
-    })
-  }
-
-
-  download=()=>{
-    const blob = new Blob(this.state.recordedBlobs, {type: 'video/webm'});
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = 'test.webm';
-    document.body.appendChild(a);
-
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    }, 100);
-  }
+  
   getMatFromCanvas=(context)=>{
     let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
     //Draw video frame onto canvas context
@@ -619,9 +532,7 @@ class App extends Component {
         <div style={{'marginBottom' :'10px'}}>
           <button style={{'fontSize':'12pt'}} id="calibration" onClick={this.toggleShowRaw}>Calibration View</button>
           <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
-          <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
         </div>
-        <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
       </div>
 
     const animationControls =
@@ -716,6 +627,8 @@ class App extends Component {
               onTouchEnd={this.handleTouchEnd}
               onTouchMove={this.handleTouchEnd}
             ></canvas>
+            <Recorder recording={this.state.recording} canvasStream={this.state.canvasStream}/>
+
             {cantFindBallButton}
             {videoControls}
 
