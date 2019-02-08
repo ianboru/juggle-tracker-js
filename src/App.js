@@ -358,39 +358,7 @@ class App extends Component {
       requestAnimationFrame(this.processVideo);
     }
   }
-  calculateDistance=(p1,p2)=>{
-    const lastIndex = p1.x.length-1
-    const xDistSq = Math.pow(p1.x[lastIndex]-p2.x[lastIndex-1],2)
-    const yDistSq = Math.pow(p1.y[lastIndex]-p2.y[lastIndex-1],2)
-    return Math.pow(xDistSq + yDistSq, .5)
-  }
-  reorderNearestContours=(positions)=>{
-    const numTimesteps = positions[0].x.length  
-    if(numTimesteps == 1 ){
-      return positions
-    }
-    const orderedPositions = []
-    for(let i = 0; i < positions.length; ++i){
-      let minDistance 
-      let minDistanceIndex
-      orderedPositions[i] = positions[i]
-      for(let j = 0; j < positions.length; ++j){
-        const currentDistance = this.calculateDistance(positions[j],positions[i])
-        console.log("dist",currentDistance)
-        if(!minDistance || currentDistance < minDistance){
-          //minDistance = currentDistance
-          //minDistanceIndex = j
-        }
-      }
-      if(minDistance){
-        orderedPositions[i].x[numTimesteps-1]=positions[minDistanceIndex].x[numTimesteps-1]
-        orderedPositions[i].y[numTimesteps-1]=positions[minDistanceIndex].y[numTimesteps-1]
-        orderedPositions[i].r[numTimesteps-1]=positions[minDistanceIndex].r[numTimesteps-1] 
-      }
-      console.log("min" , minDistance)
-    }
-    return orderedPositions
-  }
+
   updateBallHistories=(contourPositions, colorNum)=>{
     // Maximum number of contours that will be interpreted as objects
     const maxNumContours = 15
@@ -463,19 +431,19 @@ class App extends Component {
     histories = null
   }
 
-    handleHSVSliderChange=(e)=>{
-      console.log(e)
-      let state = this.state
-      state[e.name] =parseFloat(e.value)
-      this.setState({
-        state
-      },()=>{
-        this.setColorRange()
-      })
-      this.setState({
-        showSelectColorText : false
-      })
-    }
+  handleHSVSliderChange=(e)=>{
+    console.log(e)
+    let state = this.state
+    state[e.name] =parseFloat(e.value)
+    this.setState({
+      state
+    },()=>{
+      this.setColorRange()
+    })
+    this.setState({
+      showSelectColorText : false
+    })
+  }
   setColorRange=()=>{
     let colorRanges = this.state.allColors
     colorRanges[this.state.colorNum] = {
@@ -569,22 +537,6 @@ class App extends Component {
       const slider = document.getElementById("trailSlider")
       slider.hidden = !this.state.showTrails
 
-    })
-  }
-  handleColorPickerChangeComplete = (color) => {
-    this.setState({ pickedColor: color.hsv });
-    let colorRanges = this.state.allColors
-    const hRange = 30
-    let lowH = Math.max(Math.round(color.hsv.h) - hRange, 0)
-    let highH = Math.min(Math.round(color.hsv.h) + hRange, 360)
-
-    colorRanges[this.state.colorNum]['hh'] = highH
-    colorRanges[this.state.colorNum]['lh'] = lowH
-
-    this.setState({
-      allColors : colorRanges,
-      'hh' : highH,
-      'lh' : lowH,
     })
   }
   showCalibrateHelp = (asdf) =>{
