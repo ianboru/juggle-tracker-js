@@ -31,7 +31,7 @@ class App extends Component {
     videoHeight : null,
     videoWidth : null,
     startTime : Date.now(),
-    lh : 200,
+    lh : 180,
     ls : .2,
     lv : .2,
     hh : 230,
@@ -358,8 +358,39 @@ class App extends Component {
       requestAnimationFrame(this.processVideo);
     }
   }
-
-
+  calculateDistance=(p1,p2)=>{
+    const lastIndex = p1.x.length-1
+    const xDistSq = Math.pow(p1.x[lastIndex]-p2.x[lastIndex-1],2)
+    const yDistSq = Math.pow(p1.y[lastIndex]-p2.y[lastIndex-1],2)
+    return Math.pow(xDistSq + yDistSq, .5)
+  }
+  reorderNearestContours=(positions)=>{
+    const numTimesteps = positions[0].x.length  
+    if(numTimesteps == 1 ){
+      return positions
+    }
+    const orderedPositions = []
+    for(let i = 0; i < positions.length; ++i){
+      let minDistance 
+      let minDistanceIndex
+      orderedPositions[i] = positions[i]
+      for(let j = 0; j < positions.length; ++j){
+        const currentDistance = this.calculateDistance(positions[j],positions[i])
+        console.log("dist",currentDistance)
+        if(!minDistance || currentDistance < minDistance){
+          //minDistance = currentDistance
+          //minDistanceIndex = j
+        }
+      }
+      if(minDistance){
+        orderedPositions[i].x[numTimesteps-1]=positions[minDistanceIndex].x[numTimesteps-1]
+        orderedPositions[i].y[numTimesteps-1]=positions[minDistanceIndex].y[numTimesteps-1]
+        orderedPositions[i].r[numTimesteps-1]=positions[minDistanceIndex].r[numTimesteps-1] 
+      }
+      console.log("min" , minDistance)
+    }
+    return orderedPositions
+  }
   updateBallHistories=(contourPositions, colorNum)=>{
     // Maximum number of contours that will be interpreted as objects
     const maxNumContours = 15
@@ -388,6 +419,7 @@ class App extends Component {
         allPositions[colorNum][i]['y'].push(contourPositions[i].y)
         allPositions[colorNum][i]['r'].push(contourPositions[i].r)
       }
+      //allPositions[colorNum] = this.reorderNearestContours(allPositions[colorNum])
       allPositions[colorNum]["currentNumContours"] = numContoursOverThreshold
     }
     if(!allPositions[colorNum]){
