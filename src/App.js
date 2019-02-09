@@ -26,6 +26,8 @@ Tips:\n
 `
 const touchDuration = 500
 const isMobile = true ?  /Mobi|Android/i.test(navigator.userAgent) : false
+const discoColors = ['rgb(255,179,186)', 'rgb(255,223,186)', 'rgb(255,255,186)','rgb(186,255,201)','rgb(186,225,255)']
+
 class App extends Component {
 
   state = {
@@ -69,9 +71,11 @@ class App extends Component {
     touchTimer : null,
     isFacebookApp : false,
     colorModeButtonText : 'Use White Props',
-    recording : null
+    recording : null,
+    discoMode : false,
+    discoTimer : null,
+    discoColorNumber : 0,
   }
-
   componentDidMount=()=>{
     const isFacebookApp = this.isFacebookApp()
     if(!isFacebookApp){
@@ -236,7 +240,12 @@ class App extends Component {
           // This setting is used when calibrating the colors
           cv.imshow('canvasOutput',colorFilteredImage)
         }
-        const color = this.state.usingWhite ? "white" : cvutils.calculateCurrentHSVString(colorRange)
+        let color = this.state.usingWhite ? "white" : cvutils.calculateCurrentHSVString(colorRange)
+
+        if(this.state.discoMode){
+          console.log(this.state.discoColorNumber, discoColors[this.discoColorNumber])
+          color = discoColors[this.state.discoColorNumber]
+        }
 
         //Draw balls and trails
         if(this.state.showTrails){
@@ -370,6 +379,27 @@ class App extends Component {
     this.setState({
       showStars : !this.state.showStars
     })
+  }
+  changeDiscoColor=()=>{
+    if((this.state.discoColorNumber + 1)%discoColors.length == 0){
+      this.state.discoColorNumber = 0
+    }else{
+      ++this.state.discoColorNumber
+    }
+  }
+  toggleDiscoMode=()=>{
+    // Toggle the text on the button
+    const discoInterval = 500
+    const starsButton = document.querySelector('button#discoModeButton');
+    if (starsButton.textContent === 'Disco Mode') {starsButton.textContent = 'Stop Disco';}
+    else {starsButton.textContent = 'Disco Mode';}
+    // Change the state so that stars are shown or not
+    if(this.state.discoTimer){clearInterval(this.state.discoColorNumber)}
+    this.setState({
+      discoMode : !this.state.discoMode,
+      discoTimer : setInterval(this.changeDiscoColor, discoInterval)
+    })
+
   }
   toggleShowTrails=()=>{
     //Toggle the text on the trailsButton
@@ -543,6 +573,7 @@ class App extends Component {
         <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="connections" onClick={this.toggleShowConnections}>Show Connections</button>
         <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="trailsButton" onClick={this.toggleShowTrails}>Hide Trails</button>
         <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="starsButton" onClick={this.toggleShowStars}>Show Stars</button>
+        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="discoModeButton" onClick={this.toggleDiscoMode}>Disco Mode</button>
         <br/>
         <div hidden={false} id="trailSlider">
           <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label>
