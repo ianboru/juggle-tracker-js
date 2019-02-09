@@ -8,6 +8,9 @@ import trackingUtils from './trackingUtils'
 import { HuePicker } from 'react-color';
 import ColorSliders from './colorSliders'
 import Recorder from './recorder'
+import {
+  MdHelp
+} from "react-icons/md"
 //@observer
 
 const calibrateHelp = `Calibration Process:\n
@@ -66,8 +69,7 @@ class App extends Component {
     touchTimer : null,
     isFacebookApp : false,
     colorModeButtonText : 'Use White Props',
-    recording : null,
-    faceingMode : 'Front Cam'
+    recording : null
   }
 
   componentDidMount=()=>{
@@ -89,22 +91,11 @@ class App extends Component {
   ****/
   startCamera=()=> {
     let that = this
-    let deviceIds = {}
 
-    const devices = navigator.mediaDevices.enumerateDevices().then((devices)=>{
-      devices.forEach((device)=>{
-        deviceIds[device.label] = device.deviceId
-      })
-    })
-
-    
-    console.log(devices,deviceIds)
     if (this.state.streaming) return;
-    console.log("starting camerae", this.state.faceingMode)
-    const faceingKeyword = this.state.faceingMode == "Front Cam" ? 'user' : 'environment'
-    const constraints = isMobile ? {'faceingMode' : faceingKeyword, deviceId : {exact : deviceIds[this.state.faceingMode]} } : {'faceingMode' : 'user'}
+
     //get video
-    navigator.mediaDevices.getUserMedia({video: constraints, audio: false})
+    navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user'}, audio: false})
     .then(function(s) {
       console.log("got user media")
       //Set stream to stop later
@@ -143,7 +134,9 @@ class App extends Component {
     this.video.pause();
     this.video.srcObject=null;
     this.state.stream.getVideoTracks()[0].stop();
-    this.state.streaming = false
+    this.setState({
+      streaming :false,
+    })
 
   }
   startVideoProcessing=()=> {
@@ -357,16 +350,7 @@ class App extends Component {
       )
     }
   }
-  toggleFaceingMode=()=>{
-    const faceingMode = this.state.faceingMode == 'Front Cam' ? 'Back Cam' : 'Front Cam'
-    this.setState({
-      faceingMode 
-    },()=>{
-      console.log("toggled faceing", this.state.faceingMode)
-      this.stopCamera()
-      this.startCamera()
-    })
-  }
+
   toggleShowConnections=()=>{
     // Toggle the text on the button
     const connectionsButton = document.querySelector('button#connections');
@@ -523,8 +507,9 @@ class App extends Component {
     }
   }
   render() {
-
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
+        const borderString = index == this.state.colorNum ? '3px solid black' : 'none'
+
         return(
           // only return the color swatches if the user is on the color mode
           !this.state.usingWhite ? (
@@ -536,6 +521,7 @@ class App extends Component {
               'backgroundColor' : cvutils.calculateCurrentHSVString(colorRange,1),
               'width' : '50px',
               'height' : '50px',
+              'border' : borderString,
               'vertical-align' : 'middle'
 
             }}>
@@ -543,14 +529,11 @@ class App extends Component {
         )
 
     })
-    const faceingMode =   
-      <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleFaceingMode}>{this.state.faceingMode == 'Front Cam' ? 'Use Back Cam' : 'Use Front Cam'}</button>
+
     const videoControls =
       <div>
         <div style={{'marginBottom' :'10px'}}>
-          <button style={{'fontSize':'12pt'}} id="calibration" onClick={this.toggleShowRaw}>Calibration View</button>
           <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
-          {faceingMode}
         </div>
       </div>
 
@@ -588,7 +571,8 @@ class App extends Component {
           }}
          >
         <button style={{'fontSize':'12pt', 'color':'white', 'background-color':'black'}}  onClick={this.toggleWhiteMode} >{this.state.colorModeButtonText}</button>
-
+        <button style={{'fontSize':'12pt','marginLeft' : '10px'}} id="calibration" onClick={this.toggleShowRaw}>Calibration View</button>
+        <MdHelp style={{'fontSize':'15pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
          <h3 className="secondary-header">Animated Colors</h3>
           {colorSwatches}
            <div
@@ -609,10 +593,10 @@ class App extends Component {
         </div>) : 
         <div>
           <button style={{'fontSize':'12pt', 'color':'white', 'background-color':'black'}}  onClick={this.toggleWhiteMode} >{this.state.colorModeButtonText}</button>
+          <button style={{'fontSize':'12pt','marginLeft' : '10px'}} id="calibration" onClick={this.toggleShowRaw}>Calibration View</button>
+          <MdHelp style={{'fontSize':'15pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
         </div>
 
-    const cantFindBallButton = 
-      this.state.usingWhite ? null : <button style={{'fontSize':'12pt', 'backgroundColor' : '#FF6666'}} id="helpButton" onClick={this.showCalibrateHelp}>Can't Find My Ball!</button>
     const HSV = {
                   lh : this.state.lh,
                   hh : this.state.hh,
@@ -634,7 +618,7 @@ class App extends Component {
       !this.state.isFacebookApp ?
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
-          <div style={{marginBottom : '15px'}}>Send feedback to @arflowarts on Instagram</div>
+          <div style={{marginBottom : '25px', 'fontSize' : '10px'}}>Send feedback to @arflowarts on Instagram</div>
           {addButton}
           {detectionControls}
           <canvas ref={ref => this.canvasOutput = ref}
@@ -647,8 +631,6 @@ class App extends Component {
               onTouchMove={this.handleTouchEnd}
             ></canvas>
             <Recorder recording={this.state.recording} canvasStream={this.state.canvasStream}/>
-
-            {cantFindBallButton}
             {videoControls}
 
           {animationControls}

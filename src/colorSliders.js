@@ -74,7 +74,7 @@ class ColorSliders extends Component {
 		const sliders = 
 			this.props.usingWhite ?
 				<div style={wrapperStyle}>
-					<div style={{"width": "180px", "display" :"inline-block"}}>Minumum Brightness</div><Slider min={0} max={100} step={1} defaultValue={this.props.HSV.tv} handle={handle} onChange={this.onBrightnessChange} />
+					<div style={{"width": "180px", "display" :"inline-block", "marginTop" : "15px"}}>Minumum Brightness</div><Slider min={0} max={100} step={1} defaultValue={this.props.HSV.tv} handle={handle} onChange={this.onBrightnessChange} />
 				</div> 
 					:
 				<div style={wrapperStyle}>

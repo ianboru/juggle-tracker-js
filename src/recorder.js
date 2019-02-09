@@ -13,17 +13,13 @@ class Recorder extends Component {
       return true;
     }
   }
-  componentDidMount=()=>{
-    const downloadButton = document.querySelector('button#download');
-    downloadButton.disabled = true
-  }
+
   startRecording=()=>{
     let options = {mimeType: 'video/webm;codecs=h264'};
     this.state.recordedBlobs = []
     let mediaRecorder
     this.recordedVideo.hidden = true
     const downloadButton = document.querySelector('button#download');
-    downloadButton.disabled = true;
 
     try {
       mediaRecorder = new MediaRecorder(this.props.canvasStream, options);
@@ -62,8 +58,6 @@ class Recorder extends Component {
       mediaRecorder,
     })
     const downloadButton = document.querySelector('button#download');
-    downloadButton.disabled = false;
-
   }
 
   handleDataAvailable=(event)=>{
@@ -86,7 +80,7 @@ class Recorder extends Component {
     const blob = new Blob(this.state.recordedBlobs, {type: 'video/webm'});
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.style.display = 'none';
+    a.style.visibility = 'none';
     a.href = url;
     a.download = 'test.webm';
     document.body.appendChild(a);
@@ -103,11 +97,14 @@ class Recorder extends Component {
     }else if(!this.props.recording && this.state.mediaRecorder){
       this.stopRecording()
     }
+    const dlButton = this.state.recordedBlobs && !this.props.recording ?  
+      <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
+      : null
+
     return(
       <div>
         <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
-        <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
-
+        {dlButton}
       </div>
     )
   }
