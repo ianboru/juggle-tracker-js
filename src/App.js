@@ -66,7 +66,8 @@ class App extends Component {
     touchTimer : null,
     isFacebookApp : false,
     colorModeButtonText : 'Use White Props',
-    recording : null
+    recording : null,
+    faceingMode : 'Front Cam'
   }
 
   componentDidMount=()=>{
@@ -88,11 +89,22 @@ class App extends Component {
   ****/
   startCamera=()=> {
     let that = this
+    let deviceIds = {}
 
+    const devices = navigator.mediaDevices.enumerateDevices().then((devices)=>{
+      devices.forEach((device)=>{
+        deviceIds[device.label] = device.deviceId
+      })
+    })
+
+    
+    console.log(devices,deviceIds)
     if (this.state.streaming) return;
-
+    console.log("starting camerae", this.state.faceingMode)
+    const faceingKeyword = this.state.faceingMode == "Front Cam" ? 'user' : 'environment'
+    const constraints = isMobile ? {'faceingMode' : faceingKeyword, deviceId : {exact : deviceIds[this.state.faceingMode]} } : {'faceingMode' : 'user'}
     //get video
-    navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user'}, audio: false})
+    navigator.mediaDevices.getUserMedia({video: constraints, audio: false})
     .then(function(s) {
       console.log("got user media")
       //Set stream to stop later
@@ -131,9 +143,7 @@ class App extends Component {
     this.video.pause();
     this.video.srcObject=null;
     this.state.stream.getVideoTracks()[0].stop();
-    this.setState({
-      streaming :false,
-    })
+    this.state.streaming = false
 
   }
   startVideoProcessing=()=> {
@@ -347,7 +357,16 @@ class App extends Component {
       )
     }
   }
-
+  toggleFaceingMode=()=>{
+    const faceingMode = this.state.faceingMode == 'Front Cam' ? 'Back Cam' : 'Front Cam'
+    this.setState({
+      faceingMode 
+    },()=>{
+      console.log("toggled faceing", this.state.faceingMode)
+      this.stopCamera()
+      this.startCamera()
+    })
+  }
   toggleShowConnections=()=>{
     // Toggle the text on the button
     const connectionsButton = document.querySelector('button#connections');
@@ -524,12 +543,14 @@ class App extends Component {
         )
 
     })
-
+    const faceingMode =   
+      <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleFaceingMode}>{this.state.faceingMode == 'Front Cam' ? 'Use Back Cam' : 'Use Front Cam'}</button>
     const videoControls =
       <div>
         <div style={{'marginBottom' :'10px'}}>
           <button style={{'fontSize':'12pt'}} id="calibration" onClick={this.toggleShowRaw}>Calibration View</button>
           <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
+          {faceingMode}
         </div>
       </div>
 
