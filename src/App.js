@@ -12,6 +12,7 @@ import {
   MdHelp
 } from "react-icons/md"
 //@observer
+import ReactPlayer from 'react-player'
 
 const calibrateHelp = `Calibration Process:\n
 1: Click 'Calibration View'
@@ -75,6 +76,7 @@ class App extends Component {
     discoMode : false,
     discoTimer : null,
     discoColorNumber : 0,
+    videoFile : null,
   }
   componentDidMount=()=>{
     const isFacebookApp = this.isFacebookApp()
@@ -87,7 +89,7 @@ class App extends Component {
     document.title = "AR Flow Arts"
   }
   isFacebookApp=()=>{
-    var ua = navigator.userAgent || navigator.vendor || window.opera;
+    let ua = navigator.userAgent || navigator.vendor || window.opera;
     return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1);;
   }
   /****
@@ -217,7 +219,11 @@ class App extends Component {
    processVideo=()=> {
     if(this.canvasOutput){
       const context = this.canvasOutput.getContext("2d")
-      context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
+      if(this.input.files){
+        context.drawImage(this.uploadedVideo, 0, 0, this.state.videoWidth, this.state.videoHeight);
+      }else{
+        context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
+      }
 
       let srcMat = this.getMatFromCanvas(context)
       //Flip horizontally because camera feed is pre-flipped
@@ -536,6 +542,23 @@ class App extends Component {
       })
     }
   }
+  handleFile = ()=>{
+    let URL = window.URL || window.webkitURL
+
+    let file = this.input.files[0]
+    let type = file.type
+    let canPlay = this.uploadedVideo.canPlayType(type)
+    if (canPlay === '') canPlay = 'no'
+    let message = 'Can play type "' + type + '": ' + canPlay
+    let isError = canPlay === 'no'
+
+    if (isError) {
+      return
+    }
+
+    let fileURL = URL.createObjectURL(file)
+    this.uploadedVideo.src = fileURL
+  }
   render() {
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
         const borderString = index == this.state.colorNum ? '3px solid black' : 'none'
@@ -642,7 +665,6 @@ class App extends Component {
       <div>
           <ColorSliders HSV = {HSV} usingWhite = {this.state.usingWhite} handleHSVSliderChange={this.handleHSVSliderChange}/>
       </div>
-
     const app = 
       //Don't show app if in-app browser
       //Because getUserMedia doesn't work
@@ -669,6 +691,9 @@ class App extends Component {
     // TOP LAYER
     return (
       <div>
+        <input type="file" accept="video/*" ref={ref => this.input = ref} src={this.state.videoFile} onChange={this.handleFile}/>
+         <video hidden={true} controls muted playsInline autoPlay ref={ref => this.uploadedVideo = ref}></video>
+
         {app}
         {openInBrowser}
      </div>
