@@ -219,9 +219,11 @@ class App extends Component {
    processVideo=()=> {
     if(this.canvasOutput){
       const context = this.canvasOutput.getContext("2d")
-      if(this.input.files.length > 0){
+      if(this.state.fileUploaded > 0){
+        console.log("uploaded")
         context.drawImage(this.uploadedVideo, 0, 0, this.state.videoWidth, this.state.videoHeight);
       }else{
+        console.log("live")
         context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
       }
 
@@ -569,6 +571,7 @@ class App extends Component {
       recordButton.textContent = 'Play Video';
     }else{
       this.uploadedVideo.play()
+      this.stopCamera()
       recordButton.textContent = 'Pause Video';
     }
   }
@@ -627,7 +630,7 @@ class App extends Component {
           <input  name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
         </div>
         <video hidden={true} muted playsInline autoPlay className="invisible live-video" ref={ref => this.video = ref}></video>
-        <video onEnded={this.handleVideoEnded} nhidden={true} muted playsInline className="invisible live-video" ref={ref => this.uploadedVideo = ref}></video>
+        <video hidden={true} muted playsInline autoPlay onEnded={this.handleVideoEnded}  className="invisible live-video" ref={ref => this.uploadedVideo = ref}></video>
       </div>
 
     const openInBrowser =  
