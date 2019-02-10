@@ -77,6 +77,8 @@ class App extends Component {
     discoColorNumber : 0,
     videoFile : null,
     fileUploaded : false,
+    discoHue : 0,
+    discoUp : true,
   }
   componentDidMount=()=>{
     const isFacebookApp = this.isFacebookApp()
@@ -181,8 +183,8 @@ class App extends Component {
   toggleRecording=()=>{
     const recordButton = document.querySelector('button#record');
     if (recordButton.textContent === 'Start Recording') {
-      
-      
+
+
       if(!this.state.streaming){
         this.startCamera()
       }
@@ -205,7 +207,7 @@ class App extends Component {
     }
   }
 
-  
+
   getMatFromCanvas=(context)=>{
     let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
     //Draw video frame onto canvas context
@@ -251,8 +253,7 @@ class App extends Component {
         let color = this.state.usingWhite ? "white" : cvutils.calculateCurrentHSVString(colorRange)
 
         if(this.state.discoMode){
-          console.log(this.state.discoColorNumber, discoColors[this.discoColorNumber])
-          color = discoColors[this.state.discoColorNumber]
+          color = 'rgb(' + this.state.discoHue +',0,255)'
         }
 
         //Draw balls and trails
@@ -277,8 +278,8 @@ class App extends Component {
 
         context.strokeRect(rect[0]*scaleFactor,rect[1]*scaleFactor,(rect[2]-rect[0])*scaleFactor,(rect[3]-rect[1])*scaleFactor)
       }
-      if(this.state.showSelectColorText){ 
-        drawingUtils.drawSelectColorText(context, isMobile, this.state.usingWhite) 
+      if(this.state.showSelectColorText){
+        drawingUtils.drawSelectColorText(context, isMobile, this.state.usingWhite)
       }
       //Trim histories to trail length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, this.state.trailLength)
@@ -389,15 +390,25 @@ class App extends Component {
     })
   }
   changeDiscoColor=()=>{
-    if((this.state.discoColorNumber + 1)%discoColors.length == 0){
-      this.state.discoColorNumber = 0
-    }else{
-      ++this.state.discoColorNumber
+    // Disco hue goes from 0 to 255, so the color goes from blue to purple to pink
+
+       if (this.state.discoUp){
+         this.state.discoHue = this.state.discoHue + 5
+       }
+       else{
+         this.state.discoHue = this.state.discoHue - 5
+       }
+    if(this.state.discoHue>255){
+      this.state.discoUp = false
+      //this.state.discoHue = 0
+    }
+    if(this.state.discoHue<0){
+      this.state.discoUp = true
     }
   }
   toggleDiscoMode=()=>{
     // Toggle the text on the button
-    const discoInterval = 500
+    const discoInterval = 1
     const starsButton = document.querySelector('button#discoModeButton');
     if (starsButton.textContent === 'Disco Mode') {starsButton.textContent = 'Stop Disco';}
     else {starsButton.textContent = 'Disco Mode';}
@@ -433,13 +444,13 @@ class App extends Component {
     const rectTop = this.state.canvasMouseDownY - rectWidth/2
     const rectBottom = this.state.canvasMouseDownY + rectWidth/2
     let rgbRange = cvutils.getColorFromImage(
-      this.state.flippedFrame, 
-      rectLeft, 
-      rectTop,  
+      this.state.flippedFrame,
+      rectLeft,
+      rectTop,
       rectRight,
       rectBottom,
     )
-    
+
     const lowerHSV = cvutils.RGBtoHSV(rgbRange['lr'],rgbRange['lg'],rgbRange['lb'])
     const upperHSV = cvutils.RGBtoHSV(rgbRange['hr'],rgbRange['hg'],rgbRange['hb'])
     // converted hsv ranges may have maxs and mins swapped
@@ -461,8 +472,8 @@ class App extends Component {
       canvasMouseDownY : null,
       showSelectColorText : false,
       calibrationRect : [
-          rectLeft, 
-          rectTop,  
+          rectLeft,
+          rectTop,
           rectRight,
           rectBottom,
       ]
@@ -484,7 +495,7 @@ class App extends Component {
         touchTimer : setTimeout(this.touchHeld, touchDuration)
       })
     }
-    
+
     const clickCoord = cvutils.calculateRelativeCoord(e, this.canvasOutput)
     this.setState({
       canvasMouseDownX : clickCoord[0],
@@ -512,7 +523,7 @@ class App extends Component {
       'hs' :  255,
       'hv' :  Math.max(lowerHSV[2],upperHSV[2]),
     }
-    const hDiff = hsvRange['hh'] - hsvRange['lh'] 
+    const hDiff = hsvRange['hh'] - hsvRange['lh']
     const minHDiff = 20
     if( hDiff < minHDiff && hsvRange['hh'] < 350){
       hsvRange['hh'] = hsvRange['hh'] + minHDiff - hDiff
@@ -633,7 +644,7 @@ class App extends Component {
         <video hidden={true} muted playsInline autoPlay onEnded={this.handleVideoEnded}  className="invisible live-video" ref={ref => this.uploadedVideo = ref}></video>
       </div>
 
-    const openInBrowser =  
+    const openInBrowser =
       this.state.isFacebookApp ? <div style={{fontSize : '16px'}}>
         Does Not Work in Instagram/Facebook Preview.
         <br/>
@@ -672,7 +683,7 @@ class App extends Component {
             onClick={this.addColor}
           >Add</div>
         </div>
-        </div>) : 
+        </div>) :
         <div>
           <button style={{'fontSize':'12pt', 'color':'white', 'background-color':'black'}}  onClick={this.toggleWhiteMode} >{this.state.colorModeButtonText}</button>
           <button style={{'fontSize':'12pt','marginLeft' : '10px'}} id="calibration" onClick={this.toggleShowRaw}>Calibration View</button>
@@ -687,13 +698,13 @@ class App extends Component {
                   lv : this.state.lv,
                   hv : this.state.hv,
                   tv : this.state.tv
-                } 
-                
-    const detectionControls = 
+                }
+
+    const detectionControls =
       <div>
           <ColorSliders HSV = {HSV} usingWhite = {this.state.usingWhite} handleHSVSliderChange={this.handleHSVSliderChange}/>
       </div>
-    const app = 
+    const app =
       //Don't show app if in-app browser
       //Because getUserMedia doesn't work
       !this.state.isFacebookApp ?
@@ -719,7 +730,7 @@ class App extends Component {
     // TOP LAYER
     return (
       <div>
-        
+
         {app}
         {openInBrowser}
      </div>

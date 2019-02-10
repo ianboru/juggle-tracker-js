@@ -56,7 +56,7 @@ function drawTrails(context, contourPositions, color, trailLength){
   }
 }
 function drawConnections(context,positions, color){
-  const thickness = 5
+  const thickness = 10
   if(!positions){
     return
   }
