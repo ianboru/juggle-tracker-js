@@ -76,6 +76,7 @@ class App extends Component {
     discoTimer : null,
     discoColorNumber : 0,
     videoFile : null,
+    fileUploaded : false,
   }
   componentDidMount=()=>{
     const isFacebookApp = this.isFacebookApp()
@@ -218,7 +219,7 @@ class App extends Component {
    processVideo=()=> {
     if(this.canvasOutput){
       const context = this.canvasOutput.getContext("2d")
-      if(this.input.files[0]){
+      if(this.input.files.length > 0){
         context.drawImage(this.uploadedVideo, 0, 0, this.state.videoWidth, this.state.videoHeight);
       }else{
         context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
@@ -551,13 +552,29 @@ class App extends Component {
     if (canPlay === '') canPlay = 'no'
     let message = 'Can play type "' + type + '": ' + canPlay
     let isError = canPlay === 'no'
-
     if (isError) {
       return
     }
 
     let fileURL = URL.createObjectURL(file)
     this.uploadedVideo.src = fileURL
+    this.setState({
+      fileUploaded : true
+    })
+  }
+  handlePlayUploaded = ()=>{
+    const recordButton = document.querySelector('button#playUploadedButton');
+    if(this.uploadedVideo.currentTime > 0 && !this.uploadedVideo.paused && !this.uploadedVideo.ended){
+      this.uploadedVideo.pause()
+      recordButton.textContent = 'Play Video';
+    }else{
+      this.uploadedVideo.play()
+      recordButton.textContent = 'Pause Video';
+    }
+  }
+  handleVideoEnded = ()=>{
+    const recordButton = document.querySelector('button#playUploadedButton');
+    recordButton.textContent = 'Play Video';
   }
   render() {
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
@@ -585,7 +602,7 @@ class App extends Component {
     const fileButton = this.input ? <button style={{'fontSize':'12pt'}} onClick={()=>{this.input.click()}}>Upload Video</button> : null
     let playUploadedButton
     if(this.input){
-      playUploadedButton = this.input.files[0] ? <button style={{'fontSize':'12pt'}} onClick={()=>{this.input.click()}}>Upload Video</button> : null
+      playUploadedButton = this.state.fileUploaded ? <button style={{'fontSize':'12pt'}} id="playUploadedButton" onClick={this.handlePlayUploaded}>Play Video</button> : null
     }
     const videoControls =
       <div>
@@ -610,7 +627,7 @@ class App extends Component {
           <input  name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
         </div>
         <video hidden={true} muted playsInline autoPlay className="invisible live-video" ref={ref => this.video = ref}></video>
-        <video hidden={true} muted playsInline autoPlay className="invisible live-video" ref={ref => this.uploadedVideo = ref}></video>
+        <video onEnded={this.handleVideoEnded} nhidden={true} muted playsInline className="invisible live-video" ref={ref => this.uploadedVideo = ref}></video>
       </div>
 
     const openInBrowser =  
