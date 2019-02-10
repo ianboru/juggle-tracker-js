@@ -219,7 +219,7 @@ class App extends Component {
    processVideo=()=> {
     if(this.canvasOutput){
       const context = this.canvasOutput.getContext("2d")
-      if(this.input.files){
+      if(this.input.files[0]){
         context.drawImage(this.uploadedVideo, 0, 0, this.state.videoWidth, this.state.videoHeight);
       }else{
         context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
