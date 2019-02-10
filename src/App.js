@@ -12,7 +12,6 @@ import {
   MdHelp
 } from "react-icons/md"
 //@observer
-import ReactPlayer from 'react-player'
 
 const calibrateHelp = `Calibration Process:\n
 1: Click 'Calibration View'
@@ -546,6 +545,7 @@ class App extends Component {
     let URL = window.URL || window.webkitURL
 
     let file = this.input.files[0]
+    if(!file){return}
     let type = file.type
     let canPlay = this.uploadedVideo.canPlayType(type)
     if (canPlay === '') canPlay = 'no'
@@ -582,11 +582,18 @@ class App extends Component {
         )
 
     })
-
+    const fileButton = this.input ? <button style={{'fontSize':'12pt'}} onClick={()=>{this.input.click()}}>Upload Video</button> : null
+    let playUploadedButton
+    if(this.input){
+      playUploadedButton = this.input.files[0] ? <button style={{'fontSize':'12pt'}} onClick={()=>{this.input.click()}}>Upload Video</button> : null
+    }
     const videoControls =
       <div>
         <div style={{'marginBottom' :'10px'}}>
           <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
+          <input className='invisible' type="file" accept="video/*" ref={ref => this.input = ref} src={this.state.videoFile} onChange={this.handleFile}/>
+          {fileButton}
+          {playUploadedButton}
         </div>
       </div>
 
@@ -602,7 +609,8 @@ class App extends Component {
           <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label>
           <input  name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
         </div>
-        <video hidden={true} muted playsInline autoPlay className="invisible" ref={ref => this.video = ref}></video>
+        <video hidden={true} muted playsInline autoPlay className="invisible live-video" ref={ref => this.video = ref}></video>
+        <video hidden={true} muted playsInline autoPlay className="invisible live-video" ref={ref => this.uploadedVideo = ref}></video>
       </div>
 
     const openInBrowser =  
@@ -691,9 +699,7 @@ class App extends Component {
     // TOP LAYER
     return (
       <div>
-        <input type="file" accept="video/*" ref={ref => this.input = ref} src={this.state.videoFile} onChange={this.handleFile}/>
-         <video hidden={true} controls muted playsInline autoPlay ref={ref => this.uploadedVideo = ref}></video>
-
+        
         {app}
         {openInBrowser}
      </div>

@@ -1,6 +1,9 @@
 .App {
   text-align: center;
 }
+.invisible { 
+  display: none;
+ }
 button { 
   border-radius: 4px;
 }
@@ -57,7 +60,7 @@ canvas{
     height: auto;
   }
 }
-video{
+.live-video{
   width: 100%;
   height: auto;
 }

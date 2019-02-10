@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-
+import './recorder.css'
 class Recorder extends Component {
 // The nested try blocks will be simplified when Chrome 47 moves to Stable
   state = {
