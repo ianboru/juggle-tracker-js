@@ -253,7 +253,7 @@ class App extends Component {
         let color = this.state.usingWhite ? "white" : cvutils.calculateCurrentHSVString(colorRange)
 
         if(this.state.discoMode){
-          color = 'rgb(' + this.state.discoHue +',0,255)'
+          color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
         }
 
         //Draw balls and trails
@@ -266,7 +266,7 @@ class App extends Component {
         }
         if(this.state.showStars){
           //Draw stars coming from balls
-          const newStars = drawingUtils.drawStars(context, this.state.positions[colorNum],this.state.starsX,this.state.starsY,this.state.starsDx,this.state.starsDy,this.state.starsSize,this.state.starsColor)
+          const newStars = drawingUtils.drawStars(context, this.state.positions[colorNum],this.state.starsX,this.state.starsY,this.state.starsDx,this.state.starsDy,this.state.starsSize,this.state.starsColor,this.state.discoHue)
           this.setState(newStars)
         }
       })
@@ -391,19 +391,9 @@ class App extends Component {
   }
   changeDiscoColor=()=>{
     // Disco hue goes from 0 to 255, so the color goes from blue to purple to pink
-
-       if (this.state.discoUp){
-         this.state.discoHue = this.state.discoHue + 5
-       }
-       else{
-         this.state.discoHue = this.state.discoHue - 5
-       }
-    if(this.state.discoHue>255){
-      this.state.discoUp = false
-      //this.state.discoHue = 0
-    }
-    if(this.state.discoHue<0){
-      this.state.discoUp = true
+    this.state.discoHue = this.state.discoHue + 4
+    if(this.state.discoHue>360){
+      this.state.discoHue = 0
     }
   }
   toggleDiscoMode=()=>{

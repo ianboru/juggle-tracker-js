@@ -111,7 +111,7 @@ function getColorIndicesForCoord(x, y, width) {
   return [red, red + 1, red + 2, red + 3];
 }
 function calculateRelativeCoord(e){
-    //get mouse coordinates relative to parent element 
+    //get mouse coordinates relative to parent element
     let targetX
     let targetY
     if(e.clientX){
@@ -177,6 +177,134 @@ function RGBtoHSV(r, g, b) {
     h = Math.round(h * 360)
     return [h,s,v];
 }
+function hsvToRgb( H,  S,  V) {
+
+        let R=0;let G=0;let B=0;
+
+        H /= 360;
+        S /= 100;
+        V /= 100;
+
+        if (S == 0)
+        {
+            R = V * 255;
+            G = V * 255;
+            B = V * 255;
+        } else {
+            let var_h = H * 6;
+            if (var_h == 6)
+                var_h = 0; // H must be < 1
+            let var_i = Math.floor(var_h); // Or ... var_i =
+                                                            // floor( var_h )
+            let var_1 = V * (1 - S);
+            let var_2 = V * (1 - S * (var_h - var_i));
+            let var_3 = V * (1 - S * (1 - (var_h - var_i)));
+
+            let var_r;
+            let var_g;
+            let var_b;
+            if (var_i == 0) {
+                var_r = V;
+                var_g = var_3;
+                var_b = var_1;
+            } else if (var_i == 1) {
+                var_r = var_2;
+                var_g = V;
+                var_b = var_1;
+            } else if (var_i == 2) {
+                var_r = var_1;
+                var_g = V;
+                var_b = var_3;
+            } else if (var_i == 3) {
+                var_r = var_1;
+                var_g = var_2;
+                var_b = V;
+            } else if (var_i == 4) {
+                var_r = var_3;
+                var_g = var_1;
+                var_b = V;
+            } else {
+                var_r = V;
+                var_g = var_1;
+                var_b = var_2;
+            }
+
+            R = var_r * 255; // RGB results from 0 to 255
+            G = var_g * 255;
+            B = var_b * 255;
+        }
+        return ''+ R + ','+G+','+B
+    }
+    function hsvToHEX( H,  S,  V) {
+
+            let R=0;let G=0;let B=0;
+
+            H /= 360;
+            S /= 100;
+            V /= 100;
+
+            if (S == 0)
+            {
+                R = V * 255;
+                G = V * 255;
+                B = V * 255;
+            } else {
+                let var_h = H * 6;
+                if (var_h == 6)
+                    var_h = 0; // H must be < 1
+                let var_i = Math.floor(var_h); // Or ... var_i =
+                                                                // floor( var_h )
+                let var_1 = V * (1 - S);
+                let var_2 = V * (1 - S * (var_h - var_i));
+                let var_3 = V * (1 - S * (1 - (var_h - var_i)));
+
+                let var_r;
+                let var_g;
+                let var_b;
+                if (var_i == 0) {
+                    var_r = V;
+                    var_g = var_3;
+                    var_b = var_1;
+                } else if (var_i == 1) {
+                    var_r = var_2;
+                    var_g = V;
+                    var_b = var_1;
+                } else if (var_i == 2) {
+                    var_r = var_1;
+                    var_g = V;
+                    var_b = var_3;
+                } else if (var_i == 3) {
+                    var_r = var_1;
+                    var_g = var_2;
+                    var_b = V;
+                } else if (var_i == 4) {
+                    var_r = var_3;
+                    var_g = var_1;
+                    var_b = V;
+                } else {
+                    var_r = V;
+                    var_g = var_1;
+                    var_b = var_2;
+                }
+
+                R = var_r * 255; // RGB results from 0 to 255
+                G = var_g * 255;
+                B = var_b * 255;
+            }
+            let hexR = R.toString(16)
+            if (hexR.length == 1){ hexR = '0' + hexR}
+            let hexG = G.toString(16)
+            if (hexG.length == 1){ hexG = '0' + hexG}
+            let hexB = B.toString(16)
+            if (hexB.length == 1){ hexB = '0' + hexB}
+            hexR = hexR.substring(0,2)
+            hexG = hexG.substring(0,2)
+            hexB = hexB.substring(0,2)
+            //return ''+ R.toString(16)+''+G.toString(16)+''+B.toString(16)
+            //console.log('val is  '+hexR.substring(0,2))
+            return ''+ hexR+''+hexG+''+hexB
+        }
+
 const initalTV = 55
 const initialHSV = {
       lh : 180,
@@ -189,6 +317,8 @@ const initialHSV = {
     }
 export default {
     RGBtoHSV,
+    hsvToRgb,
+    hsvToHEX,
     calculateCurrentHSV,
     calculateCurrentHSVString,
     htmlToOpenCVHSV,

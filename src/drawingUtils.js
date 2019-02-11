@@ -91,7 +91,7 @@ function drawConnections(context,positions, color){
     }
   }
 }
-function drawStars(context,positions, existingStarsX, existingStarsY, existingStarsDx, existingStarsDy, existingStarsSize, existingStarsColor){
+function drawStars(context,positions, existingStarsX, existingStarsY, existingStarsDx, existingStarsDy, existingStarsSize, existingStarsColor, discoColor){
 
   // Create some temporary lists
   let newStarsX = []
@@ -121,8 +121,8 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
           newStarsDx.push(2*(.5-Math.random())) // With a random velocity
           newStarsDy.push(2*(.5-Math.random()))
           newStarsSize.push(positions[i]['r'].slice(-1).pop()/10 + Math.random()*2) // And a random size
-          newStarsColor.push('#'+Math.floor(Math.random()*16777215).toString(16))
-          //newStarsSize.push(positions[i]['r'].slice(-1).pop()/10 + Math.random()*2) // And a random size
+          //console.log(cvutils.hsvToHEX(discoColor, 100, 100))
+          newStarsColor.push('#'+cvutils.hsvToHEX(discoColor, 100,100))
         }
       }
     }
