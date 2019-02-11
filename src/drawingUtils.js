@@ -56,7 +56,7 @@ function drawTrails(context, contourPositions, color, trailLength){
   }
 }
 function drawConnections(context,positions, color){
-  const thickness = 10
+  const thickness = 3
   if(!positions){
     return
   }
@@ -64,29 +64,30 @@ function drawConnections(context,positions, color){
   const numObjects = positions.currentNumContours
   if(numObjects > 1){
     for(let i = 0; i < numObjects; ++i){
-      let nextBallIndex = i+1
-      //Connect last ball to first ball if there are 3 or more objects
-      if(i == numObjects-1 && numObjects > 2){
-        nextBallIndex = 0
-      }else if(i == numObjects-1 && numObjects <= 2){
-        continue
-      }
-      //Draw
-      if(
-        positions[i] && positions[i]['x'].slice(-1).pop() != -1 &&
-        positions[nextBallIndex] && positions[nextBallIndex]['x'].slice(-1).pop() != -1
-      ){
-        const curBallX = positions[i]['x'].slice(-1).pop()
-        const curBallY = positions[i]['y'].slice(-1).pop()
+      for(let j = i+1; j < numObjects; ++j){
+        //Connect last ball to first ball if there are 3 or more objects
+        /*if(i == numObjects-1 && numObjects > 2){
+          nextBallIndex = 0
+        }else if(i == numObjects-1 && numObjects <= 2){
+          continue
+        }*/
+        //Draw
+        if(
+          positions[i] && positions[i]['x'].slice(-1).pop() != -1 &&
+          positions[j] && positions[j]['x'].slice(-1).pop() != -1
+        ){
+          const curBallX = positions[i]['x'].slice(-1).pop()
+          const curBallY = positions[i]['y'].slice(-1).pop()
 
-        const nextBallX = positions[nextBallIndex]['x'].slice(-1).pop()
-        const nextBallY = positions[nextBallIndex]['y'].slice(-1).pop()
-        context.beginPath();
-        context.moveTo(curBallX, curBallY)
-        context.lineTo(nextBallX, nextBallY)
-        context.strokeStyle = color
-        context.lineWidth = thickness;
-        context.stroke();
+          const nextBallX = positions[j]['x'].slice(-1).pop()
+          const nextBallY = positions[j]['y'].slice(-1).pop()
+          context.beginPath();
+          context.moveTo(curBallX, curBallY)
+          context.lineTo(nextBallX, nextBallY)
+          context.strokeStyle = color
+          context.lineWidth = thickness;
+          context.stroke();
+        }
       }
     }
   }
@@ -101,7 +102,7 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
   let newStarsSize = []
   let newStarsColor = []
   // Number of stars created for each object detected
-  const numStarsPerObject = 5
+  const numStarsPerObject = 8
   // If data exists for this object, proceed
   if(positions){
     // Iterate though each contour for this color
@@ -120,7 +121,7 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
           newStarsY.push(y + (.5-Math.random())*r)
           newStarsDx.push(2*(.5-Math.random())) // With a random velocity
           newStarsDy.push(2*(.5-Math.random()))
-          newStarsSize.push(positions[i]['r'].slice(-1).pop()/10 + Math.random()*2) // And a random size
+          newStarsSize.push(positions[i]['r'].slice(-1).pop()/5 + Math.random()*2) // And a random size
           //console.log(cvutils.hsvToHEX(discoColor, 100, 100))
           newStarsColor.push('#'+cvutils.hsvToHEX(discoColor, 100,100))
         }
@@ -131,7 +132,7 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
   // Add the old stars to the list of new stars
   for (let i=0; i<existingStarsX.length; i++){
     // Has the star burned out?
-    if (existingStarsSize[i]-.2>1){
+    if (existingStarsSize[i]-.15>1){
       // The star needs to move. x and y change by dx and dy
       newStarsX.push(existingStarsX[i]+existingStarsDx[i])
       newStarsY.push(existingStarsY[i]+existingStarsDy[i])

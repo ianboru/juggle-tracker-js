@@ -389,6 +389,7 @@ class App extends Component {
       showStars : !this.state.showStars
     })
   }
+  
   changeDiscoColor=()=>{
     // Disco hue goes from 0 to 255, so the color goes from blue to purple to pink
     this.state.discoHue = this.state.discoHue + 4
@@ -396,6 +397,7 @@ class App extends Component {
       this.state.discoHue = 0
     }
   }
+
   toggleDiscoMode=()=>{
     // Toggle the text on the button
     const discoInterval = 1
@@ -408,8 +410,8 @@ class App extends Component {
       discoMode : !this.state.discoMode,
       discoTimer : setInterval(this.changeDiscoColor, discoInterval)
     })
-
   }
+
   toggleShowTrails=()=>{
     //Toggle the text on the trailsButton
     const trailsButton = document.querySelector('button#trailsButton');
@@ -423,9 +425,11 @@ class App extends Component {
 
     })
   }
+
   showCalibrateHelp = (asdf) =>{
     alert(calibrateHelp)
   }
+
   touchHeld = ()=>{
     const rectWidth = 50
     //use flipped frame that has not been drawn on yet
@@ -469,6 +473,7 @@ class App extends Component {
       ]
     })
   }
+
   handleTouchEnd = ()=>{
     if (this.state.touchTimer)
         clearTimeout(this.state.touchTimer);
@@ -479,6 +484,7 @@ class App extends Component {
         showSelectColorText : false,
       })
   }
+
   handleCanvasMouseDown = (e)=>{
     if(isMobile){
       this.setState({
@@ -492,6 +498,7 @@ class App extends Component {
       canvasMouseDownY : clickCoord[1],
     })
   }
+
   handleCanvasMouseUp = (e)=>{
     const clickCoord = cvutils.calculateRelativeCoord(e, this.canvasOutput)
     //use flipped frame that has not been drawn on yet
@@ -530,6 +537,7 @@ class App extends Component {
       showSelectColorText : false,
     })
   }
+
   handleCanvasMouseDrag = (e)=>{
     e.preventDefault()
     if(this.state.canvasMouseDownX){
@@ -545,6 +553,7 @@ class App extends Component {
       })
     }
   }
+
   handleFile = ()=>{
     let URL = window.URL || window.webkitURL
 
@@ -565,6 +574,7 @@ class App extends Component {
       fileUploaded : true
     })
   }
+
   handlePlayUploaded = ()=>{
     const recordButton = document.querySelector('button#playUploadedButton');
     if(this.uploadedVideo.currentTime > 0 && !this.uploadedVideo.paused && !this.uploadedVideo.ended){
@@ -603,11 +613,13 @@ class App extends Component {
         )
 
     })
+
     const fileButton = this.input ? <button style={{'fontSize':'12pt'}} onClick={()=>{this.input.click()}}>Upload Video</button> : null
     let playUploadedButton
     if(this.input){
       playUploadedButton = this.state.fileUploaded ? <button style={{'fontSize':'12pt'}} id="playUploadedButton" onClick={this.handlePlayUploaded}>Play Video</button> : null
     }
+
     const videoControls =
       <div>
         <div style={{'marginBottom' :'10px'}}>
@@ -641,8 +653,7 @@ class App extends Component {
         Please copy and paste link in browser (Safari for iOS).
       </div>   : null
 
-
-      const addButton =
+    const addButton =
       // only show this if the user is in color mode
       !this.state.usingWhite ? (
         <div>
@@ -694,6 +705,7 @@ class App extends Component {
       <div>
           <ColorSliders HSV = {HSV} usingWhite = {this.state.usingWhite} handleHSVSliderChange={this.handleHSVSliderChange}/>
       </div>
+
     const app =
       //Don't show app if in-app browser
       //Because getUserMedia doesn't work
@@ -705,22 +717,20 @@ class App extends Component {
           {detectionControls}
           <canvas ref={ref => this.canvasOutput = ref}
             className="center-block" id="canvasOutput"
-              onMouseDown={this.handleCanvasMouseDown}
-              onMouseUp={this.handleCanvasMouseUp}
-              onMouseMove={this.handleCanvasMouseDrag}
-              onTouchStart={this.handleCanvasMouseDown}
-              onTouchEnd={this.handleTouchEnd}
-              onTouchMove={this.handleTouchEnd}
-            ></canvas>
-            <Recorder recording={this.state.recording} canvasStream={this.state.canvasStream}/>
-            {videoControls}
-
+            onMouseDown={this.handleCanvasMouseDown}
+            onMouseUp={this.handleCanvasMouseUp}
+            onMouseMove={this.handleCanvasMouseDrag}
+            onTouchStart={this.handleCanvasMouseDown}
+            onTouchEnd={this.handleTouchEnd}
+            onTouchMove={this.handleTouchEnd}
+          ></canvas>
+          <Recorder recording={this.state.recording} canvasStream={this.state.canvasStream}/>
+          {videoControls}
           {animationControls}
       </div> : null
     // TOP LAYER
     return (
       <div>
-
         {app}
         {openInBrowser}
      </div>
