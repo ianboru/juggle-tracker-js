@@ -55,6 +55,7 @@ function drawTrails(context, contourPositions, color, trailLength){
     }
   }
 }
+
 function drawConnections(context,positions, color){
   const thickness = 3
   if(!positions){
@@ -92,6 +93,7 @@ function drawConnections(context,positions, color){
     }
   }
 }
+
 function drawStars(context,positions, existingStarsX, existingStarsY, existingStarsDx, existingStarsDy, existingStarsSize, existingStarsColor, discoColor){
 
   // Create some temporary lists
@@ -162,6 +164,7 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
     starsColor : newStarsColor
   }
 }
+
 export default {
     drawTrails,
     drawConnections,

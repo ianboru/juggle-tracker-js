@@ -1,4 +1,5 @@
 import cv from 'opencv.js';
+
 function colorFilter(src, colorRange){
     let dst = new cv.Mat();
     // Create a two new mat objects for the image in different color spaces
@@ -27,6 +28,7 @@ function colorFilter(src, colorRange){
     // Return the masked image (objects are white, background is black)
     return dst
 }
+
 function colorWhite(src, colorRange){
     cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
     let ksize = new cv.Size(23,23);
@@ -78,12 +80,15 @@ function findBalls(src){
     // Return list of contour positions and sizes
     return contourPositions
 }
+
 function calculateCurrentHSVString(ballColorRange,opacity){
     return "hsl(" + ballColorRange['hh'] + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
 }
+
 function calculateCurrentHSV(ballColorRange,opacity){
     return "hsl(" + ballColorRange['hh'] + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
 }
+
 function htmlToOpenCVHSV(htmlHSV){
     let openCVHSV  = htmlHSV
     openCVHSV[0] =  180*openCVHSV[0]/360
@@ -91,6 +96,7 @@ function htmlToOpenCVHSV(htmlHSV){
     openCVHSV[2] = openCVHSV[2] * 255
     return openCVHSV
   }
+
 function sortContours(contours){
     let contourAreas = []
     for (let i = 0; i < contours.size(); ++i) {
@@ -103,13 +109,16 @@ function sortContours(contours){
     indices.sort(function (a, b) { return contourAreas[a] > contourAreas[b] ? -1 : contourAreas[a] > contourAreas[b] ? 1 : 0; });
     return indices
 }
+
 function mean(x,y){
     return (x + y)/2
 }
+
 function getColorIndicesForCoord(x, y, width) {
   var red = y * (width * 4) + x * 4;
   return [red, red + 1, red + 2, red + 3];
 }
+
 function calculateRelativeCoord(e){
     //get mouse coordinates relative to parent element
     let targetX
@@ -128,6 +137,7 @@ function calculateRelativeCoord(e){
     const y = targetY - bounds.top;
     return [x,y]
 }
+
 function getColorFromImage(imageData,minX,minY,maxX,maxY){
     //Round to get integer
     //Check that min and max are in right order
@@ -157,6 +167,7 @@ function getColorFromImage(imageData,minX,minY,maxX,maxY){
         'hr' : maxR, 'hg' : maxG, 'hb' : maxB,
     }
 }
+
 function RGBtoHSV(r, g, b) {
     if (arguments.length === 1) {
         g = r.g, b = r.b, r = r.r;
@@ -177,6 +188,7 @@ function RGBtoHSV(r, g, b) {
     h = Math.round(h * 360)
     return [h,s,v];
 }
+
 function hsvToRgb( H,  S,  V) {
 
         let R=0;let G=0;let B=0;

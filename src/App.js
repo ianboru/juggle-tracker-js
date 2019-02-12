@@ -4,29 +4,25 @@ import cv from 'opencv.js';
 import cvutils from './cvutils';
 import drawingUtils from './drawingUtils'
 import trackingUtils from './trackingUtils'
-
 import { HuePicker } from 'react-color';
 import ColorSliders from './colorSliders'
 import Recorder from './recorder'
-import {
-  MdHelp
-} from "react-icons/md"
+import { MdHelp } from "react-icons/md"
 //@observer
 
 const calibrateHelp = `Calibration Process:\n
-1: Click 'Calibration View'
+1: Click 'Calibration View' to see what the computer sees.
 2: Set 'Hue Center' slider to approximate color of prop
-3: Adjust HSV Sliders until prop is completely white
-4: When you walk farther from the camera, the hue shouldn't change but the saturation and value likely decrease
+3: Adjust the sliders so that the props are white and the background is black.
+4: Make the 'saturation' and 'value' ranges as large as possible.
 
 Tips:\n
-1: Use bright balls that are distinct colors from background and clothes
-2: White and Red won't work well until next version
-3: Light should be behind the camera facing you
+1: Use bright balls that are distinct colors from background and clothes.
+2: Turn on all the lights.
+3: Don't point the camera at the lights.
 `
 const touchDuration = 500
 const isMobile = true ?  /Mobi|Android/i.test(navigator.userAgent) : false
-const discoColors = ['rgb(255,179,186)', 'rgb(255,223,186)', 'rgb(255,255,186)','rgb(186,255,201)','rgb(186,225,255)']
 
 class App extends Component {
 
@@ -39,12 +35,8 @@ class App extends Component {
     videoHeight : null,
     videoWidth : null,
     startTime : Date.now(),
-    lh : 180,
-    ls : .2,
-    lv : .2,
-    hh : 230,
-    hs : 1,
-    hv : 1,
+    // Color blue (initial value for hsv sliders)
+    lh : 180, ls : .2, lv : .2, hh : 230, hs : 1, hv : 1,
     tv : cvutils.initialHSV.tv,
     net : null,
     allColors : [cvutils.initialHSV],
@@ -54,32 +46,26 @@ class App extends Component {
     showRaw : true,
     usingWhite : false,
     trailLength : 1,
-    showConnections : false,
-    showStars     : false,
+    // Animation Controls (connctions, disco, and stars off, trails on)
+    showConnections:false, showStars:false, discoMode:false, showTrails:true,
     canvasStream : null,
-    showTrails : true,
-    starsX     : [],
-    starsY     : [],
-    starsDx    : [],
-    starsDy    : [],
-    starsSize  : [],
-    starsColor : [],
-    canvasMouseDownX : null,
-    canvasMouseDownY : null,
+    // Lists that contain data about stars
+    starsX:[], starsY:[], starsDx:[], starsDy:[],starsSize:[], starsColor:[],
+    // Coordinates of mouse when pressed
+    canvasMouseDownX : null, canvasMouseDownY : null,
     calibrationRect : null,
     showSelectColorText : true,
     touchTimer : null,
     isFacebookApp : false,
     colorModeButtonText : 'Use White Props',
     recording : null,
-    discoMode : false,
     discoTimer : null,
     discoColorNumber : 0,
     videoFile : null,
     fileUploaded : false,
     discoHue : 0,
-    discoUp : true,
   }
+
   componentDidMount=()=>{
     const isFacebookApp = this.isFacebookApp()
     if(!isFacebookApp){
@@ -90,19 +76,17 @@ class App extends Component {
     })
     document.title = "AR Flow Arts"
   }
+
   isFacebookApp=()=>{
     let ua = navigator.userAgent || navigator.vendor || window.opera;
     return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1);;
   }
-  /****
-  Camera Stuff
-  ****/
+
   startCamera=()=> {
     let that = this
-
+    // Break if the camera is already streaming
     if (this.state.streaming) return;
-
-    //get video
+    // Get video
     navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user'}, audio: false})
     .then(function(s) {
       console.log("got user media")
@@ -135,6 +119,7 @@ class App extends Component {
       that.startVideoProcessing();
     }, false);
   }
+
   stopCamera=()=> {
     if (!this.state.streaming) return;
     this.stopVideoProcessing();
@@ -145,8 +130,8 @@ class App extends Component {
     this.setState({
       streaming :false,
     })
-
   }
+
   startVideoProcessing=()=> {
     //Fix for firefox to have context available
     const context = this.canvasOutput.getContext("2d")
@@ -160,11 +145,6 @@ class App extends Component {
     if (src != null && !src.isDeleted()) src.delete();
   }
 
-  /****
-  Recording Stuff
-  ****/
-
-  // On click method for using white balls.
   toggleWhiteMode=()=>{
     // Toggle the text on the button
     let colorModeButtonText = ""
@@ -173,7 +153,7 @@ class App extends Component {
     }else {
       colorModeButtonText = 'Use White Props';
     }
-    // Change the state so that connections are shown or not
+    // Change the state to reflect changes
     this.setState({
       usingWhite : !this.state.usingWhite,
       colorModeButtonText
@@ -181,120 +161,139 @@ class App extends Component {
   }
 
   toggleRecording=()=>{
+    // Change the text on the record button
     const recordButton = document.querySelector('button#record');
+    // User wants to record
     if (recordButton.textContent === 'Start Recording') {
-
-
+      // Start the camera if not already streaming
       if(!this.state.streaming){
         this.startCamera()
       }
       this.canvasOutput.hidden = false
       this.canvasOutput.style.display = "inline"
+      // Capture the video stream, and set recording to true
       this.setState({
         canvasStream : this.canvasOutput.captureStream(),
         recording : true
       })
+      // Now recording, the button needs to change to 'stop' recording
       const recordButton = document.querySelector('button#record');
       recordButton.textContent = 'Stop Recording';
+    // User wants to stop recording
     } else {
+      // Stop recording
       this.setState({
         canvasStream : null,
         recording : false
       })
+      // Stop the camera
       this.stopCamera();
       this.canvasOutput.style.display = "none"
+      // Now stopped, the button needs to change to 'start' recording
       recordButton.textContent = 'Start Recording';
     }
   }
 
-
   getMatFromCanvas=(context)=>{
+    // Create a new blank mat (or canvas) to draw on
     let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
-    //Draw video frame onto canvas context
-    //Extra image data from canvas context
+    // Get the image data from the source video
     let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
+    // Set the image onto the srcMat
     srcMat.data.set(imageData.data);
     imageData = null
     return srcMat
   }
 
-   processVideo=()=> {
+  processVideo=()=> {
     if(this.canvasOutput){
       const context = this.canvasOutput.getContext("2d")
+      // Use the uploaded file
       if(this.state.fileUploaded > 0){
         console.log("uploaded")
         context.drawImage(this.uploadedVideo, 0, 0, this.state.videoWidth, this.state.videoHeight);
+      // Use the webcam image
       }else{
         console.log("live")
         context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
       }
-
+      // Get the srcMat from the canvas
       let srcMat = this.getMatFromCanvas(context)
-      //Flip horizontally because camera feed is pre-flipped
+      // Flip horizontally because camera feed is pre-flipped
       cv.flip(srcMat, srcMat,1)
-      if(this.state.canvasMouseDownX){this.setState({flippedFrame : srcMat.clone()})}
+      // If the mouse is down, clone the srcMat and save it as flippedFrame
+      if(this.state.canvasMouseDownX){
+        this.setState({flippedFrame : srcMat.clone()})
+      }
+      // Show the srcMat to the user
       cv.imshow('canvasOutput',srcMat)
-      //Filters by color AND tracks ball positions by color
+      // Create a temporary image to store the color segmentation
       let colorFilteredImage
+      // Iterate through each color being tracked
       this.state.allColors.forEach((colorRange,colorNum)=>{
+        // If colored balls are being used, use cvutils.colorfilter
         if(!this.state.usingWhite){
           colorFilteredImage = cvutils.colorFilter(srcMat.clone(), colorRange)
+        // If white balls are being used, use cvutils.colorWhite
         }else{
           colorFilteredImage = cvutils.colorWhite(srcMat.clone(), colorRange)
         }
-
+        // Get the ball locations
         const ballLocations = cvutils.findBalls(colorFilteredImage.clone())
+        // Update the tracking history
         this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
+        // If in calibration mode
         if(!this.state.showRaw && colorNum == this.state.colorNum){
           // Initialize final canvas with the mask of the colors within the color ranges
           // This setting is used when calibrating the colors
           cv.imshow('canvasOutput',colorFilteredImage)
         }
+        // Get the color values for the object being tracked (white if usingWhite)
         let color = this.state.usingWhite ? "white" : cvutils.calculateCurrentHSVString(colorRange)
-
+        // If disco mode is on, use the current disco color
         if(this.state.discoMode){
           color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
         }
-
-        //Draw balls and trails
+        //Draw trails
         if(this.state.showTrails){
           drawingUtils.drawTrails(context,this.state.positions[colorNum], color, this.state.trailLength)
         }
+        // Draw connections
         if(this.state.showConnections){
-          //Draw lines between balls of same color
           drawingUtils.drawConnections(context, this.state.positions[colorNum], color)
         }
+        // Draw Stars
         if(this.state.showStars){
-          //Draw stars coming from balls
+          // Draw the stars. Get the updated stars' positions.
           const newStars = drawingUtils.drawStars(context, this.state.positions[colorNum],this.state.starsX,this.state.starsY,this.state.starsDx,this.state.starsDy,this.state.starsSize,this.state.starsColor,this.state.discoHue)
+          // Update the global stars variable
           this.setState(newStars)
         }
       })
+      // If the user is clicking and draging to select a color
       if(this.state.calibrationRect){
         //Draw color selection rectangle
         context.strokeStyle = "#ffffff"
         const rect = this.state.calibrationRect
         const scaleFactor = this.state.videoWidth/this.canvasOutput.clientWidth
-
         context.strokeRect(rect[0]*scaleFactor,rect[1]*scaleFactor,(rect[2]-rect[0])*scaleFactor,(rect[3]-rect[1])*scaleFactor)
       }
+      // Shows text to instruct user
       if(this.state.showSelectColorText){
         drawingUtils.drawSelectColorText(context, isMobile, this.state.usingWhite)
       }
       //Trim histories to trail length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, this.state.trailLength)
-
       //Clean up all possible data
       colorFilteredImage.delete();srcMat.delete()
       srcMat = null; colorFilteredImage = null
-
-
       //Process next frame
       requestAnimationFrame(this.processVideo);
     }
   }
 
   handleHSVSliderChange=(e)=>{
+    // Log the slider change
     console.log(e)
     let state = this.state
     state[e.name] =parseFloat(e.value)
@@ -307,6 +306,7 @@ class App extends Component {
       showSelectColorText : false
     })
   }
+
   setColorRange=()=>{
     let colorRanges = this.state.allColors
     colorRanges[this.state.colorNum] = {
@@ -324,10 +324,10 @@ class App extends Component {
 
     })
   }
+
   addColor=()=>{
     this.setColorRange()
     let colorNum = this.state.allColors.length
-
     this.setState(cvutils.initialHSV)
     this.setState({
       colorNum
@@ -335,6 +335,7 @@ class App extends Component {
       this.setColorRange()
     })
   }
+
   selectColor=(i)=>{
     this.setState(this.state.allColors[i])
     this.setState({
@@ -343,28 +344,28 @@ class App extends Component {
       this.setColorRange()
     })
   }
+
   handleTrailLength=(e)=>{
     this.setState({
       trailLength : e.target.value
     })
   }
+
   toggleShowRaw=()=>{
-
     // Toggle the text on the button
-
     const calibrationButton = document.querySelector('button#calibration');
     if (calibrationButton.textContent === 'Show Cam') {calibrationButton.textContent = 'Calibration View';}
     else {calibrationButton.textContent = 'Show Cam';}
+    // Change the state
     this.setState({
       showRaw : !this.state.showRaw
     })
+    // Show an alert about how to calibrate
     if(this.state.showRaw){
       alert(
         `Calibration Process:\n
-        1: Click 'Calibrate'
-        2: Set 'Hue Center' slider to approximate color of prop
-        3: Adjust HSV Sliders until prop is completely white
-        `
+        Set 'Hue Center' slider to approximate color of prop
+        Adjust sliders until prop is completely white and the background is black`
       )
     }
   }
@@ -379,6 +380,7 @@ class App extends Component {
       showConnections : !this.state.showConnections
     })
   }
+
   toggleShowStars=()=>{
     // Toggle the text on the button
     const starsButton = document.querySelector('button#starsButton');
@@ -389,22 +391,24 @@ class App extends Component {
       showStars : !this.state.showStars
     })
   }
-  
+
   changeDiscoColor=()=>{
-    // Disco hue goes from 0 to 255, so the color goes from blue to purple to pink
+    // Disco hue goes from 0 to 360 (rainbow)
     this.state.discoHue = this.state.discoHue + 4
+    // When the hue reaches 360, it goes back to zero (HSV colorspace loops)
     if(this.state.discoHue>360){
       this.state.discoHue = 0
     }
   }
 
   toggleDiscoMode=()=>{
-    // Toggle the text on the button
+    // Disco color changes, so a timer is required
     const discoInterval = 1
-    const starsButton = document.querySelector('button#discoModeButton');
-    if (starsButton.textContent === 'Disco Mode') {starsButton.textContent = 'Stop Disco';}
-    else {starsButton.textContent = 'Disco Mode';}
-    // Change the state so that stars are shown or not
+    // Toggle the text on the button
+    const discoButton = document.querySelector('button#discoModeButton');
+    if (discoButton.textContent === 'Disco Mode') {discoButton.textContent = 'Stop Disco';}
+    else {discoButton.textContent = 'Disco Mode';}
+    // Update disco state and timer
     if(this.state.discoTimer){clearInterval(this.state.discoColorNumber)}
     this.setState({
       discoMode : !this.state.discoMode,
@@ -413,16 +417,17 @@ class App extends Component {
   }
 
   toggleShowTrails=()=>{
-    //Toggle the text on the trailsButton
+    //Toggle the text on the trails button
     const trailsButton = document.querySelector('button#trailsButton');
     if (trailsButton.textContent === 'Show Trails') {trailsButton.textContent = 'Hide Trails';}
     else {trailsButton.textContent = 'Show Trails';}
+    // Update the state
     this.setState({
       showTrails : !this.state.showTrails
     },()=>{
+      // Hide the trail length slider
       const slider = document.getElementById("trailSlider")
       slider.hidden = !this.state.showTrails
-
     })
   }
 
@@ -586,10 +591,12 @@ class App extends Component {
       recordButton.textContent = 'Pause Video';
     }
   }
+
   handleVideoEnded = ()=>{
     const recordButton = document.querySelector('button#playUploadedButton');
     recordButton.textContent = 'Play Video';
   }
+
   render() {
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
         const borderString = index == this.state.colorNum ? '3px solid black' : 'none'
