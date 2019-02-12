@@ -8,8 +8,8 @@ import { HuePicker } from 'react-color';
 import ColorSliders from './colorSliders'
 import Recorder from './recorder'
 import { MdHelp } from "react-icons/md"
+import Terminal from 'terminal-in-react';
 //@observer
-
 const calibrateHelp = `Calibration Process:\n
 1: Click 'Calibration View' to see what the computer sees.
 2: Set 'Hue Center' slider to approximate color of prop
@@ -208,19 +208,20 @@ class App extends Component {
   processVideo=()=> {
     if(this.canvasOutput){
       const context = this.canvasOutput.getContext("2d")
+      context.clearRect( 0, 0, this.state.videoWidth, this.state.videoHeight)
       // Use the uploaded file
-      if(this.state.fileUploaded > 0){
-        console.log("uploaded")
-        context.drawImage(this.uploadedVideo, 0, 0, this.state.videoWidth, this.state.videoHeight);
+      if(this.state.fileUploaded){
+        drawingUtils.fitVidToCanvas(this.canvasOutput, this.uploadedVideo)
       // Use the webcam image
       }else{
-        console.log("live")
         context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
       }
       // Get the srcMat from the canvas
       let srcMat = this.getMatFromCanvas(context)
       // Flip horizontally because camera feed is pre-flipped
-      cv.flip(srcMat, srcMat,1)
+      if(!this.state.fileUploaded){
+        cv.flip(srcMat, srcMat,1)
+      }
       // If the mouse is down, clone the srcMat and save it as flippedFrame
       if(this.state.canvasMouseDownX){
         this.setState({flippedFrame : srcMat.clone()})
@@ -569,9 +570,6 @@ class App extends Component {
     if (canPlay === '') canPlay = 'no'
     let message = 'Can play type "' + type + '": ' + canPlay
     let isError = canPlay === 'no'
-    if (isError) {
-      return
-    }
 
     let fileURL = URL.createObjectURL(file)
     this.uploadedVideo.src = fileURL
@@ -636,7 +634,6 @@ class App extends Component {
           {playUploadedButton}
         </div>
       </div>
-
     const animationControls =
       <div>
         <h3 className="primary-header">Animation Effects</h3>
@@ -650,7 +647,7 @@ class App extends Component {
           <input  name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
         </div>
         <video hidden={true} muted playsInline autoPlay className="invisible live-video" ref={ref => this.video = ref}></video>
-        <video hidden={true} muted playsInline autoPlay onEnded={this.handleVideoEnded}  className="invisible live-video" ref={ref => this.uploadedVideo = ref}></video>
+        <video hidden={true} muted playsInline autoPlay onEnded={this.handleVideoEnded}   className="invisible live-video" ref={ref => this.uploadedVideo = ref}></video>
       </div>
 
     const openInBrowser =

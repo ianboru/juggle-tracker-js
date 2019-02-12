@@ -98,12 +98,14 @@ class Recorder extends Component {
       this.stopRecording()
     }
     const dlButton = this.state.recordedBlobs && !this.props.recording ?  
+    <span>
+      <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
       <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
+    </span>
       : null
 
     return(
       <div>
-        <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
         {dlButton}
       </div>
     )

@@ -164,10 +164,61 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
     starsColor : newStarsColor
   }
 }
+function fitVidToCanvas(canvas, imageObj, isMobile){
+  var imageAspectRatio = imageObj.videoWidth / imageObj.videoHeight;
+  var canvasAspectRatio = canvas.width / canvas.height;
+  var renderableHeight, renderableWidth, xStart, yStart;
 
+  // If image's aspect ratio is less than canvas's we fit on height
+  // and place the image centrally along width
+  if(imageAspectRatio < canvasAspectRatio) {
+    renderableHeight = canvas.height;
+    renderableWidth = imageObj.videoWidth * (renderableHeight / imageObj.videoHeight);
+    xStart = (canvas.width - renderableWidth) / 2;
+    yStart = 0;
+  }
+
+  // If image's aspect ratio is greater than canvas's we fit on width
+  // and place the image centrally along height
+  else if(imageAspectRatio > canvasAspectRatio) {
+    renderableWidth = canvas.width
+    renderableHeight = imageObj.videoHeight * (renderableWidth / imageObj.videoWidth);
+    xStart = 0;
+    yStart = (canvas.height - renderableHeight) / 2;
+  }
+
+  // Happy path - keep aspect ratio
+  else {
+    renderableHeight = canvas.height;
+    renderableWidth = canvas.width;
+    xStart = 0;
+    yStart = 0;
+  }
+  const context = canvas.getContext("2d")
+    if(isMobile){
+     context.save(); 
+
+      // move to the middle of where we want to draw our image
+      context.translate(xStart, yStart);
+
+      // rotate around that point, converting our 
+      // angle from degrees to radians 
+      context.rotate(90 * Math.PI/180);
+
+      // draw it up and to the left by half the width
+      // and height of the image 
+      context.drawImage(imageObj, -(renderableWidth/2), -(renderableHeight/2));
+
+      // and restore the co-ords to how they were when we began
+      context.restore(); 
+    }else{
+        context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
+    }
+};
 export default {
     drawTrails,
     drawConnections,
     drawStars,
-    drawSelectColorText
+    drawSelectColorText,
+    fitVidToCanvas
 }
