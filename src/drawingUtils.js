@@ -164,7 +164,7 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
     starsColor : newStarsColor
   }
 }
-function fitVidToCanvas(canvas, imageObj, isMobile){
+function fitVidToCanvas(canvas, imageObj){
   var imageAspectRatio = imageObj.videoWidth / imageObj.videoHeight;
   var canvasAspectRatio = canvas.width / canvas.height;
   var renderableHeight, renderableWidth, xStart, yStart;
@@ -195,25 +195,7 @@ function fitVidToCanvas(canvas, imageObj, isMobile){
     yStart = 0;
   }
   const context = canvas.getContext("2d")
-    if(isMobile){
-     context.save(); 
-
-      // move to the middle of where we want to draw our image
-      context.translate(xStart, yStart);
-
-      // rotate around that point, converting our 
-      // angle from degrees to radians 
-      context.rotate(90 * Math.PI/180);
-
-      // draw it up and to the left by half the width
-      // and height of the image 
-      context.drawImage(imageObj, -(renderableWidth/2), -(renderableHeight/2));
-
-      // and restore the co-ords to how they were when we began
-      context.restore(); 
-    }else{
-        context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
-    }
+  context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
 };
 export default {
     drawTrails,

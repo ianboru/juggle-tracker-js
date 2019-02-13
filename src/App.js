@@ -8,7 +8,6 @@ import { HuePicker } from 'react-color';
 import ColorSliders from './colorSliders'
 import Recorder from './recorder'
 import { MdHelp } from "react-icons/md"
-import Terminal from 'terminal-in-react';
 //@observer
 const calibrateHelp = `Calibration Process:\n
 1: Click 'Calibration View' to see what the computer sees.
@@ -565,12 +564,6 @@ class App extends Component {
 
     let file = this.input.files[0]
     if(!file){return}
-    let type = file.type
-    let canPlay = this.uploadedVideo.canPlayType(type)
-    if (canPlay === '') canPlay = 'no'
-    let message = 'Can play type "' + type + '": ' + canPlay
-    let isError = canPlay === 'no'
-
     let fileURL = URL.createObjectURL(file)
     this.uploadedVideo.src = fileURL
     this.setState({
