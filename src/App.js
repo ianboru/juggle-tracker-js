@@ -7,7 +7,10 @@ import trackingUtils from './trackingUtils'
 import { HuePicker } from 'react-color';
 import ColorSliders from './colorSliders'
 import Recorder from './recorder'
+import Camera from './camera'
 import { MdHelp } from "react-icons/md"
+import { observer } from "mobx-react"
+import store from "./store"
 //@observer
 const calibrateHelp = `Calibration Process:\n
 1: Click 'Calibration View' to see what the computer sees.
@@ -22,17 +25,14 @@ Tips:\n
 `
 const touchDuration = 500
 const isMobile = true ?  /Mobi|Android/i.test(navigator.userAgent) : false
-
+@observer
 class App extends Component {
 
   state = {
     src : null,
     dst : null,
     flippedFrame : null,
-    stream : null,
-    streaming : false,
-    videoHeight : null,
-    videoWidth : null,
+
     startTime : Date.now(),
     // Color blue (initial value for hsv sliders)
     lh : 180, ls : .2, lv : .2, hh : 230, hs : 1, hv : 1,
@@ -60,16 +60,12 @@ class App extends Component {
     recording : null,
     discoTimer : null,
     discoColorNumber : 0,
-    videoFile : null,
     fileUploaded : false,
     discoHue : 0,
   }
 
   componentDidMount=()=>{
     const isFacebookApp = this.isFacebookApp()
-    if(!isFacebookApp){
-      this.startCamera()
-    }
     this.setState({
       isFacebookApp
     })
@@ -81,60 +77,9 @@ class App extends Component {
     return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1);;
   }
 
-  startCamera=()=> {
-    let that = this
-    // Break if the camera is already streaming
-    if (this.state.streaming) return;
-    // Get video
-    navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user'}, audio: false})
-    .then(function(s) {
-      console.log("got user media")
-      //Set stream to stop later
-      that.setState({
-        stream : s,
-      })
-      //Set stream to video tag
-      that.video.srcObject = s;
-      that.video.play();
-    })
-    .catch(function(err) {
-      console.log("An error occured! " + err);
-    });
-
-    this.video.addEventListener("canplay", function(ev){
-      if (!that.state.streaming) {
-        let videoWidth = that.video.videoWidth;
-        let videoHeight = that.video.videoHeight;
-        that.video.setAttribute("width", videoWidth);
-        that.video.setAttribute("height", videoHeight);
-        //that.canvasOutput.width = videoWidth;
-        //that.canvasOutput.height = videoHeight;
-        that.setState({
-          videoWidth,
-          videoHeight,
-          streaming : true,
-        })
-      }
-      that.startVideoProcessing();
-    }, false);
-  }
-
-  stopCamera=()=> {
-    if (!this.state.streaming) return;
-    this.stopVideoProcessing();
-    this.canvasOutput.getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
-    this.video.pause();
-    this.video.srcObject=null;
-    this.state.stream.getVideoTracks()[0].stop();
-    this.setState({
-      streaming :false,
-    })
-  }
-
   startVideoProcessing=()=> {
     //Fix for firefox to have context available
     const context = this.canvasOutput.getContext("2d")
-    if (!this.state.streaming) { console.warn("Please startup your webcam"); return; }
     this.stopVideoProcessing();
     requestAnimationFrame(this.processVideo);
   }
@@ -161,13 +106,9 @@ class App extends Component {
 
   toggleRecording=()=>{
     // Change the text on the record button
-    const recordButton = document.querySelector('button#record');
     // User wants to record
-    if (recordButton.textContent === 'Start Recording') {
-      // Start the camera if not already streaming
-      if(!this.state.streaming){
-        this.startCamera()
-      }
+    if (store.playingUploaded) {
+
       this.canvasOutput.hidden = false
       this.canvasOutput.style.display = "inline"
       // Capture the video stream, and set recording to true
@@ -175,10 +116,6 @@ class App extends Component {
         canvasStream : this.canvasOutput.captureStream(),
         recording : true
       })
-      // Now recording, the button needs to change to 'stop' recording
-      const recordButton = document.querySelector('button#record');
-      recordButton.textContent = 'Stop Recording';
-    // User wants to stop recording
     } else {
       // Stop recording
       this.setState({
@@ -189,7 +126,6 @@ class App extends Component {
       this.stopCamera();
       this.canvasOutput.style.display = "none"
       // Now stopped, the button needs to change to 'start' recording
-      recordButton.textContent = 'Start Recording';
     }
   }
 
@@ -209,16 +145,16 @@ class App extends Component {
       const context = this.canvasOutput.getContext("2d")
       context.clearRect( 0, 0, this.state.videoWidth, this.state.videoHeight)
       // Use the uploaded file
-      if(this.state.fileUploaded){
+      if(store.uploadedVideo){
         drawingUtils.fitVidToCanvas(this.canvasOutput, this.uploadedVideo)
       // Use the webcam image
       }else{
-        context.drawImage(this.video, 0, 0, this.state.videoWidth, this.state.videoHeight);
+        context.drawImage(store.liveVideo, 0, 0, this.state.videoWidth, this.state.videoHeight);
       }
       // Get the srcMat from the canvas
       let srcMat = this.getMatFromCanvas(context)
       // Flip horizontally because camera feed is pre-flipped
-      if(!this.state.fileUploaded){
+      if(!store.uploadedVideo){
         cv.flip(srcMat, srcMat,1)
       }
       // If the mouse is down, clone the srcMat and save it as flippedFrame
@@ -252,6 +188,7 @@ class App extends Component {
         let color = this.state.usingWhite ? "white" : cvutils.calculateCurrentHSVString(colorRange)
         // If disco mode is on, use the current disco color
         if(this.state.discoMode){
+          console.log(this.state.discoHue)
           color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
         }
         //Draw trails
@@ -559,35 +496,7 @@ class App extends Component {
     }
   }
 
-  handleFile = ()=>{
-    let URL = window.URL || window.webkitURL
-
-    let file = this.input.files[0]
-    if(!file){return}
-    let fileURL = URL.createObjectURL(file)
-    this.uploadedVideo.src = fileURL
-    this.setState({
-      fileUploaded : true
-    })
-  }
-
-  handlePlayUploaded = ()=>{
-    const recordButton = document.querySelector('button#playUploadedButton');
-    if(this.uploadedVideo.currentTime > 0 && !this.uploadedVideo.paused && !this.uploadedVideo.ended){
-      this.uploadedVideo.pause()
-      recordButton.textContent = 'Play Video';
-    }else{
-      this.uploadedVideo.play()
-      this.stopCamera()
-      recordButton.textContent = 'Pause Video';
-    }
-  }
-
-  handleVideoEnded = ()=>{
-    const recordButton = document.querySelector('button#playUploadedButton');
-    recordButton.textContent = 'Play Video';
-  }
-
+ 
   render() {
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{
         const borderString = index == this.state.colorNum ? '3px solid black' : 'none'
@@ -612,21 +521,6 @@ class App extends Component {
 
     })
 
-    const fileButton = this.input ? <button style={{'fontSize':'12pt'}} onClick={()=>{this.input.click()}}>Upload Video</button> : null
-    let playUploadedButton
-    if(this.input){
-      playUploadedButton = this.state.fileUploaded ? <button style={{'fontSize':'12pt'}} id="playUploadedButton" onClick={this.handlePlayUploaded}>Play Video</button> : null
-    }
-
-    const videoControls =
-      <div>
-        <div style={{'marginBottom' :'10px'}}>
-          <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
-          <input className='invisible' type="file" accept="video/*" ref={ref => this.input = ref} src={this.state.videoFile} onChange={this.handleFile}/>
-          {fileButton}
-          {playUploadedButton}
-        </div>
-      </div>
     const animationControls =
       <div>
         <h3 className="primary-header">Animation Effects</h3>
@@ -639,8 +533,6 @@ class App extends Component {
           <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label>
           <input  name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
         </div>
-        <video hidden={true} muted playsInline autoPlay className="invisible live-video" ref={ref => this.video = ref}></video>
-        <video hidden={true} muted playsInline autoPlay onEnded={this.handleVideoEnded}   className="invisible live-video" ref={ref => this.uploadedVideo = ref}></video>
       </div>
 
     const openInBrowser =
@@ -722,8 +614,12 @@ class App extends Component {
             onTouchMove={this.handleTouchEnd}
           ></canvas>
           <Recorder recording={this.state.recording} canvasStream={this.state.canvasStream}/>
-          {videoControls}
           {animationControls}
+          <Camera 
+            canvasOutput={this.canvasOutput} 
+            isFacebookApp={this.state.isFacebookApp}
+            startVideoProcessing={this.startVideoProcessing}
+          />
       </div> : null
     // TOP LAYER
     return (

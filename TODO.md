@@ -22,6 +22,7 @@ Refactors:
 Bugs:
 	- Touch held colors don't seem to work on mobile (ian)
 	- Upload portait video from mobile always renders landscape
+	- disco colors flash black on iOS safari
 
 For fun:
 	- Add body points 
