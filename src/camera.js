@@ -63,6 +63,7 @@ class Camera extends Component {
     if(!file){return}
     let fileURL = URL.createObjectURL(file)
     this.uploadedVideo.src = fileURL
+    store.setUploadedVideo(this.uploadedVideo)
     this.setState({
       fileUploaded : true
     })

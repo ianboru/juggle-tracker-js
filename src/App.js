@@ -32,7 +32,6 @@ class App extends Component {
     src : null,
     dst : null,
     flippedFrame : null,
-
     startTime : Date.now(),
     // Color blue (initial value for hsv sliders)
     lh : 180, ls : .2, lv : .2, hh : 230, hs : 1, hv : 1,
@@ -60,7 +59,6 @@ class App extends Component {
     recording : null,
     discoTimer : null,
     discoColorNumber : 0,
-    fileUploaded : false,
     discoHue : 0,
   }
 
@@ -131,9 +129,9 @@ class App extends Component {
 
   getMatFromCanvas=(context)=>{
     // Create a new blank mat (or canvas) to draw on
-    let srcMat = new cv.Mat(this.state.videoHeight, this.state.videoWidth, cv.CV_8UC4);
+    let srcMat = new cv.Mat(store.liveVideo.videoHeight, store.liveVideo.videoWidth, cv.CV_8UC4);
     // Get the image data from the source video
-    let imageData = context.getImageData(0, 0, this.state.videoWidth, this.state.videoHeight);
+    let imageData = context.getImageData(0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight);
     // Set the image onto the srcMat
     srcMat.data.set(imageData.data);
     imageData = null
@@ -143,13 +141,13 @@ class App extends Component {
   processVideo=()=> {
     if(this.canvasOutput){
       const context = this.canvasOutput.getContext("2d")
-      context.clearRect( 0, 0, this.state.videoWidth, this.state.videoHeight)
+      context.clearRect( 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight)
       // Use the uploaded file
       if(store.uploadedVideo){
-        drawingUtils.fitVidToCanvas(this.canvasOutput, this.uploadedVideo)
+        drawingUtils.fitVidToCanvas(this.canvasOutput, store.uploadedVideo)
       // Use the webcam image
       }else{
-        context.drawImage(store.liveVideo, 0, 0, this.state.videoWidth, this.state.videoHeight);
+        context.drawImage(store.liveVideo, 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight);
       }
       // Get the srcMat from the canvas
       let srcMat = this.getMatFromCanvas(context)
@@ -212,7 +210,7 @@ class App extends Component {
         //Draw color selection rectangle
         context.strokeStyle = "#ffffff"
         const rect = this.state.calibrationRect
-        const scaleFactor = this.state.videoWidth/this.canvasOutput.clientWidth
+        const scaleFactor = store.liveVideo.videoWidth/this.canvasOutput.clientWidth
         context.strokeRect(rect[0]*scaleFactor,rect[1]*scaleFactor,(rect[2]-rect[0])*scaleFactor,(rect[3]-rect[1])*scaleFactor)
       }
       // Shows text to instruct user
@@ -614,12 +612,13 @@ class App extends Component {
             onTouchMove={this.handleTouchEnd}
           ></canvas>
           <Recorder recording={this.state.recording} canvasStream={this.state.canvasStream}/>
-          {animationControls}
           <Camera 
             canvasOutput={this.canvasOutput} 
             isFacebookApp={this.state.isFacebookApp}
             startVideoProcessing={this.startVideoProcessing}
           />
+          {animationControls}
+
       </div> : null
     // TOP LAYER
     return (
