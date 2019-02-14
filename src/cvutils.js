@@ -1,5 +1,14 @@
 import cv from 'opencv.js';
-
+function getMatFromCanvas(context, width, height){
+    // Create a new blank mat (or canvas) to draw on
+    let srcMat = new cv.Mat(height, width, cv.CV_8UC4);
+    // Get the image data from the source video
+    let imageData = context.getImageData(0, 0, width, height);
+    // Set the image onto the srcMat
+    srcMat.data.set(imageData.data);
+    imageData = null
+    return srcMat
+}
 function colorFilter(src, colorRange){
     let dst = new cv.Mat();
     // Create a two new mat objects for the image in different color spaces
@@ -341,5 +350,6 @@ export default {
     findBalls,
     getColorFromImage,
     calculateRelativeCoord,
-    initialHSV
+    initialHSV,
+    getMatFromCanvas
 }

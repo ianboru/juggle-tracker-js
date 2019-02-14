@@ -106,7 +106,6 @@ class App extends Component {
     // Change the text on the record button
     // User wants to record
     if (store.playingUploaded) {
-
       this.canvasOutput.hidden = false
       this.canvasOutput.style.display = "inline"
       // Capture the video stream, and set recording to true
@@ -123,19 +122,7 @@ class App extends Component {
       // Stop the camera
       this.stopCamera();
       this.canvasOutput.style.display = "none"
-      // Now stopped, the button needs to change to 'start' recording
     }
-  }
-
-  getMatFromCanvas=(context)=>{
-    // Create a new blank mat (or canvas) to draw on
-    let srcMat = new cv.Mat(store.liveVideo.videoHeight, store.liveVideo.videoWidth, cv.CV_8UC4);
-    // Get the image data from the source video
-    let imageData = context.getImageData(0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight);
-    // Set the image onto the srcMat
-    srcMat.data.set(imageData.data);
-    imageData = null
-    return srcMat
   }
 
   processVideo=()=> {
@@ -150,7 +137,7 @@ class App extends Component {
         context.drawImage(store.liveVideo, 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight);
       }
       // Get the srcMat from the canvas
-      let srcMat = this.getMatFromCanvas(context)
+      let srcMat = cvutils.getMatFromCanvas(context, store.liveVideo.videoWidth, store.liveVideo.videoHeight)
       // Flip horizontally because camera feed is pre-flipped
       if(!store.uploadedVideo){
         cv.flip(srcMat, srcMat,1)
@@ -369,50 +356,37 @@ class App extends Component {
   showCalibrateHelp = (asdf) =>{
     alert(calibrateHelp)
   }
-
-  touchHeld = ()=>{
-    const rectWidth = 50
-    //use flipped frame that has not been drawn on yet
-    const rectLeft = this.state.canvasMouseDownX - rectWidth/2
-    const rectRight = this.state.canvasMouseDownX + rectWidth/2
-    const rectTop = this.state.canvasMouseDownY - rectWidth/2
-    const rectBottom = this.state.canvasMouseDownY + rectWidth/2
+  setColorFromSelectedRegion = (frame, x1, y1, x2, y2)=>{
     let rgbRange = cvutils.getColorFromImage(
-      this.state.flippedFrame,
-      rectLeft,
-      rectTop,
-      rectRight,
-      rectBottom,
+      frame,
+      x1,
+      y1,
+      x2,
+      y2,
     )
-
     const lowerHSV = cvutils.RGBtoHSV(rgbRange['lr'],rgbRange['lg'],rgbRange['lb'])
     const upperHSV = cvutils.RGBtoHSV(rgbRange['hr'],rgbRange['hg'],rgbRange['hb'])
     // converted hsv ranges may have maxs and mins swapped
     const hsvRange = {
       'lh' : Math.min(lowerHSV[0],upperHSV[0]),
       'ls' :  Math.min(lowerHSV[1],upperHSV[1]),
-      'lv' :  Math.min(lowerHSV[2],upperHSV[2]),
+      'lv' :  .2,
       'hh' :  Math.max(lowerHSV[0],upperHSV[0]),
-      'hs' :  Math.max(lowerHSV[1],upperHSV[1]),
-      'hv' :  Math.max(lowerHSV[2],upperHSV[2]),
+      'hs' :  1,
+      'hv' :  1,
     }
-    hsvRange['hs'] = Math.max(hsvRange['hs'], .75)
-    hsvRange['hv'] = Math.max(hsvRange['hv'], .75)
+    const hDiff = hsvRange['hh'] - hsvRange['lh']
+    const minHDiff = 35
+    if( hDiff < minHDiff && hsvRange['hh'] < 350){
+      hsvRange['hh'] = hsvRange['hh'] + minHDiff - hDiff
+    }else if( hDiff < minHDiff && hsvRange['hh'] > 350){
+      hsvRange['lh'] = hsvRange['lh'] - minHDiff + hDiff
+    }
     this.setState(hsvRange,()=>{
       this.setColorRange()
     })
-    this.setState({
-      canvasMouseDownX : null,
-      canvasMouseDownY : null,
-      showSelectColorText : false,
-      calibrationRect : [
-          rectLeft,
-          rectTop,
-          rectRight,
-          rectBottom,
-      ]
-    })
   }
+  
 
   handleTouchEnd = ()=>{
     if (this.state.touchTimer)
@@ -439,45 +413,6 @@ class App extends Component {
     })
   }
 
-  handleCanvasMouseUp = (e)=>{
-    const clickCoord = cvutils.calculateRelativeCoord(e, this.canvasOutput)
-    //use flipped frame that has not been drawn on yet
-    let rgbRange = cvutils.getColorFromImage(
-      this.state.flippedFrame,
-      this.state.canvasMouseDownX,
-      this.state.canvasMouseDownY,
-      clickCoord[0],
-      clickCoord[1]
-    )
-    const lowerHSV = cvutils.RGBtoHSV(rgbRange['lr'],rgbRange['lg'],rgbRange['lb'])
-    const upperHSV = cvutils.RGBtoHSV(rgbRange['hr'],rgbRange['hg'],rgbRange['hb'])
-    // converted hsv ranges may have maxs and mins swapped
-    const hsvRange = {
-      'lh' : Math.min(lowerHSV[0],upperHSV[0]),
-      'ls' :  Math.min(lowerHSV[1],upperHSV[1]),
-      'lv' :  Math.min(lowerHSV[2],upperHSV[2]),
-      'hh' :  Math.max(lowerHSV[0],upperHSV[0]),
-      'hs' :  255,
-      'hv' :  Math.max(lowerHSV[2],upperHSV[2]),
-    }
-    const hDiff = hsvRange['hh'] - hsvRange['lh']
-    const minHDiff = 20
-    if( hDiff < minHDiff && hsvRange['hh'] < 350){
-      hsvRange['hh'] = hsvRange['hh'] + minHDiff - hDiff
-    }else if( hDiff < minHDiff && hsvRange['hh'] > 350){
-      hsvRange['lh'] = hsvRange['lh'] - minHDiff + hDiff
-    }
-    this.setState(hsvRange,()=>{
-      this.setColorRange()
-    })
-    this.setState({
-      canvasMouseDownX : null,
-      canvasMouseDownY : null,
-      calibrationRect : null,
-      showSelectColorText : false,
-    })
-  }
-
   handleCanvasMouseDrag = (e)=>{
     e.preventDefault()
     if(this.state.canvasMouseDownX){
@@ -493,7 +428,51 @@ class App extends Component {
       })
     }
   }
-
+  handleCanvasMouseUp = (e)=>{
+    const clickCoord = cvutils.calculateRelativeCoord(e, this.canvasOutput)
+    //use flipped frame that has not been drawn on yet
+    this.setColorFromSelectedRegion(
+      this.state.flippedFrame,
+      this.state.canvasMouseDownX,
+      this.state.canvasMouseDownY,
+      clickCoord[0],
+      clickCoord[1]
+    )
+   
+    this.setState({
+      canvasMouseDownX : null,
+      canvasMouseDownY : null,
+      calibrationRect : null,
+      showSelectColorText : false,
+    })
+  }
+  touchHeld = ()=>{
+    const rectWidth = 60
+    //use flipped frame that has not been drawn on yet
+    const rectLeft = this.state.canvasMouseDownX - rectWidth/2
+    const rectRight = this.state.canvasMouseDownX + rectWidth/2
+    const rectTop = this.state.canvasMouseDownY - rectWidth/2
+    const rectBottom = this.state.canvasMouseDownY + rectWidth/2
+    this.setColorFromSelectedRegion(
+      this.state.flippedFrame,
+      rectLeft,
+      rectTop,
+      rectRight,
+      rectBottom
+    )
+    
+    this.setState({
+      canvasMouseDownX : null,
+      canvasMouseDownY : null,
+      showSelectColorText : false,
+      calibrationRect : [
+          rectLeft,
+          rectTop,
+          rectRight,
+          rectBottom,
+      ]
+    })
+  }
  
   render() {
     const colorSwatches = this.state.allColors.map((colorRange,index)=>{

@@ -1,19 +1,24 @@
 .rc-slider-rail{
-	height : 8px;
+	height : 11px;
 }
 .rc-slider-track{
-	height : 8px;
+	height : 11px;
 }
 .rc-slider-step{
-	height : 8px;
+	height : 11px;
 }
 .rc-slider-handle{
-	height : 18px;
-	width : 18px;
+	height : 22px;
+	width : 22px;
 }
 .rc-slider{
 	margin-bottom: 5px;
 	display: inline-block;
+	user-select: none;
+    -khtml-user-select: none;
+    -o-user-select: none;
+    -moz-user-select: -moz-none;
+    -webkit-user-select: none;
 }
 
 .hue-slider .rc-slider-rail{
