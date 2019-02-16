@@ -254,7 +254,7 @@ function hsvToRgb( H,  S,  V) {
             G = var_g * 255;
             B = var_b * 255;
         }
-        return ''+ R + ','+G+','+B
+        return ''+ Math.round(R) + ','+Math.round(G)+','+Math.round(B)
     }
     function hsvToHEX( H,  S,  V) {
 
