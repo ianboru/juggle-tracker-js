@@ -18,8 +18,6 @@ class Recorder extends Component {
     let options = {mimeType: 'video/webm;codecs=h264'};
     this.state.recordedBlobs = []
     let mediaRecorder
-    this.recordedVideo.hidden = true
-    const downloadButton = document.querySelector('button#download');
 
     try {
       mediaRecorder = new MediaRecorder(this.props.canvasStream, options);
@@ -43,7 +41,7 @@ class Recorder extends Component {
       }
     }
 
-    mediaRecorder.onstop = this.handleStopMediaRecorder;
+    mediaRecorder.onstop = this.download;
     mediaRecorder.ondataavailable = this.handleDataAvailable;
     mediaRecorder.start(100); // collect 100ms of data
     this.state.mediaRecorder = mediaRecorder
@@ -52,12 +50,9 @@ class Recorder extends Component {
   stopRecording=()=>{
     const mediaRecorder = this.state.mediaRecorder
     mediaRecorder.stop()
-    this.recordedVideo.controls = true
-    this.recordedVideo.hidden = false
     this.setState({
       mediaRecorder,
     })
-    const downloadButton = document.querySelector('button#download');
   }
 
   handleDataAvailable=(event)=>{
@@ -70,21 +65,14 @@ class Recorder extends Component {
     }
   }
 
-  handleStopMediaRecorder=(event)=>{
-    console.log('Recorder stopped: ', event);
-    const superBuffer = new Blob(this.state.recordedBlobs, {type: 'video/webm'});
-    this.recordedVideo.src = window.URL.createObjectURL(superBuffer);
-  }
-
   download=()=>{
     const blob = new Blob(this.state.recordedBlobs, {type: 'video/webm'});
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.style.visibility = 'none';
     a.href = url;
-    a.download = 'test.webm';
+    a.download = 'arflowart_animation.webm';
     document.body.appendChild(a);
-
     a.click();
     setTimeout(() => {
       document.body.removeChild(a);
@@ -97,16 +85,9 @@ class Recorder extends Component {
     }else if(!this.props.recording && this.state.mediaRecorder){
       this.stopRecording()
     }
-    const dlButton = this.state.recordedBlobs && !this.props.recording ?  
-    <span>
-      <video hidden={true} ref={ref => this.recordedVideo = ref} id="recorded" playsInline ></video>
-      <button style={{'fontSize':'12pt'}} id="download" onClick={this.download} >Download</button>
-    </span>
-      : null
 
     return(
       <div>
-        {dlButton}
       </div>
     )
   }

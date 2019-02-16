@@ -40,7 +40,7 @@ function colorFilter(src, colorRange){
 
 function colorWhite(src, colorRange){
     cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-    let ksize = new cv.Size(23,23);
+    let ksize = new cv.Size(20,20);
     let anchor = new cv.Point(-1, -1);
     cv.blur(src, src, ksize, anchor, cv.BORDER_DEFAULT);
     let dst = new cv.Mat();
@@ -53,7 +53,7 @@ function colorWhite(src, colorRange){
 
 function findBalls(src){
     // Minimum size of a contour to interpret as an object
-    const sizeThreshold = 30
+    const sizeThreshold = 25
     // Maximum number of contours to interpret as objects
     const maxNumContours = 15
     // Initialize contour finding data
