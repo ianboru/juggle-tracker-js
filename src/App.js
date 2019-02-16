@@ -56,7 +56,6 @@ class App extends Component {
     touchTimer : null,
     isFacebookApp : false,
     colorModeButtonText : 'Use White Props',
-    recording : null,
     discoTimer : null,
     discoColorNumber : 0,
     discoHue : 0,
@@ -102,28 +101,7 @@ class App extends Component {
     })
   }
 
-  toggleRecording=()=>{
-    // Change the text on the record button
-    // User wants to record
-    if (store.playingUploaded) {
-      this.canvasOutput.hidden = false
-      this.canvasOutput.style.display = "inline"
-      // Capture the video stream, and set recording to true
-      this.setState({
-        canvasStream : this.canvasOutput.captureStream(),
-        recording : true
-      })
-    } else {
-      // Stop recording
-      this.setState({
-        canvasStream : null,
-        recording : false
-      })
-      // Stop the camera
-      this.stopCamera();
-      this.canvasOutput.style.display = "none"
-    }
-  }
+ 
 
   processVideo=()=> {
     if(this.canvasOutput){
@@ -173,7 +151,6 @@ class App extends Component {
         let color = this.state.usingWhite ? "white" : cvutils.calculateCurrentHSVString(colorRange)
         // If disco mode is on, use the current disco color
         if(this.state.discoMode){
-          console.log(this.state.discoHue)
           color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
         }
         //Draw trails
@@ -376,6 +353,9 @@ class App extends Component {
       'hv' :  1,
     }
     const hDiff = hsvRange['hh'] - hsvRange['lh']
+    hsvRange['ls'] = Math.min(hsvRange['ls'],.1)
+    hsvRange['lv'] = Math.min(hsvRange['lv'],.1)
+
     const minHDiff = 35
     if( hDiff < minHDiff && hsvRange['hh'] < 350){
       hsvRange['hh'] = hsvRange['hh'] + minHDiff - hDiff
@@ -590,11 +570,11 @@ class App extends Component {
             onTouchEnd={this.handleTouchEnd}
             onTouchMove={this.handleTouchEnd}
           ></canvas>
-          <Recorder recording={this.state.recording} canvasStream={this.state.canvasStream}/>
           <Camera 
             canvasOutput={this.canvasOutput} 
             isFacebookApp={this.state.isFacebookApp}
             startVideoProcessing={this.startVideoProcessing}
+            stopVideoProcessing={this.stopVideoProcessing}
           />
           {animationControls}
 

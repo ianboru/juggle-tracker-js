@@ -14,7 +14,11 @@ class Store {
   // ACTIONS
   //
   @computed get playingUploaded(){
-    return this.uploadedVideo.currentTime > 0 && !this.uploadedVideo.paused && !this.uploadedVideo.ended
+    if(this.uploadedVideo){
+      return this.uploadedVideo.currentTime > 0 && !this.uploadedVideo.paused && !this.uploadedVideo.ended
+    }else{
+      return false
+    }
   }
   @action setLiveVideo= (video) => {
     this.liveVideo = video

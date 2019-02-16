@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import { observer } from "mobx-react"
 import store from "./store"
+import Recorder from './recorder'
+import Terminal from 'terminal-in-react'
+const iOSDevice = !!navigator.platform.match(/iPhone|iPod|iPad/);
 
 @observer
 class Camera extends Component {
@@ -9,7 +12,9 @@ class Camera extends Component {
     streaming : false,
     videoHeight : null,
     videoWidth : null,
-    fileUploaded : true
+    fileUploaded : true,
+        recording : null,
+
   }
   componentDidMount(){
     if(!this.props.isFaceBookApp){
@@ -49,14 +54,21 @@ class Camera extends Component {
   }
   stopCamera=()=> {
     if (!this.state.streaming) return;
-    this.stopVideoProcessing();
+    this.props.stopVideoProcessing();
     this.props.canvasOutput.getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
     this.video.pause();
     this.video.srcObject=null;
     this.state.stream.getVideoTracks()[0].stop();
     this.state.streaming = false
   }
+  handleInputClick = ()=>{
+    if(iOSDevice){
+      alert("Video must be landscape or square.")
+    }
+    this.input.click()
+  }
   handleFile = ()=>{
+    
     let URL = window.URL || window.webkitURL
 
     let file = this.input.files[0]
@@ -76,7 +88,6 @@ class Camera extends Component {
       recordButton.textContent = 'Play Video';
     }else{
       this.uploadedVideo.play()
-      this.stopCamera()
       recordButton.textContent = 'Pause Video';
     }
   }
@@ -85,22 +96,43 @@ class Camera extends Component {
     const recordButton = document.querySelector('button#playUploadedButton');
     recordButton.textContent = 'Play Video';
   }
-
+ toggleRecording=()=>{
+    // Change the text on the record button
+    // User wants to record
+    if (!this.state.recording) {
+      // Capture the video stream, and set recording to true
+      this.setState({
+        canvasStream : this.props.canvasOutput.captureStream(),
+        recording : true
+      })
+    } else {
+      // Stop recording
+      this.setState({
+        canvasStream : null,
+        recording : false
+      })
+      // Stop the camera
+    }
+  }
   render(){
 
-    const fileButton = this.input ? <button style={{'fontSize':'12pt'}} onClick={()=>{this.input.click()}}>Upload Video</button> : null
+    const uploadFileButton = this.input ? <button style={{'fontSize':'12pt'}} onClick={this.handleInputClick}>Upload Video</button> : null
     let playUploadedButton
-    if(this.input){
+    if(store.uploadedVideo){
       playUploadedButton = this.state.fileUploaded ? <button style={{'fontSize':'12pt'}} id="playUploadedButton" onClick={this.handlePlayUploaded}>Play Video</button> : null
     }
+
+    const screenRecordText = iOSDevice ? "Record with iOS screen recording " : null
+    const recordingText = this.state.recording ? "Stop Recording" : "Start Recording"
+    const recordingButton = iOSDevice ? null : <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>{recordingText}</button>
 
     const videoControls =
       <div>
         <div style={{'marginBottom' :'10px'}}>
-          <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>Start Recording</button>
           <input className='invisible' type="file" accept="video/*" ref={ref => this.input = ref} onChange={this.handleFile}/>
-          {fileButton}
+          {uploadFileButton}
           {playUploadedButton}
+          {recordingButton}
         </div>
       </div>
 
@@ -109,6 +141,8 @@ class Camera extends Component {
       <span>
         <video hidden={true} muted playsInline autoPlay className="invisible live-video" ref={ref => this.video = ref}></video>
         <video hidden={true} muted playsInline autoPlay onEnded={this.handleVideoEnded}   className="invisible live-video" ref={ref => this.uploadedVideo = ref}></video>
+        <Recorder recording={this.state.recording} canvasStream={this.state.canvasStream}/>
+        <div style={{'color' : 'red'}} >{screenRecordText}</div>
         {videoControls}
       </span>
     )
