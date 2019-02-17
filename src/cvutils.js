@@ -55,7 +55,7 @@ function findBalls(src){
     // Minimum size of a contour to interpret as an object
     const sizeThreshold = 25
     // Maximum number of contours to interpret as objects
-    const maxNumContours = 15
+    const maxNumContours = 12
     // Initialize contour finding data
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();

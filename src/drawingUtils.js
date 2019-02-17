@@ -66,13 +66,6 @@ function drawConnections(context,positions, color){
   if(numObjects > 1){
     for(let i = 0; i < numObjects; ++i){
       for(let j = i+1; j < numObjects; ++j){
-        //Connect last ball to first ball if there are 3 or more objects
-        /*if(i == numObjects-1 && numObjects > 2){
-          nextBallIndex = 0
-        }else if(i == numObjects-1 && numObjects <= 2){
-          continue
-        }*/
-        //Draw
         if(
           positions[i] && positions[i]['x'].slice(-1).pop() != -1 &&
           positions[j] && positions[j]['x'].slice(-1).pop() != -1
@@ -93,7 +86,49 @@ function drawConnections(context,positions, color){
     }
   }
 }
+function drawLineGradient(x1,y1,x2,y2,color1,color2,context){
+  const thickness = 5
 
+  var grad= context.createLinearGradient(x1, y1, x2, y2);
+  //console.log("color", curColor, lastColor, color)
+  grad.addColorStop(0, color1);
+  grad.addColorStop(1, color2);
+  context.beginPath();
+  context.moveTo(x1, y1)
+  context.lineTo(x2, y2)
+  context.strokeStyle = grad
+  context.lineWidth = thickness;
+  context.stroke();
+}
+function drawAllConnections(context,allPositions, allColors){
+  const flattenedPositions = []
+  const flattenedPositionColors = []
+  for(let i = 0; i < allPositions.length; ++i){
+    for(let j = 0; j < allPositions[i].length; ++j){
+      if(allPositions[i][j].x.slice(-1).pop() != -1){
+        flattenedPositions.push(allPositions[i][j])
+        flattenedPositionColors.push(cvutils.calculateCurrentHSV(allColors[i]))
+      }
+    }
+  }
+  let lastObject = {}
+  let lastColor = {}
+  let firstColor
+  let curColor
+  let curObjectX ; let curObjectY ; let lastObjectX ; let lastObjectY;let firstObjectX; let firstObjectY
+  
+  for(let i = 0; i < flattenedPositions.length; ++i){
+    for(let j = i+1; j < flattenedPositions.length; ++j){
+        lastObjectX = flattenedPositions[i]['x'].slice(-1).pop()
+        lastObjectY = flattenedPositions[i]['y'].slice(-1).pop()
+        lastColor = flattenedPositionColors[i] 
+        curObjectX = flattenedPositions[j]['x'].slice(-1).pop()
+        curObjectY = flattenedPositions[j]['y'].slice(-1).pop() 
+        curColor = flattenedPositionColors[j] 
+        drawLineGradient(curObjectX,curObjectY,lastObjectX,lastObjectY, curColor, lastColor, context)
+    }
+  }
+}
 function drawStars(context,positions, existingStarsX, existingStarsY, existingStarsDx, existingStarsDy, existingStarsSize, existingStarsColor, discoColor){
 
   // Create some temporary lists
@@ -200,6 +235,7 @@ function fitVidToCanvas(canvas, imageObj){
 export default {
     drawTrails,
     drawConnections,
+    drawAllConnections,
     drawStars,
     drawSelectColorText,
     fitVidToCanvas

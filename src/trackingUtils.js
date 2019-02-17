@@ -1,6 +1,6 @@
 function updateBallHistories(contourPositions, colorNum, allPositions){
   // Maximum number of contours that will be interpreted as objects
-  const maxNumContours = 15
+  const maxNumContours = 12
   //Used to know how many contours to connect later
   let numContoursOverThreshold = 0
   //Catalogue the contour locations to draw later

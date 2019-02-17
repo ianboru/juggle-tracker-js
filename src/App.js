@@ -148,7 +148,7 @@ class App extends Component {
           cv.imshow('canvasOutput',colorFilteredImage)
         }
         // Get the color values for the object being tracked (white if usingWhite)
-        let color = this.state.usingWhite ? "white" : cvutils.calculateCurrentHSVString(colorRange)
+        let color = this.state.usingWhite ? "white" : cvutils.calculateCurrentHSV(colorRange)
         // If disco mode is on, use the current disco color
         if(this.state.discoMode){
           color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
@@ -169,6 +169,7 @@ class App extends Component {
           this.setState(newStars)
         }
       })
+
       // If the user is clicking and draging to select a color
       if(this.state.calibrationRect){
         //Draw color selection rectangle
@@ -353,11 +354,11 @@ class App extends Component {
       'hv' :  1,
     }
     const hDiff = hsvRange['hh'] - hsvRange['lh']
-    hsvRange['ls'] = Math.min(hsvRange['ls'],.1)
-    hsvRange['lv'] = Math.min(hsvRange['lv'],.1)
+    hsvRange['ls'] = Math.max(hsvRange['ls'],.1)
+    hsvRange['lv'] = Math.max(hsvRange['lv'],.1)
 
     const minHDiff = 35
-    if( hDiff < minHDiff && hsvRange['hh'] < 350){
+    if( hDiff < minHDiff && hsvRange['hh'] < 360 - minHDiff){
       hsvRange['hh'] = hsvRange['hh'] + minHDiff - hDiff
     }else if( hDiff < minHDiff && hsvRange['hh'] > 350){
       hsvRange['lh'] = hsvRange['lh'] - minHDiff + hDiff
@@ -466,7 +467,7 @@ class App extends Component {
             style={{
               'marginRight': '15px',
               'display':'inline-block',
-              'backgroundColor' : cvutils.calculateCurrentHSVString(colorRange,1),
+              'backgroundColor' : cvutils.calculateCurrentHSV(colorRange,1),
               'width' : '50px',
               'height' : '50px',
               'border' : borderString,

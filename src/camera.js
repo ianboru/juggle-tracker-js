@@ -62,7 +62,7 @@ class Camera extends Component {
   }
   handleInputClick = ()=>{
     if(iOSDevice){
-      alert("Video must be landscape or square.")
+      alert("Video recorded by iOS must be landscape or square.")
     }
     this.input.click()
   }
