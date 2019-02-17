@@ -84,6 +84,7 @@ class App extends Component {
   stopVideoProcessing = () =>{
     let src = this.state.src
     if (src != null && !src.isDeleted()) src.delete();
+    console.log("stopped video")
   }
 
   toggleWhiteMode=()=>{
@@ -105,17 +106,26 @@ class App extends Component {
 
   processVideo=()=> {
     if(this.canvasOutput){
+      let video
       const context = this.canvasOutput.getContext("2d")
       context.clearRect( 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight)
-      // Use the uploaded file
+      
       if(store.uploadedVideo){
+        // Use the uploaded file
+        video = store.uploadedVideo
         drawingUtils.fitVidToCanvas(this.canvasOutput, store.uploadedVideo)
-      // Use the webcam image
       }else{
+        // Use the webcam image
+        video = store.liveVideo
         context.drawImage(store.liveVideo, 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight);
       }
+      //Skip processing until video is fully loaded
+      if(video.videoWidth == 0){
+        requestAnimationFrame(this.processVideo);
+        return
+      }
       // Get the srcMat from the canvas
-      let srcMat = cvutils.getMatFromCanvas(context, store.liveVideo.videoWidth, store.liveVideo.videoHeight)
+      let srcMat = cvutils.getMatFromCanvas(context, video.videoWidth, video.videoHeight)
       // Flip horizontally because camera feed is pre-flipped
       if(!store.uploadedVideo){
         cv.flip(srcMat, srcMat,1)

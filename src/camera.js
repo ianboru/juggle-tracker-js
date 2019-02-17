@@ -55,10 +55,10 @@ class Camera extends Component {
     if (!this.state.streaming) return;
     this.props.stopVideoProcessing();
     this.props.canvasOutput.getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
-    this.video.pause();
     this.video.srcObject=null;
     this.state.stream.getVideoTracks()[0].stop();
     this.state.streaming = false
+    console.log("stopping camera")
   }
   handleInputClick = ()=>{
     if(iOSDevice){
@@ -77,6 +77,8 @@ class Camera extends Component {
     store.setUploadedVideo(this.uploadedVideo)
     this.setState({
       fileUploaded : true
+    },()=>{
+      this.stopCamera()
     })
   }
 
