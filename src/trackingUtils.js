@@ -41,6 +41,7 @@ function updateBallHistories(contourPositions, colorNum, allPositions){
       allPositions[colorNum][i]['r'].push(-1)
     }
   }
+  contourPositions = null
   return allPositions
 }
 function trimHistories(positions, trailLength){
@@ -59,6 +60,7 @@ function trimHistories(positions, trailLength){
       }
     })
   })
+  positions = null
   return histories
 }
 export default { 

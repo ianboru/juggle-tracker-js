@@ -141,16 +141,19 @@ class App extends Component {
       // Iterate through each color being tracked
       this.state.allColors.forEach((colorRange,colorNum)=>{
         // If colored balls are being used, use cvutils.colorfilter
+
         if(!this.state.usingWhite){
-          colorFilteredImage = cvutils.colorFilter(srcMat.clone(), colorRange)
+          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange)
         // If white balls are being used, use cvutils.colorWhite
         }else{
-          colorFilteredImage = cvutils.colorWhite(srcMat.clone(), colorRange)
+          colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
         }
         // Get the ball locations
-        const ballLocations = cvutils.findBalls(colorFilteredImage.clone())
+        const ballLocations = cvutils.findBalls(colorFilteredImage)
+
         // Update the tracking history
         this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
+
         // If in calibration mode
         if(!this.state.showRaw && colorNum == this.state.colorNum){
           // Initialize final canvas with the mask of the colors within the color ranges
@@ -194,9 +197,10 @@ class App extends Component {
       }
       //Trim histories to trail length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, this.state.trailLength)
+      
       //Clean up all possible data
       colorFilteredImage.delete();srcMat.delete()
-      srcMat = null; colorFilteredImage = null
+      colorFilteredImage = null; srcMat = null
       //Process next frame
       requestAnimationFrame(this.processVideo);
     }

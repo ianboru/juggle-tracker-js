@@ -33,7 +33,7 @@ function colorFilter(src, colorRange){
     // Find the colors that are within (low, high)
     cv.inRange(hsv, low, high, dst);
     low.delete();high.delete();
-    src.delete();temp.delete();hsv.delete();
+    temp.delete();hsv.delete();
     // Return the masked image (objects are white, background is black)
     return dst
 }
@@ -46,13 +46,13 @@ function colorWhite(src, colorRange){
     let dst = new cv.Mat();
     // You can try more different parameters
     cv.threshold(src, dst, Math.round(360*colorRange.tv/100), 255, cv.THRESH_BINARY);
-    src.delete();
     // Return the masked image (objects are white, background is black)
     return dst
 }
 
 function findBalls(src){
     // Minimum size of a contour to interpret as an object
+
     const sizeThreshold = 25
     // Maximum number of contours to interpret as objects
     const maxNumContours = 12
@@ -62,7 +62,7 @@ function findBalls(src){
     // Find contours - src is a frame filtered for the current color
     cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
     // Sort contours by size
-    const sortedContourIndices = this.sortContours(contours)
+    let sortedContourIndices = this.sortContours(contours)
     let contourPositions = []
     // Catalogue the contour locations to draw later
     if(sortedContourIndices.length > 0){
@@ -82,10 +82,11 @@ function findBalls(src){
             'r' : circle.radius,
           })
         }
+        contour.delete; 
       }
     }
     // Cleanup open cv objects
-    src.delete();contours.delete(); hierarchy.delete();
+    contours.delete(); hierarchy.delete();sortedContourIndices = null
     // Return list of contour positions and sizes
     return contourPositions
 }
@@ -141,7 +142,6 @@ function calculateRelativeCoord(e){
     }
 
     const bounds = e.target.getBoundingClientRect();
-    console.log(bounds.left, targetX, e.pageX, bounds.width)
     const x = targetX - bounds.left;
     const y = targetY - bounds.top;
     return [x,y]
