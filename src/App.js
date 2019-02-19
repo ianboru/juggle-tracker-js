@@ -34,18 +34,18 @@ class App extends Component {
     flippedFrame : null,
     startTime : Date.now(),
     // Color blue (initial value for hsv sliders)
-    lh : 180, ls : .2, lv : .2, hh : 230, hs : 1, hv : 1,
+    lh : 180, ls : .5, lv : .3, hh : 230, hs : 1, hv : 1,
     tv : cvutils.initialHSV.tv,
     net : null,
     allColors : [cvutils.initialHSV],
     colorNum : 0,
     positions : [],
     totalNumColors : 1,
-    showRaw : true,
+    showRaw : false,
     usingWhite : false,
     trailLength : 1,
     // Animation Controls (connctions, disco, and stars off, trails on)
-    showConnections:false, showStars:false, discoMode:false, showTrails:true,
+    showConnections:false, showStars:false, discoMode:false, showTrails:false,
     canvasStream : null,
     // Lists that contain data about stars
     starsX:[], starsY:[], starsDx:[], starsDy:[],starsSize:[], starsColor:[],
@@ -59,6 +59,10 @@ class App extends Component {
     discoTimer : null,
     discoColorNumber : 0,
     discoHue : 0,
+    blurSize : 1,
+    closeSize : 1,
+    normalizeRGB : false,
+    normalizeHSV : false,
   }
 
   componentDidMount=()=>{
@@ -143,7 +147,7 @@ class App extends Component {
         // If colored balls are being used, use cvutils.colorfilter
 
         if(!this.state.usingWhite){
-          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange)
+          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange, this.state.blurSize, this.state.closeSize, this.state.normalizeRGB, this.state.toggleNormalizeHSV)
         // If white balls are being used, use cvutils.colorWhite
         }else{
           colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
@@ -264,7 +268,16 @@ class App extends Component {
       trailLength : e.target.value
     })
   }
-
+  handleBlurSize=(e)=>{
+    this.setState({
+      blurSize : parseInt(e.target.value)
+    })
+  }
+  handleCloseSize=(e)=>{
+    this.setState({
+      closeSize : parseInt(e.target.value)
+    })
+  }
   toggleShowRaw=()=>{
     // Toggle the text on the button
     const calibrationButton = document.querySelector('button#calibration');
@@ -294,7 +307,16 @@ class App extends Component {
       showConnections : !this.state.showConnections
     })
   }
-
+  toggleNormalizeRGB=()=>{
+    this.setState({
+      normalizeRGB : !this.state.normalizeRGB
+    })
+  }
+  toggleNormalizeHSV=()=>{
+    this.setState({
+      normalizeHSV : !this.state.normalizeHSV
+    })
+  }
   toggleShowStars=()=>{
     // Toggle the text on the button
     const starsButton = document.querySelector('button#starsButton');
@@ -501,9 +523,19 @@ class App extends Component {
         <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="starsButton" onClick={this.toggleShowStars}>Show Stars</button>
         <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="discoModeButton" onClick={this.toggleDiscoMode}>Disco Mode</button>
         <br/>
+        <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.blurSize}/><label>Blur Size</label>
+        <input type="range" min={1} max={20} value={this.state.blurSize} onChange={this.handleBlurSize}/>
+        <br/>
+        <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.closeSize}/><label>Close Size</label>
+        <input type="range" min={1} max={50} value={this.state.closeSize} onChange={this.handleCloseSize}/>
+        <br/>
+        <button style={{'fontSize':'12pt'}}  onClick={this.toggleNormalizeRGB} >{this.state.normalizeRGB.toString()}</button>
+        <button style={{'fontSize':'12pt'}}  onClick={this.toggleNormalizeHSV} >{this.state.normalizeHSV.toString()}</button>
+
+        <br/>
         <div hidden={false} id="trailSlider">
           <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label>
-          <input  name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
+          <input type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
         </div>
       </div>
 

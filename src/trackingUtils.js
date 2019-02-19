@@ -25,7 +25,6 @@ function updateBallHistories(contourPositions, colorNum, allPositions){
       allPositions[colorNum][i]['y'].push(contourPositions[i].y)
       allPositions[colorNum][i]['r'].push(contourPositions[i].r)
     }
-    //allPositions[colorNum] = this.reorderNearestContours(allPositions[colorNum])
     allPositions[colorNum]["currentNumContours"] = numContoursOverThreshold
   }
   if(!allPositions[colorNum]){
@@ -49,14 +48,31 @@ function trimHistories(positions, trailLength){
   let histories = []
   positions.forEach((colorPositions, colorNum)=>{
     histories[colorNum] = []
+    let rejectedBalls = 0
     colorPositions.forEach((history,ballNum)=>{
-      histories[colorNum][ballNum] = []
+      //check if object hasn't been detected in a while
+      let keepBall = false
+      for(let i=0; i < Math.min(trailLength,history['x'].length);++i){
+        if(history['x'][i] != -1){
+          keepBall = true
+          break
+        }
+      }
+      //exit if object hasn't been detected in a while
+      if(!keepBall){
+        ++rejectedBalls
+        return
+      }
+      histories[colorNum][ballNum - rejectedBalls] = []
+
       if(history['x'].length > trailLength){
-        histories[colorNum][ballNum]['x'] = history['x'].slice(history['x'].length - 1 - trailLength, history['x'].length)
-        histories[colorNum][ballNum]['y'] = history['y'].slice(history['y'].length - 1 - trailLength, history['y'].length)
-        histories[colorNum][ballNum]['r'] = history['r'].slice(history['r'].length - 1 - trailLength, history['r'].length)
+        //reindex to replace rejected balls in array
+        histories[colorNum][ballNum - rejectedBalls]['x'] = history['x'].slice(history['x'].length - 1 - trailLength, history['x'].length)
+        histories[colorNum][ballNum - rejectedBalls]['y'] = history['y'].slice(history['y'].length - 1 - trailLength, history['y'].length)
+        histories[colorNum][ballNum - rejectedBalls]['r'] = history['r'].slice(history['r'].length - 1 - trailLength, history['r'].length)
+
       }else{
-        histories[colorNum][ballNum] = positions[colorNum][ballNum]
+        histories[colorNum][ballNum - rejectedBalls] = positions[colorNum][ballNum]
       }
     })
   })

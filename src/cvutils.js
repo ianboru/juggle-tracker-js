@@ -9,7 +9,7 @@ function getMatFromCanvas(context, width, height){
     imageData = null
     return srcMat
 }
-function colorFilter(src, colorRange){
+function colorFilter(src, colorRange, blurSize, closeSize,normalizeRGB,normalizeHSV){
     let dst = new cv.Mat();
     // Create a two new mat objects for the image in different color spaces
     let temp = new cv.Mat();
@@ -17,11 +17,21 @@ function colorFilter(src, colorRange){
     // Convert the RGBA source image to RGB
     cv.cvtColor(src, temp, cv.COLOR_RGBA2RGB)
     // Blur the temporary image
-    let ksize = new cv.Size(11,11);
+    let ksize = new cv.Size(blurSize,blurSize);
     let anchor = new cv.Point(-1, -1);
-    cv.blur(temp, temp, ksize, anchor, cv.BORDER_DEFAULT);
+    if(blurSize > 1){
+        cv.blur(temp, temp, ksize, anchor, cv.BORDER_DEFAULT);
+    }
     // Convert the RGB temporary image to HSV
+    if(normalizeRGB){
+        cv.normalize(temp, temp,0, 255, cv.NORM_MINMAX)
+    }
     cv.cvtColor(temp, hsv, cv.COLOR_RGB2HSV)
+    // Normalize
+    if(normalizeHSV){
+        cv.normalize(hsv, hsv,0, 255, cv.NORM_MINMAX, cv.CV_8UC1)
+    }
+
     // Get values for the color ranges from the trackbars
     let lowerHSV = htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
     lowerHSV.push(0)
@@ -32,6 +42,12 @@ function colorFilter(src, colorRange){
     let high = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), higherHSV);
     // Find the colors that are within (low, high)
     cv.inRange(hsv, low, high, dst);
+    // You can try more different parameters
+    if(closeSize > 1){
+        let M = cv.Mat.ones(closeSize, closeSize, cv.CV_8U);
+        cv.morphologyEx(dst, dst, cv.MORPH_CLOSE, M);
+    }
+
     low.delete();high.delete();
     temp.delete();hsv.delete();
     // Return the masked image (objects are white, background is black)
@@ -71,7 +87,6 @@ function filterOverlappingContours(contourPositions){
                             contourPositions[i],
                             contourPositions[j]
                             )
-        console.log(intersect)
         //set smaller intersecting contour to null
         if(intersect && contourPositions[i].r > contourPositions[j].r){
             contourPositions[j] = null
@@ -355,8 +370,8 @@ function hsvToRgb( H,  S,  V) {
 const initalTV = 55
 const initialHSV = {
       lh : 180,
-      ls : .2,
-      lv : .2,
+      ls : .5,
+      lv : .3,
       hh : 230,
       hs : 1,
       hv : 1,
