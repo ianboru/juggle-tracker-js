@@ -336,6 +336,11 @@ const initialHSV = {
       hv : 1,
       tv : initalTV,
     }
+const initialParams = {
+        connectionsThickness : 12,
+        colorOne : 123,
+        colorTwo : 21,
+}
 export default {
     RGBtoHSV,
     hsvToRgb,
@@ -351,5 +356,6 @@ export default {
     getColorFromImage,
     calculateRelativeCoord,
     initialHSV,
+    initialParams,
     getMatFromCanvas
 }

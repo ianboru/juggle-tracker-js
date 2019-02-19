@@ -6,6 +6,7 @@ import drawingUtils from './drawingUtils'
 import trackingUtils from './trackingUtils'
 import { HuePicker } from 'react-color';
 import ColorSliders from './colorSliders'
+import AnimationSliders from './animationSliders'
 import Recorder from './recorder'
 import Camera from './camera'
 import { MdHelp } from "react-icons/md"
@@ -46,6 +47,9 @@ class App extends Component {
     trailLength : 1,
     // Animation Controls (connctions, disco, and stars off, trails on)
     showConnections:false, showStars:false, discoMode:false, showTrails:true,
+    // Animation Parameters
+    colorOne:123, colorTwo:23, connectionsThickness:12,
+    animationParameters : [cvutils.initialParams],
     canvasStream : null,
     // Lists that contain data about stars
     starsX:[], starsY:[], starsDx:[], starsDy:[],starsSize:[], starsColor:[],
@@ -162,6 +166,8 @@ class App extends Component {
         }
         // Get the color values for the object being tracked (white if usingWhite)
         let color = this.state.usingWhite ? "white" : cvutils.calculateCurrentHSV(colorRange)
+        // Get the user's desired color
+        color = 'rgb(' + cvutils.hsvToRgb(this.state.colorOne, 100,100) + ')'
         // If disco mode is on, use the current disco color
         if(this.state.discoMode){
           color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
@@ -221,6 +227,46 @@ class App extends Component {
     })
   }
 
+  handleAnimationSliderChange=(e)=>{
+    // Log the slider change
+    console.log(e)
+    let state = this.state
+    state[e.name] =parseFloat(e.value)
+    this.setState({
+      state
+    },()=>{
+      this.setAnimationParams()
+    })
+  }
+
+  handleAnimationSliderChangesdf=(e)=>{
+    // Log the slider change
+    console.log(e.name, e.value, this.state.colorOne, this.state.colorTwo, this.state.connectionsThickness)
+    let state = this.state
+    let valName = e.name
+    state[e.name] =parseFloat(e.value)
+    if(valName=="colorOne"){
+    this.setState({
+      colorOne : e.value
+    },()=>{
+      this.setAnimationParams()
+    })}
+  }
+
+
+  setAnimationParams=()=>{
+    console.log('animationParameters')
+    let params = this.state.animationParameters
+    params = {
+      'colorOne' : this.state.colorOne,
+      'colorTwo' : this.state.colorTwo,
+      'connectionsThickness' : this.state.connectionsThickness
+    }
+    this.setState({
+      animationParameters : params
+    })
+  }
+
   setColorRange=()=>{
     let colorRanges = this.state.allColors
     colorRanges[this.state.colorNum] = {
@@ -235,7 +281,6 @@ class App extends Component {
     this.setState({
       allColors : colorRanges,
       pickedColor : cvutils.calculateCurrentHSV(colorRanges[this.state.colorNum])
-
     })
   }
 
@@ -561,10 +606,19 @@ class App extends Component {
                   hv : this.state.hv,
                   tv : this.state.tv
                 }
+    const AnimParams = {
+                  colorOne : this.state.colorOne,
+                  colorTwo : this.state.colorTwo,
+                  connectionsThickness : this.state.connectionsThickness
+                }
 
     const detectionControls =
       <div>
           <ColorSliders HSV = {HSV} usingWhite = {this.state.usingWhite} handleHSVSliderChange={this.handleHSVSliderChange}/>
+      </div>
+    const animationControlSliders =
+      <div>
+          <AnimationSliders AnimParams = {AnimParams} handleAnimationSliderChange={this.handleAnimationSliderChange}/>
       </div>
 
     const app =
@@ -591,7 +645,8 @@ class App extends Component {
             startVideoProcessing={this.startVideoProcessing}
             stopVideoProcessing={this.stopVideoProcessing}
           />
-          {animationControls}
+          {animationControls}          
+          {animationControlSliders}
 
       </div> : null
     // TOP LAYER
