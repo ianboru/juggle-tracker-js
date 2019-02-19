@@ -44,11 +44,10 @@ class App extends Component {
     totalNumColors : 1,
     showRaw : true,
     usingWhite : false,
-    trailLength : 1,
     // Animation Controls (connctions, disco, and stars off, trails on)
     showConnections:false, showStars:false, discoMode:false, showTrails:true,
     // Animation Parameters
-    colorOne:123, connectionsThickness:0,numStarsPerObject:0,starLife:0,
+    colorOne:123, connectionsThickness:0,numStarsPerObject:0,starLife:0,trailLength:1,discoIncrement:1,
     animationParameters : [cvutils.initialParams],
     canvasStream : null,
     // Lists that contain data about stars
@@ -171,6 +170,12 @@ class App extends Component {
         if(this.state.discoMode){
           color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
           currentColor = this.state.discoHue
+          // Update the disco hue so that the color changes
+          this.state.discoHue = this.state.discoHue + this.state.discoIncrement
+          // When the hue reaches 360, it goes back to zero (HSV colorspace loops)
+          if(this.state.discoHue>360){
+            this.state.discoHue = 0
+            }
         }
         //Draw trails
         if(this.state.showTrails){
@@ -240,13 +245,19 @@ class App extends Component {
   }
 
   setAnimationParams=()=>{
-    console.log('animationParameters')
+    console.log(this.state.showConnections)
     let params = this.state.animationParameters
     params = {
       'colorOne' : this.state.colorOne,
       'connectionsThickness' : this.state.connectionsThickness,
       'numStarsPerObject' : this.state.numStarsPerObject,
-      'starLife' : this.state.starLife
+      'starLife' : this.state.starLife,
+      'trailLength' : this.state.trailLength,
+      'showConnections' : this.state.showConnections,
+      'showTrails' : this.state.showTrails,
+      'showStars' : this.state.showStars,
+      'discoMode' : this.state.discoMode,
+      'discoIncrement' : this.state.discoIncrement
     }
     this.setState({
       animationParameters : params
@@ -314,29 +325,7 @@ class App extends Component {
       )
     }
   }
-
-  toggleShowConnections=()=>{
-    // Toggle the text on the button
-    const connectionsButton = document.querySelector('button#connections');
-    if (connectionsButton.textContent === 'Show Connections') {connectionsButton.textContent = 'Hide Connections';}
-    else {connectionsButton.textContent = 'Show Connections';}
-    // Change the state so that connections are shown or not
-    this.setState({
-      showConnections : !this.state.showConnections
-    })
-  }
-
-  toggleShowStars=()=>{
-    // Toggle the text on the button
-    const starsButton = document.querySelector('button#starsButton');
-    if (starsButton.textContent === 'Show Stars') {starsButton.textContent = 'Hide Stars';}
-    else {starsButton.textContent = 'Show Stars';}
-    // Change the state so that stars are shown or not
-    this.setState({
-      showStars : !this.state.showStars
-    })
-  }
-
+  
   changeDiscoColor=()=>{
     // Disco hue goes from 0 to 360 (rainbow)
     this.state.discoHue = this.state.discoHue + 4
@@ -344,36 +333,6 @@ class App extends Component {
     if(this.state.discoHue>360){
       this.state.discoHue = 0
     }
-  }
-
-  toggleDiscoMode=()=>{
-    // Disco color changes, so a timer is required
-    const discoInterval = 1
-    // Toggle the text on the button
-    const discoButton = document.querySelector('button#discoModeButton');
-    if (discoButton.textContent === 'Disco Mode') {discoButton.textContent = 'Stop Disco';}
-    else {discoButton.textContent = 'Disco Mode';}
-    // Update disco state and timer
-    if(this.state.discoTimer){clearInterval(this.state.discoColorNumber)}
-    this.setState({
-      discoMode : !this.state.discoMode,
-      discoTimer : setInterval(this.changeDiscoColor, discoInterval)
-    })
-  }
-
-  toggleShowTrails=()=>{
-    //Toggle the text on the trails button
-    const trailsButton = document.querySelector('button#trailsButton');
-    if (trailsButton.textContent === 'Show Trails') {trailsButton.textContent = 'Hide Trails';}
-    else {trailsButton.textContent = 'Show Trails';}
-    // Update the state
-    this.setState({
-      showTrails : !this.state.showTrails
-    },()=>{
-      // Hide the trail length slider
-      const slider = document.getElementById("trailSlider")
-      slider.hidden = !this.state.showTrails
-    })
   }
 
   showCalibrateHelp = (asdf) =>{
@@ -524,20 +483,6 @@ class App extends Component {
 
     })
 
-    const animationControls =
-      <div>
-        <h3 className="primary-header">Animation Effects</h3>
-        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="connections" onClick={this.toggleShowConnections}>Show Connections</button>
-        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="trailsButton" onClick={this.toggleShowTrails}>Hide Trails</button>
-        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="starsButton" onClick={this.toggleShowStars}>Show Stars</button>
-        <button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="discoModeButton" onClick={this.toggleDiscoMode}>Disco Mode</button>
-        <br/>
-        <div hidden={false} id="trailSlider">
-          <input style={{ "marginRight" : "10px", "width" : "30px"}} value={this.state.trailLength}/><label>Trail Length</label>
-          <input  name="ls" type="range" min={0} max={20} value={this.state.trailLength} onChange={this.handleTrailLength}/>
-        </div>
-      </div>
-
     const openInBrowser =
       this.state.isFacebookApp ? <div style={{fontSize : '16px'}}>
         Does Not Work in Instagram/Facebook Preview.
@@ -596,7 +541,13 @@ class App extends Component {
                   colorOne : this.state.colorOne,
                   connectionsThickness : this.state.connectionsThickness,
                   numStarsPerObject : this.state.numStarsPerObject,
-                  starLife : this.state.starLife
+                  starLife : this.state.starLife,
+                  trailLength : this.state.trailLength,
+                  showConnections : this.state.showConnections,
+                  showTrails : this.state.showTrails,
+                  showStars : this.state.showStars,
+                  discoMode : this.state.discoMode,
+                  discoIncrement : this.state.discoIncrement
                 }
 
     const detectionControls =
@@ -631,8 +582,7 @@ class App extends Component {
             isFacebookApp={this.state.isFacebookApp}
             startVideoProcessing={this.startVideoProcessing}
             stopVideoProcessing={this.stopVideoProcessing}
-          />
-          {animationControls}          
+          />          
           {animationControlSliders}
 
       </div> : null

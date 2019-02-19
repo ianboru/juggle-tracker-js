@@ -175,7 +175,7 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
       newStarsDy.push(existingStarsDy[i])
       // The star get smaller
       console.log(starLife)
-      newStarsSize.push(existingStarsSize[i]-starLife)
+      newStarsSize.push(existingStarsSize[i]-(1-starLife))
       // Preserve the color
       newStarsColor.push(existingStarsColor[i])
     }
