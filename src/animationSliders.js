@@ -33,16 +33,23 @@ class AnimationSliders extends Component {
 		}
 		this.props.handleAnimationSliderChange(target)
 	}
-	onColorTwoChange = (values) =>{
-		let target = {
-			name : 'colorTwo',
-			value : values
-		}
-		this.props.handleAnimationSliderChange(target)
-	}
 	onThickChange = (values) =>{
 		let target = {
 			name : 'connectionsThickness',
+			value : values
+		}
+		this.props.handleAnimationSliderChange(target)
+	} 
+	onStarsPerObjectChange = (values) =>{
+		let target = {
+			name : 'numStarsPerObject',
+			value : values
+		}
+		this.props.handleAnimationSliderChange(target)
+	}  
+	onStarLifeChange = (values) =>{
+		let target = {
+			name : 'starLife',
 			value : values
 		}
 		this.props.handleAnimationSliderChange(target)
@@ -51,9 +58,10 @@ class AnimationSliders extends Component {
 	render() {
 		const sliders = 
 			<div style={wrapperStyle}>
-				<div style={{"width": "80px", "display" :"inline-block"}}>ColorOne</div><Slider className="hue-slider" min={0} max={180} step={1} value={this.props.colorOne} handle={handle} onChange={this.onColorOneChange} />
-				<div style={{"width": "80px", "display" :"inline-block"}}>ColorTwo</div><Slider className="hue-slider" min={0} max={180} step={1} value={this.props.colorTwo}  handle={handle} onChange={this.onColorTwoChange}/>
-				<div style={{"width": "80px", "display" :"inline-block"}}>Thickness</div><Slider min={0} max={25} step={1} value={this.props.connectionsThickness}  handle={handle} onChange={this.onThickChange}/>
+				<div style={{"width": "80px", "display" :"inline-block"}}>ColorOne</div><Slider className="hue-slider" min={0} max={360} step={1} defaultvalue={this.props.colorOne} handle={handle} onChange={this.onColorOneChange} />
+				<div style={{"width": "80px", "display" :"inline-block"}}>Thickness</div><Slider min={0} max={25} step={1} defaultvalue={this.props.connectionsThickness}  handle={handle} onChange={this.onThickChange}/>
+				<div style={{"width": "80px", "display" :"inline-block"}}>numStarsPerObject</div><Slider min={1} max={100} step={1} defaultvalue={this.props.numStarsPerObject}  handle={handle} onChange={this.onStarsPerObjectChange}/>
+				<div style={{"width": "80px", "display" :"inline-block"}}>starLife</div><Slider min={0} max={1} step={.01} defaultvalue={this.props.starLife}  handle={handle} onChange={this.onStarLifeChange}/>
 			</div>
 
 		return (

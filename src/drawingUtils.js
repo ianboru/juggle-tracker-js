@@ -56,8 +56,7 @@ function drawTrails(context, contourPositions, color, trailLength){
   }
 }
 
-function drawConnections(context,positions, color){
-  const thickness = 3
+function drawConnections(context,positions, color, thickness){
   if(!positions){
     return
   }
@@ -129,7 +128,7 @@ function drawAllConnections(context,allPositions, allColors){
     }
   }
 }
-function drawStars(context,positions, existingStarsX, existingStarsY, existingStarsDx, existingStarsDy, existingStarsSize, existingStarsColor, discoColor){
+function drawStars(context,positions, existingStarsX, existingStarsY, existingStarsDx, existingStarsDy, existingStarsSize, existingStarsColor, discoColor, numStarsPerObject, starLife){
 
   // Create some temporary lists
   let newStarsX = []
@@ -138,8 +137,6 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
   let newStarsDy = []
   let newStarsSize = []
   let newStarsColor = []
-  // Number of stars created for each object detected
-  const numStarsPerObject = 8
   // If data exists for this object, proceed
   if(positions){
     // Iterate though each contour for this color
@@ -152,7 +149,7 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
         // Get the radius
         const r = positions[i]['r'].slice(-1).pop()
         // Create some stars
-        for (let numStars=0; numStars<numStarsPerObject; numStars++){
+        for (let numStars=0; numStars<numStarsPerObject+1; numStars++){
           // A star is born!
           newStarsX.push(x + (.5-Math.random())*r) // Around the xy coordinate
           newStarsY.push(y + (.5-Math.random())*r)
@@ -177,7 +174,8 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
       newStarsDx.push(existingStarsDx[i])
       newStarsDy.push(existingStarsDy[i])
       // The star get smaller
-      newStarsSize.push(existingStarsSize[i]-.2)
+      console.log(starLife)
+      newStarsSize.push(existingStarsSize[i]-starLife)
       // Preserve the color
       newStarsColor.push(existingStarsColor[i])
     }

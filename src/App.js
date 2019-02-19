@@ -48,7 +48,7 @@ class App extends Component {
     // Animation Controls (connctions, disco, and stars off, trails on)
     showConnections:false, showStars:false, discoMode:false, showTrails:true,
     // Animation Parameters
-    colorOne:123, colorTwo:23, connectionsThickness:12,
+    colorOne:123, connectionsThickness:0,numStarsPerObject:0,starLife:0,
     animationParameters : [cvutils.initialParams],
     canvasStream : null,
     // Lists that contain data about stars
@@ -165,12 +165,12 @@ class App extends Component {
           cv.imshow('canvasOutput',colorFilteredImage)
         }
         // Get the color values for the object being tracked (white if usingWhite)
-        let color = this.state.usingWhite ? "white" : cvutils.calculateCurrentHSV(colorRange)
-        // Get the user's desired color
-        color = 'rgb(' + cvutils.hsvToRgb(this.state.colorOne, 100,100) + ')'
+        let color = 'rgb(' + cvutils.hsvToRgb(this.state.colorOne, 100,100) + ')'
+        let currentColor = this.state.colorOne
         // If disco mode is on, use the current disco color
         if(this.state.discoMode){
           color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
+          currentColor = this.state.discoHue
         }
         //Draw trails
         if(this.state.showTrails){
@@ -178,12 +178,12 @@ class App extends Component {
         }
         // Draw connections
         if(this.state.showConnections){
-          drawingUtils.drawConnections(context, this.state.positions[colorNum], color)
+          drawingUtils.drawConnections(context, this.state.positions[colorNum], color, this.state.connectionsThickness)
         }
         // Draw Stars
         if(this.state.showStars){
           // Draw the stars. Get the updated stars' positions.
-          const newStars = drawingUtils.drawStars(context, this.state.positions[colorNum],this.state.starsX,this.state.starsY,this.state.starsDx,this.state.starsDy,this.state.starsSize,this.state.starsColor,this.state.discoHue)
+          const newStars = drawingUtils.drawStars(context, this.state.positions[colorNum],this.state.starsX,this.state.starsY,this.state.starsDx,this.state.starsDy,this.state.starsSize,this.state.starsColor,currentColor, this.state.numStarsPerObject, this.state.starLife)
           // Update the global stars variable
           this.setState(newStars)
         }
@@ -244,8 +244,9 @@ class App extends Component {
     let params = this.state.animationParameters
     params = {
       'colorOne' : this.state.colorOne,
-      'colorTwo' : this.state.colorTwo,
-      'connectionsThickness' : this.state.connectionsThickness
+      'connectionsThickness' : this.state.connectionsThickness,
+      'numStarsPerObject' : this.state.numStarsPerObject,
+      'starLife' : this.state.starLife
     }
     this.setState({
       animationParameters : params
@@ -591,10 +592,11 @@ class App extends Component {
                   hv : this.state.hv,
                   tv : this.state.tv
                 }
-    const AnimParams = {
+    const AnimationParameters = {
                   colorOne : this.state.colorOne,
-                  colorTwo : this.state.colorTwo,
-                  connectionsThickness : this.state.connectionsThickness
+                  connectionsThickness : this.state.connectionsThickness,
+                  numStarsPerObject : this.state.numStarsPerObject,
+                  starLife : this.state.starLife
                 }
 
     const detectionControls =
@@ -603,7 +605,7 @@ class App extends Component {
       </div>
     const animationControlSliders =
       <div>
-          <AnimationSliders AnimParams = {AnimParams} handleAnimationSliderChange={this.handleAnimationSliderChange}/>
+          <AnimationSliders AnimationParameters = {AnimationParameters} handleAnimationSliderChange={this.handleAnimationSliderChange}/>
       </div>
 
     const app =
