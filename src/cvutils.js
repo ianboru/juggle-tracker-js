@@ -23,9 +23,9 @@ function colorFilter(src, colorRange){
     // Convert the RGB temporary image to HSV
     cv.cvtColor(temp, hsv, cv.COLOR_RGB2HSV)
     // Get values for the color ranges from the trackbars
-    let lowerHSV = this.htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
+    let lowerHSV = htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
     lowerHSV.push(0)
-    let higherHSV = this.htmlToOpenCVHSV([colorRange.hh, colorRange.hs, colorRange.hv])
+    let higherHSV = htmlToOpenCVHSV([colorRange.hh, colorRange.hs, colorRange.hv])
     higherHSV.push(255)
     // Create the new mat objects that are the lower and upper ranges of the color
     let low = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), lowerHSV);
@@ -49,7 +49,44 @@ function colorWhite(src, colorRange){
     // Return the masked image (objects are white, background is black)
     return dst
 }
-
+function checkCircleIntersection(circle1,circle2){
+    const dist = Math.pow(
+                    Math.pow(circle1.x-circle2.x,2) +
+                    Math.pow(circle1.y-circle2.y,2)
+                ,.5)
+    if(dist <= circle1.r + circle2.r){
+        return true
+    }else{
+        return false
+    }
+}
+function filterOverlappingContours(contourPositions){
+    const filteredContourPositions = []
+    for(let i = 0; i < contourPositions.length; ++i){
+      for(let j = i+1; j < contourPositions.length; ++j){
+        if(!contourPositions[i]|| !contourPositions[j]){
+            continue
+        }
+        const intersect = checkCircleIntersection(
+                            contourPositions[i],
+                            contourPositions[j]
+                            )
+        console.log(intersect)
+        //set smaller intersecting contour to null
+        if(intersect && contourPositions[i].r > contourPositions[j].r){
+            contourPositions[j] = null
+        }else if(intersect && contourPositions[i].r > contourPositions[j].r){
+            contourPositions[i] = null
+        }
+      } 
+    }
+    contourPositions.forEach((position)=>{
+        if(position){
+            filteredContourPositions.push(position)
+        }
+    })
+    return filteredContourPositions
+}
 function findBalls(src){
     // Minimum size of a contour to interpret as an object
 
@@ -60,19 +97,17 @@ function findBalls(src){
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
     // Find contours - src is a frame filtered for the current color
-    cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
-    // Sort contours by size
-    let sortedContourIndices = this.sortContours(contours)
+    cv.findContours(src, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
     let contourPositions = []
     // Catalogue the contour locations to draw later
-    if(sortedContourIndices.length > 0){
-      // Iterate though the largest contours
-      for(let i = 0; i < Math.min(sortedContourIndices.length, maxNumContours); ++i){
+    // Iterate though the largest contours
+      let contourNum = 0
+      for (let i = 0; i < contours.size(); ++i) {
         // Find the contour area
-        const contour = contours.get(sortedContourIndices[i])
+        const contour = contours.get(i)
         const contourArea = cv.contourArea(contour)
         //Check if contour is big enough to be a real object
-        if(contourArea > sizeThreshold){
+        if(contourArea > sizeThreshold && contourPositions.length < maxNumContours){
           // Use circle to get x,y coordinates and radius
           const circle = cv.minEnclosingCircle(contour)
           // Push the coordinates of the contour and the radius to the list of objects
@@ -82,11 +117,15 @@ function findBalls(src){
             'r' : circle.radius,
           })
         }
+        ++contourNum
         contour.delete; 
       }
+    
+    if(contourPositions.length > 0){
+        contourPositions = filterOverlappingContours(contourPositions)
     }
     // Cleanup open cv objects
-    contours.delete(); hierarchy.delete();sortedContourIndices = null
+    contours.delete(); hierarchy.delete();
     // Return list of contour positions and sizes
     return contourPositions
 }
@@ -106,19 +145,6 @@ function htmlToOpenCVHSV(htmlHSV){
     openCVHSV[2] = openCVHSV[2] * 255
     return openCVHSV
   }
-
-function sortContours(contours){
-    let contourAreas = []
-    for (let i = 0; i < contours.size(); ++i) {
-      const contourArea = cv.contourArea(contours.get(i), false)
-      contourAreas.push(contourArea)
-    }
-    const len = contourAreas.length
-    var indices = new Array(len);
-    for (let i = 0; i < len; ++i) indices[i] = i;
-    indices.sort(function (a, b) { return contourAreas[a] > contourAreas[b] ? -1 : contourAreas[a] > contourAreas[b] ? 1 : 0; });
-    return indices
-}
 
 function mean(x,y){
     return (x + y)/2
@@ -344,7 +370,6 @@ export default {
     calculateCurrentHSVString,
     htmlToOpenCVHSV,
     mean,
-    sortContours,
     colorFilter,
     colorWhite,
     findBalls,
