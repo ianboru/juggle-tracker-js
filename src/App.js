@@ -239,21 +239,6 @@ class App extends Component {
     })
   }
 
-  handleAnimationSliderChangesdf=(e)=>{
-    // Log the slider change
-    console.log(e.name, e.value, this.state.colorOne, this.state.colorTwo, this.state.connectionsThickness)
-    let state = this.state
-    let valName = e.name
-    state[e.name] =parseFloat(e.value)
-    if(valName=="colorOne"){
-    this.setState({
-      colorOne : e.value
-    },()=>{
-      this.setAnimationParams()
-    })}
-  }
-
-
   setAnimationParams=()=>{
     console.log('animationParameters')
     let params = this.state.animationParameters

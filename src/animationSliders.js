@@ -29,21 +29,21 @@ class AnimationSliders extends Component {
 	onColorOneChange = (values) =>{
 		let target = {
 			name : 'colorOne',
-			value : values[1]
+			value : values
 		}
 		this.props.handleAnimationSliderChange(target)
 	}
 	onColorTwoChange = (values) =>{
 		let target = {
 			name : 'colorTwo',
-			value : values[1]
+			value : values
 		}
 		this.props.handleAnimationSliderChange(target)
 	}
 	onThickChange = (values) =>{
 		let target = {
 			name : 'connectionsThickness',
-			value : values[1]
+			value : values
 		}
 		this.props.handleAnimationSliderChange(target)
 	} 
@@ -51,9 +51,9 @@ class AnimationSliders extends Component {
 	render() {
 		const sliders = 
 			<div style={wrapperStyle}>
-				<div style={{"width": "80px", "display" :"inline-block"}}>ColorOne</div><Range className="hue-slider" min={0} max={180} step={1} value={this.props.colorOne} handle={handle} onChange={this.onColorOneChange} />
-				<div style={{"width": "80px", "display" :"inline-block"}}>ColorTwo</div><Range className="hue-slider" min={0} max={180} step={1} value={this.props.colorTwo}  handle={handle} onChange={this.onColorTwoChange}/>
-				<div style={{"width": "80px", "display" :"inline-block"}}>Thickness</div><Range min={0} max={25} step={1} value={this.props.connectionsThickness}  handle={handle} onChange={this.onThickChange}/>
+				<div style={{"width": "80px", "display" :"inline-block"}}>ColorOne</div><Slider className="hue-slider" min={0} max={180} step={1} value={this.props.colorOne} handle={handle} onChange={this.onColorOneChange} />
+				<div style={{"width": "80px", "display" :"inline-block"}}>ColorTwo</div><Slider className="hue-slider" min={0} max={180} step={1} value={this.props.colorTwo}  handle={handle} onChange={this.onColorTwoChange}/>
+				<div style={{"width": "80px", "display" :"inline-block"}}>Thickness</div><Slider min={0} max={25} step={1} value={this.props.connectionsThickness}  handle={handle} onChange={this.onThickChange}/>
 			</div>
 
 		return (
