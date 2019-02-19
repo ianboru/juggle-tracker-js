@@ -11,25 +11,22 @@ function getMatFromCanvas(context, width, height){
 }
 function colorFilter(src, colorRange, blurSize, closeSize,normalizeRGB,normalizeHSV){
     let dst = new cv.Mat();
-    // Create a two new mat objects for the image in different color spaces
-    let temp = new cv.Mat();
-    let hsv = new cv.Mat();
-    // Convert the RGBA source image to RGB
-    cv.cvtColor(src, temp, cv.COLOR_RGBA2RGB)
+
+    cv.cvtColor(src, dst, cv.COLOR_RGBA2RGB)
     // Blur the temporary image
     let ksize = new cv.Size(blurSize,blurSize);
     let anchor = new cv.Point(-1, -1);
     if(blurSize > 1){
-        cv.blur(temp, temp, ksize, anchor, cv.BORDER_DEFAULT);
+        cv.blur(dst, dst, ksize, anchor, cv.BORDER_DEFAULT);
     }
     // Convert the RGB temporary image to HSV
     if(normalizeRGB){
-        cv.normalize(temp, temp,0, 255, cv.NORM_MINMAX)
+        cv.normalize(dst, dst,0, 255, cv.NORM_MINMAX)
     }
-    cv.cvtColor(temp, hsv, cv.COLOR_RGB2HSV)
+    cv.cvtColor(dst, dst, cv.COLOR_RGB2HSV)
     // Normalize
     if(normalizeHSV){
-        cv.normalize(hsv, hsv,0, 255, cv.NORM_MINMAX, cv.CV_8UC1)
+        cv.normalize(dst, dst,0, 255, cv.NORM_MINMAX, cv.CV_8UC1)
     }
 
     // Get values for the color ranges from the trackbars
@@ -38,10 +35,10 @@ function colorFilter(src, colorRange, blurSize, closeSize,normalizeRGB,normalize
     let higherHSV = htmlToOpenCVHSV([colorRange.hh, colorRange.hs, colorRange.hv])
     higherHSV.push(255)
     // Create the new mat objects that are the lower and upper ranges of the color
-    let low = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), lowerHSV);
-    let high = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), higherHSV);
+    let low = new cv.Mat(dst.rows, dst.cols, dst.type(), lowerHSV);
+    let high = new cv.Mat(dst.rows, dst.cols, dst.type(), higherHSV);
     // Find the colors that are within (low, high)
-    cv.inRange(hsv, low, high, dst);
+    cv.inRange(dst, low, high, dst);
     // You can try more different parameters
     if(closeSize > 1){
         let M = cv.Mat.ones(closeSize, closeSize, cv.CV_8U);
@@ -49,7 +46,6 @@ function colorFilter(src, colorRange, blurSize, closeSize,normalizeRGB,normalize
     }
 
     low.delete();high.delete();
-    temp.delete();hsv.delete();
     // Return the masked image (objects are white, background is black)
     return dst
 }
