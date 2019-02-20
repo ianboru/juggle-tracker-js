@@ -45,6 +45,8 @@ class Camera extends Component {
           that.video.setAttribute("width", videoWidth);
           that.video.setAttribute("height", videoHeight);
           that.state.streaming = true 
+          store.setVideoDimensions(that.video.videoWidth, that.video.videoHeight)
+
           that.state.videoWidth = videoWidth
           that.state.videoHeight = videoHeight
         }
@@ -53,7 +55,6 @@ class Camera extends Component {
   }
   stopCamera=()=> {
     if (!this.state.streaming) return;
-    this.props.stopVideoProcessing();
     this.props.canvasOutput.getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
     this.video.srcObject=null;
     this.state.stream.getVideoTracks()[0].stop();

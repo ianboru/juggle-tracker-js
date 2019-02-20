@@ -29,7 +29,6 @@ const isMobile = true ?  /Mobi|Android/i.test(navigator.userAgent) : false
 class App extends Component {
 
   state = {
-    src : null,
     dst : null,
     flippedFrame : null,
     startTime : Date.now(),
@@ -81,14 +80,7 @@ class App extends Component {
   startVideoProcessing=()=> {
     //Fix for firefox to have context available
     const context = this.canvasOutput.getContext("2d")
-    this.stopVideoProcessing();
     requestAnimationFrame(this.processVideo);
-  }
-
-  stopVideoProcessing = () =>{
-    let src = this.state.src
-    if (src != null && !src.isDeleted()) src.delete();
-    console.log("stopped video")
   }
 
   toggleWhiteMode=()=>{
@@ -110,26 +102,26 @@ class App extends Component {
 
   processVideo=()=> {
     if(this.canvasOutput){
-      let video
-      const context = this.canvasOutput.getContext("2d")
-      context.clearRect( 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight)
-      
-      if(store.uploadedVideo){
-        // Use the uploaded file
-        video = store.uploadedVideo
-        drawingUtils.fitVidToCanvas(this.canvasOutput, store.uploadedVideo)
-      }else{
-        // Use the webcam image
-        video = store.liveVideo
-        context.drawImage(store.liveVideo, 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight);
-      }
       //Skip processing until video is fully loaded
-      if(video.videoWidth == 0){
+      if(store.videoWidth == 0){
         requestAnimationFrame(this.processVideo);
         return
       }
+      let video
+      const context = this.canvasOutput.getContext("2d")
+      context.clearRect( 0, 0, store.videoWidth, store.videoHeight)
+      
+      if(store.uploadedVideo){
+        // Use the uploaded file
+        drawingUtils.fitVidToCanvas(this.canvasOutput, store.uploadedVideo)
+      }else{
+        // Use the webcam image
+        context.drawImage(store.liveVideo, 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight);
+      }
+      
+
       // Get the srcMat from the canvas
-      let srcMat = cvutils.getMatFromCanvas(context, video.videoWidth, video.videoHeight)
+      let srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
       // Flip horizontally because camera feed is pre-flipped
       if(!store.uploadedVideo){
         cv.flip(srcMat, srcMat,1)
@@ -212,7 +204,6 @@ class App extends Component {
 
   handleHSVSliderChange=(e)=>{
     // Log the slider change
-    console.log(e)
     let state = this.state
     state[e.name] =parseFloat(e.value)
     this.setState({
@@ -621,7 +612,6 @@ class App extends Component {
             canvasOutput={this.canvasOutput} 
             isFacebookApp={this.state.isFacebookApp}
             startVideoProcessing={this.startVideoProcessing}
-            stopVideoProcessing={this.stopVideoProcessing}
           />
           {animationControls}
 
