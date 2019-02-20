@@ -5,6 +5,10 @@ import 'rc-tooltip/assets/bootstrap.css';
 import 'rc-slider/assets/index.css';
 import cvutils from './cvutils'
 import './colorSliders.css'
+import store from './store'
+import { observer } from 'mobx-react'
+import { toJS } from 'mobx'
+
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -24,44 +28,22 @@ const handle = (props) => {
   );
 };
 
+@observer
 class ColorSliders extends Component {
 
 	onHChange = (values) =>{
-		let target = {
-			name : 'lh',
-			value : values[0]
-		}
-		this.props.handleHSVSliderChange(target)
-		target = {
-			name : 'hh',
-			value : values[1]
-		}
-		this.props.handleHSVSliderChange(target)
+		store.setHSVValue('lh', values[0])
+		store.setHSVValue('hh', values[1])
 	}
 	onSChange = (values) =>{
-		let target = {
-			name : 'ls',
-			value : values[0]
-		}
-		this.props.handleHSVSliderChange(target)
-		target = {
-			name : 'hs',
-			value : values[1]
-		}
-		this.props.handleHSVSliderChange(target)
+		store.setHSVValue('ls', values[0])
+		store.setHSVValue('hs', values[1])
 	}
 	onVChange = (values) =>{
-		let target = {
-			name : 'lv',
-			value : values[0]
-		}
-		this.props.handleHSVSliderChange(target)
-		target = {
-			name : 'hv',
-			value : values[1]
-		}
-		this.props.handleHSVSliderChange(target)
+		store.setHSVValue('lv', values[0])
+		store.setHSVValue('hv', values[1])
 	}
+
 	onBrightnessChange = (value) =>{
 		const target = {
 			name : "tv",
@@ -78,9 +60,9 @@ class ColorSliders extends Component {
 				</div> 
 					:
 				<div style={wrapperStyle}>
-					<div style={{"width": "80px", "display" :"inline-block"}}>Hue</div><Range className="hue-slider" allowCross={false} min={0} max={360} step={1} value={[this.props.HSV.lh,this.props.HSV.hh]} handle={handle} onChange={this.onHChange} />
-					<div style={{"width": "80px", "display" :"inline-block"}}>Saturation</div><Range allowCross={false} min={0} max={1} step={.01} value={[this.props.HSV.ls,this.props.HSV.hs]}  handle={handle} onChange={this.onSChange}/>
-					<div style={{"width": "80px", "display" :"inline-block"}}>Brightness</div><Range allowCross={false}  min={0} max={1} step={.01} value={[this.props.HSV.lv,this.props.HSV.hv]}  handle={handle} onChange={this.onVChange} />
+					<div style={{"width": "80px", "display" :"inline-block"}}>Hue</div><Range className="hue-slider" allowCross={false} min={0} max={360} step={1} value={[store.filterHSV.lh,store.filterHSV.hh]} handle={handle} onChange={this.onHChange} />
+					<div style={{"width": "80px", "display" :"inline-block"}}>Saturation</div><Range allowCross={false} min={0} max={1} step={.01} value={[store.filterHSV.ls,store.filterHSV.hs]}  handle={handle} onChange={this.onSChange}/>
+					<div style={{"width": "80px", "display" :"inline-block"}}>Brightness</div><Range allowCross={false}  min={0} max={1} step={.01} value={[store.filterHSV.lv,store.filterHSV.hv]}  handle={handle} onChange={this.onVChange} />
 				</div>
 
 		return (

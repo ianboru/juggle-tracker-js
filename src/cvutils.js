@@ -10,6 +10,7 @@ function getMatFromCanvas(context, width, height){
     return srcMat
 }
 function colorFilter(src, colorRange, blurSize, closeSize,normalizeRGB,normalizeHSV){
+
     let dst = new cv.Mat();
 
     cv.cvtColor(src, dst, cv.COLOR_RGBA2RGB)
@@ -50,9 +51,9 @@ function colorFilter(src, colorRange, blurSize, closeSize,normalizeRGB,normalize
     return dst
 }
 
-function colorWhite(src, colorRange){
+function colorWhite(src, colorRange, blurAmount){
     cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-    let ksize = new cv.Size(20,20);
+    let ksize = new cv.Size(blurAmount,blurAmount);
     let anchor = new cv.Point(-1, -1);
     cv.blur(src, src, ksize, anchor, cv.BORDER_DEFAULT);
     let dst = new cv.Mat();
@@ -98,10 +99,8 @@ function filterOverlappingContours(contourPositions){
     })
     return filteredContourPositions
 }
-function findBalls(src){
-    // Minimum size of a contour to interpret as an object
 
-    const sizeThreshold = 25
+function findBalls(src, sizeThreshold){
     // Maximum number of contours to interpret as objects
     const maxNumContours = 12
     // Initialize contour finding data
@@ -364,6 +363,7 @@ function hsvToRgb( H,  S,  V) {
         }
 
 const initalTV = 55
+
 const initialHSV = {
       lh : 180,
       ls : .5,
@@ -373,6 +373,17 @@ const initialHSV = {
       hv : 1,
       tv : initalTV,
     }
+
+const initialAnimationParameters = {
+        connectionsThickness : 12,
+        colorOne : 123,
+        colorTwo : 21,
+}
+
+const initialDetectionParameters = {
+        blurAmount : 1,
+}
+
 export default {
     RGBtoHSV,
     hsvToRgb,
@@ -387,5 +398,7 @@ export default {
     getColorFromImage,
     calculateRelativeCoord,
     initialHSV,
+    initialAnimationParameters,
+    initialDetectionParameters,
     getMatFromCanvas
 }

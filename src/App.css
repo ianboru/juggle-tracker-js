@@ -33,6 +33,16 @@ button {
   font-size: 16px;
   color : #787878;
 }
+.video-container{
+  position : relative;
+}
+.detection-controls, .canvas{
+  position : absolute;
+}
+.detection-controls{
+    z-index : 50;
+    top : 0;
+}
 canvas{
   display: block; 
   margin : 0 auto;
@@ -61,6 +71,7 @@ canvas{
     height: auto;
   }
 }
+
 .live-video{
   width: 100%;
   height: auto;
