@@ -9,7 +9,7 @@ function getMatFromCanvas(context, width, height){
     imageData = null
     return srcMat
 }
-function colorFilter(src, colorRange){
+function colorFilter(src, colorRange, blurAmount){
     let dst = new cv.Mat();
     // Create a two new mat objects for the image in different color spaces
     let temp = new cv.Mat();
@@ -17,7 +17,7 @@ function colorFilter(src, colorRange){
     // Convert the RGBA source image to RGB
     cv.cvtColor(src, temp, cv.COLOR_RGBA2RGB)
     // Blur the temporary image
-    let ksize = new cv.Size(11,11);
+    let ksize = new cv.Size(blurAmount,blurAmount);
     let anchor = new cv.Point(-1, -1);
     cv.blur(temp, temp, ksize, anchor, cv.BORDER_DEFAULT);
     // Convert the RGB temporary image to HSV
@@ -38,9 +38,9 @@ function colorFilter(src, colorRange){
     return dst
 }
 
-function colorWhite(src, colorRange){
+function colorWhite(src, colorRange, blurAmount){
     cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-    let ksize = new cv.Size(20,20);
+    let ksize = new cv.Size(blurAmount,blurAmount);
     let anchor = new cv.Point(-1, -1);
     cv.blur(src, src, ksize, anchor, cv.BORDER_DEFAULT);
     let dst = new cv.Mat();
@@ -50,10 +50,9 @@ function colorWhite(src, colorRange){
     return dst
 }
 
-function findBalls(src){
-    // Minimum size of a contour to interpret as an object
-
-    const sizeThreshold = 25
+function findBalls(src, sizeThreshold){
+    console.log('size threshold', sizeThreshold);
+    // Minimum size of a contour to interpret as an object - sizeThreshold
     // Maximum number of contours to interpret as objects
     const maxNumContours = 12
     // Initialize contour finding data
@@ -327,6 +326,7 @@ function hsvToRgb( H,  S,  V) {
         }
 
 const initalTV = 55
+
 const initialHSV = {
       lh : 180,
       ls : .2,
@@ -336,11 +336,17 @@ const initialHSV = {
       hv : 1,
       tv : initalTV,
     }
-const initialParams = {
+
+const initialAnimationParameters = {
         connectionsThickness : 12,
         colorOne : 123,
         colorTwo : 21,
 }
+
+const initialDetectionParameters = {
+        blurAmount : 1,
+}
+
 export default {
     RGBtoHSV,
     hsvToRgb,
@@ -356,6 +362,7 @@ export default {
     getColorFromImage,
     calculateRelativeCoord,
     initialHSV,
-    initialParams,
+    initialAnimationParameters,
+    initialDetectionParameters,
     getMatFromCanvas
 }

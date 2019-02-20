@@ -4,7 +4,7 @@ import Tooltip from 'rc-tooltip';
 import 'rc-tooltip/assets/bootstrap.css';
 import 'rc-slider/assets/index.css';
 import cvutils from './cvutils'
-import './animationSliders.css'
+import './animationControls.css'
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -24,105 +24,105 @@ const handle = (props) => {
   );
 };
 
-class AnimationSliders extends Component {
+class AnimationControls extends Component {
 
 	onColorOneChange = (values) =>{
 		let target = {
 			name : 'colorOne',
 			value : values
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnimationControlsChange(target)
 	}
 	onDiscoIncrementChange = (values) =>{
 		let target = {
 			name : 'discoIncrement',
 			value : values
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnimationControlsChange(target)
 	}
 	onThickChange = (values) =>{
 		let target = {
 			name : 'connectionsThickness',
 			value : values
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnimationControlsChange(target)
 	} 
 	onStarsPerObjectChange = (values) =>{
 		let target = {
 			name : 'numStarsPerObject',
 			value : values
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnimationControlsChange(target)
 	}  
 	onStarLifeChange = (values) =>{
 		let target = {
 			name : 'starLife',
 			value : values
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnimationControlsChange(target)
 	}  
 	onTrailLengthChange = (values) =>{
 		let target = {
 			name : 'trailLength',
 			value : values
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnimationControlsChange(target)
 	} 
 	onConnectionsOn = (values) =>{
 		let target = {
 			name : 'showConnections',
 			value : 1
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnimationControlsChange(target)
 	} 
 	onConnectionsOff = (values) =>{
 		let target = {
 			name : 'showConnections',
 			value : 0
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnimationControlsChange(target)
 	}  
 	onTrailsOn = (values) =>{
 		let target = {
 			name : 'showTrails',
 			value : 1
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnimationControlsChange(target)
 	} 
 	onTrailsOff = (values) =>{
 		let target = {
 			name : 'showTrails',
 			value : 0
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnimationControlsChange(target)
 	}  
 	onStarsOn = (values) =>{
 		let target = {
 			name : 'showStars',
 			value : 1
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnimationControlsChange(target)
 	} 
 	onStarsOff = (values) =>{
 		let target = {
 			name : 'showStars',
 			value : 0
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnChange(target)
 	}  
 	onDiscoOn = (values) =>{
 		let target = {
 			name : 'discoMode',
 			value : 1
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnimationControlsChange(target)
 	} 
 	onDiscoOff = (values) =>{
 		let target = {
 			name : 'discoMode',
 			value : 0
 		}
-		this.props.handleAnimationSliderChange(target)
+		this.props.handleAnimationControlsChange(target)
 	} 
 
 	render() {
@@ -155,4 +155,4 @@ class AnimationSliders extends Component {
 		)
 	}
 }
-export default AnimationSliders
+export default AnimationControls

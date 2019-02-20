@@ -6,7 +6,8 @@ import drawingUtils from './drawingUtils'
 import trackingUtils from './trackingUtils'
 import { HuePicker } from 'react-color';
 import ColorSliders from './colorSliders'
-import AnimationSliders from './animationSliders'
+import AnimationControls from './animationControls'
+import DetectionControls from './detectionControls'
 import Recorder from './recorder'
 import Camera from './camera'
 import { MdHelp } from "react-icons/md"
@@ -42,13 +43,14 @@ class App extends Component {
     colorNum : 0,
     positions : [],
     totalNumColors : 1,
-    showRaw : true,
-    usingWhite : false,
     // Animation Controls (connctions, disco, and stars off, trails on)
     showConnections:false, showStars:false, discoMode:false, showTrails:true,
     // Animation Parameters
     colorOne:123, connectionsThickness:0,numStarsPerObject:0,starLife:0,trailLength:1,discoIncrement:1,
-    animationParameters : [cvutils.initialParams],
+    animationParameters : [cvutils.initialAnimationParameters],
+    // Detection Parameters
+    blurAmount : 1, sizeThreshold : 1, showRaw : true, usingWhite : false,
+    detectionParameters : [cvutils.initialDetectionParameters],    
     canvasStream : null,
     // Lists that contain data about stars
     starsX:[], starsY:[], starsDx:[], starsDy:[],starsSize:[], starsColor:[],
@@ -90,23 +92,6 @@ class App extends Component {
     console.log("stopped video")
   }
 
-  toggleWhiteMode=()=>{
-    // Toggle the text on the button
-    let colorModeButtonText = ""
-    if (!this.state.usingWhite) {
-      colorModeButtonText = 'Use Color Props';
-    }else {
-      colorModeButtonText = 'Use White Props';
-    }
-    // Change the state to reflect changes
-    this.setState({
-      usingWhite : !this.state.usingWhite,
-      colorModeButtonText
-    })
-  }
-
- 
-
   processVideo=()=> {
     if(this.canvasOutput){
       let video
@@ -146,13 +131,13 @@ class App extends Component {
         // If colored balls are being used, use cvutils.colorfilter
 
         if(!this.state.usingWhite){
-          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange)
+          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange, this.state.blurAmount)
         // If white balls are being used, use cvutils.colorWhite
         }else{
-          colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
+          colorFilteredImage = cvutils.colorWhite(srcMat, colorRange, this.state.blurAmount)
         }
         // Get the ball locations
-        const ballLocations = cvutils.findBalls(colorFilteredImage)
+        const ballLocations = cvutils.findBalls(colorFilteredImage, this.state.sizeThreshold)
 
         // Update the tracking history
         this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
@@ -232,7 +217,24 @@ class App extends Component {
     })
   }
 
-  handleAnimationSliderChange=(e)=>{
+  setColorRange=()=>{
+    let colorRanges = this.state.allColors
+    colorRanges[this.state.colorNum] = {
+      'lh' : this.state.lh,
+      'ls' : this.state.ls,
+      'lv' : this.state.lv,
+      'hh' : this.state.hh,
+      'hs' : this.state.hs,
+      'hv' : this.state.hv,
+      'tv' : this.state.tv
+    }
+    this.setState({
+      allColors : colorRanges,
+      pickedColor : cvutils.calculateCurrentHSV(colorRanges[this.state.colorNum])
+    })
+  }
+
+  handleAnimationControlsChange=(e)=>{
     // Log the slider change
     console.log(e)
     let state = this.state
@@ -264,20 +266,29 @@ class App extends Component {
     })
   }
 
-  setColorRange=()=>{
-    let colorRanges = this.state.allColors
-    colorRanges[this.state.colorNum] = {
-      'lh' : this.state.lh,
-      'ls' : this.state.ls,
-      'lv' : this.state.lv,
-      'hh' : this.state.hh,
-      'hs' : this.state.hs,
-      'hv' : this.state.hv,
-      'tv' : this.state.tv
+  handleDetectionControlsChange=(e)=>{
+    // Log the slider change
+    console.log(e)
+    let state = this.state
+    state[e.name] =parseFloat(e.value)
+    this.setState({
+      state
+    },()=>{
+      this.setDetectionParams()
+    })
+  }
+
+  setDetectionParams=()=>{
+    console.log(this.state.showConnections)
+    let params = this.state.detectionControls
+    params = {
+      'blurAmount' : this.state.blurAmount,
+      'sizeThreshold' : this.state.sizeThreshold,
+      'showRaw' : this.state.showRaw,
+      'usingWhite' : this.state.usingWhite
     }
     this.setState({
-      allColors : colorRanges,
-      pickedColor : cvutils.calculateCurrentHSV(colorRanges[this.state.colorNum])
+      detectionParameters : params
     })
   }
 
@@ -307,37 +318,10 @@ class App extends Component {
     })
   }
 
-  toggleShowRaw=()=>{
-    // Toggle the text on the button
-    const calibrationButton = document.querySelector('button#calibration');
-    if (calibrationButton.textContent === 'Show Cam') {calibrationButton.textContent = 'Calibration View';}
-    else {calibrationButton.textContent = 'Show Cam';}
-    // Change the state
-    this.setState({
-      showRaw : !this.state.showRaw
-    })
-    // Show an alert about how to calibrate
-    if(this.state.showRaw){
-      alert(
-        `Calibration Process:\n
-        Set 'Hue Center' slider to approximate color of prop
-        Adjust sliders until prop is completely white and the background is black`
-      )
-    }
-  }
-  
-  changeDiscoColor=()=>{
-    // Disco hue goes from 0 to 360 (rainbow)
-    this.state.discoHue = this.state.discoHue + 4
-    // When the hue reaches 360, it goes back to zero (HSV colorspace loops)
-    if(this.state.discoHue>360){
-      this.state.discoHue = 0
-    }
-  }
-
   showCalibrateHelp = (asdf) =>{
     alert(calibrateHelp)
   }
+
   setColorFromSelectedRegion = (frame, x1, y1, x2, y2)=>{
     let rgbRange = cvutils.getColorFromImage(
       frame,
@@ -346,6 +330,7 @@ class App extends Component {
       x2,
       y2,
     )
+
     const lowerHSV = cvutils.RGBtoHSV(rgbRange['lr'],rgbRange['lg'],rgbRange['lb'])
     const upperHSV = cvutils.RGBtoHSV(rgbRange['hr'],rgbRange['hg'],rgbRange['hb'])
     // converted hsv ranges may have maxs and mins swapped
@@ -357,6 +342,7 @@ class App extends Component {
       'hs' :  1,
       'hv' :  1,
     }
+    
     const hDiff = hsvRange['hh'] - hsvRange['lh']
     hsvRange['ls'] = Math.max(hsvRange['ls'],.1)
     hsvRange['lv'] = Math.max(hsvRange['lv'],.1)
@@ -501,8 +487,6 @@ class App extends Component {
             marginBottom : '15px'
           }}
          >
-        <button style={{'fontSize':'12pt', 'color':'white', 'background-color':'black'}}  onClick={this.toggleWhiteMode} >{this.state.colorModeButtonText}</button>
-        <button style={{'fontSize':'12pt','marginLeft' : '10px'}} id="calibration" onClick={this.toggleShowRaw}>Calibration View</button>
         <MdHelp style={{'fontSize':'15pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
          <h3 className="secondary-header">Animated Colors</h3>
           {colorSwatches}
@@ -523,8 +507,6 @@ class App extends Component {
         </div>
         </div>) :
         <div>
-          <button style={{'fontSize':'12pt', 'color':'white', 'background-color':'black'}}  onClick={this.toggleWhiteMode} >{this.state.colorModeButtonText}</button>
-          <button style={{'fontSize':'12pt','marginLeft' : '10px'}} id="calibration" onClick={this.toggleShowRaw}>Calibration View</button>
           <MdHelp style={{'fontSize':'15pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
         </div>
 
@@ -549,14 +531,25 @@ class App extends Component {
                   discoMode : this.state.discoMode,
                   discoIncrement : this.state.discoIncrement
                 }
+    const DetectionControlsConst = {
+                  blurAmount : this.state.blurAmount,
+                  sizeThreshold : this.state.sizeThreshold,
+                  showRaw : this.state.showRaw,
+                  usingWhite : this.state.usingWhite
+                }
+      
 
-    const detectionControls =
+    const detectionControlSliders =
       <div>
           <ColorSliders HSV = {HSV} usingWhite = {this.state.usingWhite} handleHSVSliderChange={this.handleHSVSliderChange}/>
       </div>
     const animationControlSliders =
       <div>
-          <AnimationSliders AnimationParameters = {AnimationParameters} handleAnimationSliderChange={this.handleAnimationSliderChange}/>
+          <AnimationControls AnimationParameters = {AnimationParameters} handleAnimationControlsChange={this.handleAnimationControlsChange}/>
+      </div>
+    const detectionControls = 
+      <div>
+          <DetectionControls DetectionControlsConst = {DetectionControlsConst} handleDetectionControlsChange={this.handleDetectionControlsChange}/>
       </div>
 
     const app =
@@ -567,6 +560,7 @@ class App extends Component {
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
           <div style={{marginBottom : '25px', 'fontSize' : '10px'}}>Send feedback to @arflowarts on Instagram</div>
           {addButton}
+          {detectionControlSliders}
           {detectionControls}
           <canvas ref={ref => this.canvasOutput = ref}
             className="center-block" id="canvasOutput"
