@@ -36,11 +36,9 @@ class App extends Component {
     flippedFrame : null,
     startTime : Date.now(),
     // Color blue (initial value for hsv sliders)
-    lh : 180, ls : .2, lv : .2, hh : 230, hs : 1, hv : 1,
     tv : cvutils.initialHSV.tv,
     net : null,
     allColors : [cvutils.initialHSV],
-    colorNum : 0,
     positions : [],
     totalNumColors : 1,
     // Animation Controls (connctions, disco, and stars off, trails on)
@@ -127,7 +125,7 @@ class App extends Component {
       // Create a temporary image to store the color segmentation
       let colorFilteredImage
       // Iterate through each color being tracked
-      this.state.allColors.forEach((colorRange,colorNum)=>{
+      store.allColors.forEach((colorRange,colorNum)=>{
         // If colored balls are being used, use cvutils.colorfilter
 
         if(!this.state.usingWhite){
@@ -143,7 +141,7 @@ class App extends Component {
         this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
 
         // If in calibration mode
-        if(!this.state.showRaw && colorNum == this.state.colorNum){
+        if(store.calibrationMode && colorNum == store.colorNum){
           // Initialize final canvas with the mask of the colors within the color ranges
           // This setting is used when calibrating the colors
           cv.imshow('canvasOutput',colorFilteredImage)
@@ -200,38 +198,6 @@ class App extends Component {
       //Process next frame
       requestAnimationFrame(this.processVideo);
     }
-  }
-
-  handleHSVSliderChange=(e)=>{
-    // Log the slider change
-    console.log(e)
-    let state = this.state
-    state[e.name] =parseFloat(e.value)
-    this.setState({
-      state
-    },()=>{
-      this.setColorRange()
-    })
-    this.setState({
-      showSelectColorText : false
-    })
-  }
-
-  setColorRange=()=>{
-    let colorRanges = this.state.allColors
-    colorRanges[this.state.colorNum] = {
-      'lh' : this.state.lh,
-      'ls' : this.state.ls,
-      'lv' : this.state.lv,
-      'hh' : this.state.hh,
-      'hs' : this.state.hs,
-      'hv' : this.state.hv,
-      'tv' : this.state.tv
-    }
-    this.setState({
-      allColors : colorRanges,
-      pickedColor : cvutils.calculateCurrentHSV(colorRanges[this.state.colorNum])
-    })
   }
 
   handleAnimationControlsChange=(e)=>{
@@ -292,24 +258,8 @@ class App extends Component {
     })
   }
 
-  addColor=()=>{
-    this.setColorRange()
-    let colorNum = this.state.allColors.length
-    this.setState(cvutils.initialHSV)
-    this.setState({
-      colorNum
-    },()=>{
-      this.setColorRange()
-    })
-  }
-
   selectColor=(i)=>{
-    this.setState(this.state.allColors[i])
-    this.setState({
-      colorNum : i
-    },()=>{
-      this.setColorRange()
-    })
+    store.selectColor(i)
   }
 
   handleTrailLength=(e)=>{
@@ -353,9 +303,8 @@ class App extends Component {
     }else if( hDiff < minHDiff && hsvRange['hh'] > 350){
       hsvRange['lh'] = hsvRange['lh'] - minHDiff + hDiff
     }
-    this.setState(hsvRange,()=>{
-      this.setColorRange()
-    })
+    store.setCurrentColorRange(hsvRange)
+    store.setFilterHSV(hsvRange)
   }
   
 
@@ -446,8 +395,8 @@ class App extends Component {
   }
  
   render() {
-    const colorSwatches = this.state.allColors.map((colorRange,index)=>{
-        const borderString = index == this.state.colorNum ? '3px solid black' : 'none'
+    const colorSwatches = store.allColors.map((colorRange,index)=>{
+        const borderString = index == store.colorNum ? '3px solid black' : 'none'
 
         return(
           // only return the color swatches if the user is on the color mode
@@ -502,7 +451,7 @@ class App extends Component {
               'display' : 'inline-block',
               'vertical-align' : 'middle'
             }}
-            onClick={this.addColor}
+            onClick={store.addColor}
           >Add</div>
         </div>
         </div>) :

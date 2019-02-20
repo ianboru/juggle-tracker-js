@@ -5,6 +5,8 @@ import 'rc-tooltip/assets/bootstrap.css';
 import 'rc-slider/assets/index.css';
 import cvutils from './cvutils'
 import './detectionControls.css'
+import store from './store'
+import { observer } from 'mobx-react'
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -23,9 +25,8 @@ const handle = (props) => {
     </Tooltip>
   );
 };
-
+@observer
 class DetectionControls extends Component {
-
 	onBlurAmountChange = (values) =>{
 		let target = {
 			name : 'blurAmount',
@@ -40,20 +41,7 @@ class DetectionControls extends Component {
 		}
 		this.props.handleDetectionControlsChange(target)
 	}  
-	onShowRawOn = (values) =>{
-		let target = {
-			name : 'showRaw',
-			value : 1
-		}
-		this.props.handleDetectionControlsChange(target)
-	} 
-	onShowRawOff = (values) =>{
-		let target = {
-			name : 'showRaw',
-			value : 0
-		}
-		this.props.handleDetectionControlsChange(target)
-	}  
+
 	onUsingWhiteOn = (values) =>{
 		let target = {
 			name : 'usingWhite',
@@ -70,9 +58,11 @@ class DetectionControls extends Component {
 	} 
 
 	render() {
+		store.calibrationMode
+		console.log("text", store.calibrationModeText)
 		const sliders = 
 				<div style={wrapperStyle}>				
-				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="showRaw" onClick={this.onShowRawOn}>Show Raw</button>
+				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="showRaw" onClick={store.toggleCalibrationMode}>{store.calibrationModeText}</button>
 				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="showRaw" onClick={this.onShowRawOff}>Show Mask</button>
 				<br/>					
 				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="usingWhite" onClick={this.onUsingWhiteOn}>Use Brightness</button>

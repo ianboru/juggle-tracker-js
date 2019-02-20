@@ -51,7 +51,6 @@ function colorWhite(src, colorRange, blurAmount){
 }
 
 function findBalls(src, sizeThreshold){
-    console.log('size threshold', sizeThreshold);
     // Minimum size of a contour to interpret as an object - sizeThreshold
     // Maximum number of contours to interpret as objects
     const maxNumContours = 12
