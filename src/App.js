@@ -98,9 +98,14 @@ class App extends Component {
 
   processVideo=()=> {
     if(this.canvasOutput){
+      //Skip processing until video is fully loaded
+      if(store.videoWidth == 0){
+        requestAnimationFrame(this.processVideo);
+        return
+      }
       let video
       const context = this.canvasOutput.getContext("2d")
-      context.clearRect( 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight)
+      context.clearRect( 0, 0, store.videoWidth, store.videoHeight)
       
       if(store.uploadedVideo){
         // Use the uploaded file
@@ -109,11 +114,7 @@ class App extends Component {
         // Use the webcam image
         context.drawImage(store.liveVideo, 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight);
       }
-      //Skip processing until video is fully loaded
-      if(store.videoWidth == 0){
-        requestAnimationFrame(this.processVideo);
-        return
-      }
+      
 
       // Get the srcMat from the canvas
       let srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
