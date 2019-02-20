@@ -9,6 +9,8 @@ class Store {
   //
   @observable liveVideo           = null
   @observable uploadedVideo       = null
+  @observable videoWidth          = null
+  @observable videoHeight          = null
 
   //
   // ACTIONS
@@ -25,6 +27,10 @@ class Store {
   }
   @action setUploadedVideo= (video) => {
     this.uploadedVideo = video
+  }
+  @action setVideoDimensions=(width,height)=>{
+    this.videoWidth = width
+    this.videoHeight = height
   }
   
 }

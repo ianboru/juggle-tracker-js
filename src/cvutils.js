@@ -71,7 +71,6 @@ function filterOverlappingContours(contourPositions){
                             contourPositions[i],
                             contourPositions[j]
                             )
-        console.log(intersect)
         //set smaller intersecting contour to null
         if(intersect && contourPositions[i].r > contourPositions[j].r){
             contourPositions[j] = null
