@@ -42,7 +42,7 @@ class App extends Component {
     positions : [],
     totalNumColors : 1,
     // Animation Controls (connctions, disco, and stars off, trails on)
-    showConnections:false, showStars:false, discoMode:false, showTrails:true,
+    showConnections:false, showStars:false, discoMode:false,
     // Animation Parameters
     colorOne:123, connectionsThickness:0,numStarsPerObject:0,starLife:0,trailLength:1,discoIncrement:1,
     animationParameters : [cvutils.initialAnimationParameters],
@@ -127,12 +127,11 @@ class App extends Component {
       // Iterate through each color being tracked
       store.allColors.forEach((colorRange,colorNum)=>{
         // If colored balls are being used, use cvutils.colorfilter
-
-        if(!this.state.usingWhite){
-          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange, this.state.blurAmount)
+        if(!store.usingWhite){
+          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange, 12)
         // If white balls are being used, use cvutils.colorWhite
         }else{
-          colorFilteredImage = cvutils.colorWhite(srcMat, colorRange, this.state.blurAmount)
+          colorFilteredImage = cvutils.colorWhite(srcMat, colorRange, 12)
         }
         // Get the ball locations
         const ballLocations = cvutils.findBalls(colorFilteredImage, this.state.sizeThreshold)
@@ -150,7 +149,7 @@ class App extends Component {
         let color = 'rgb(' + cvutils.hsvToRgb(this.state.colorOne, 100,100) + ')'
         let currentColor = this.state.colorOne
         // If disco mode is on, use the current disco color
-        if(this.state.discoMode){
+        if(store.discoMode){
           color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
           currentColor = this.state.discoHue
           // Update the disco hue so that the color changes
@@ -161,15 +160,15 @@ class App extends Component {
             }
         }
         //Draw trails
-        if(this.state.showTrails){
+        if(store.showTrails){
           drawingUtils.drawTrails(context,this.state.positions[colorNum], color, this.state.trailLength)
         }
         // Draw connections
-        if(this.state.showConnections){
+        if(store.showConnections){
           drawingUtils.drawConnections(context, this.state.positions[colorNum], color, this.state.connectionsThickness)
         }
         // Draw Stars
-        if(this.state.showStars){
+        if(store.showStars){
           // Draw the stars. Get the updated stars' positions.
           const newStars = drawingUtils.drawStars(context, this.state.positions[colorNum],this.state.starsX,this.state.starsY,this.state.starsDx,this.state.starsDy,this.state.starsSize,this.state.starsColor,currentColor, this.state.numStarsPerObject, this.state.starLife)
           // Update the global stars variable
@@ -187,7 +186,7 @@ class App extends Component {
       }
       // Shows text to instruct user
       if(this.state.showSelectColorText){
-        drawingUtils.drawSelectColorText(context, isMobile, this.state.usingWhite)
+        drawingUtils.drawSelectColorText(context, isMobile, store.usingWhite)
       }
       //Trim histories to trail length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, this.state.trailLength)
@@ -200,6 +199,7 @@ class App extends Component {
     }
   }
 
+  
   handleAnimationControlsChange=(e)=>{
     // Log the slider change
     console.log(e)
@@ -257,6 +257,7 @@ class App extends Component {
       detectionParameters : params
     })
   }
+
 
   selectColor=(i)=>{
     store.selectColor(i)
@@ -400,7 +401,7 @@ class App extends Component {
 
         return(
           // only return the color swatches if the user is on the color mode
-          !this.state.usingWhite ? (
+          !store.usingWhite ? (
           <div
             onClick={()=>{this.selectColor(index)}}
             style={{
@@ -427,7 +428,7 @@ class App extends Component {
 
     const addButton =
       // only show this if the user is in color mode
-      !this.state.usingWhite ? (
+      !store.usingWhite ? (
         <div>
         <div
           style={{
@@ -475,7 +476,6 @@ class App extends Component {
                   starLife : this.state.starLife,
                   trailLength : this.state.trailLength,
                   showConnections : this.state.showConnections,
-                  showTrails : this.state.showTrails,
                   showStars : this.state.showStars,
                   discoMode : this.state.discoMode,
                   discoIncrement : this.state.discoIncrement
@@ -490,7 +490,7 @@ class App extends Component {
 
     const detectionControlSliders =
       <div>
-          <ColorSliders HSV = {HSV} usingWhite = {this.state.usingWhite} handleHSVSliderChange={this.handleHSVSliderChange}/>
+          <ColorSliders HSV = {HSV} usingWhite = {store.usingWhite} handleHSVSliderChange={this.handleHSVSliderChange}/>
       </div>
     const animationControlSliders =
       <div>

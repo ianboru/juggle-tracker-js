@@ -27,13 +27,9 @@ const handle = (props) => {
 };
 @observer
 class DetectionControls extends Component {
-	onBlurAmountChange = (values) =>{
-		let target = {
-			name : 'blurAmount',
-			value : values
-		}
-		this.props.handleDetectionControlsChange(target)
-	} 
+	onBlurAmountChange = (value) =>{
+		store.setBlurAmount('blurAmount', value)
+	}
 	onSizeThresholdChange = (values) =>{
 		let target = {
 			name : 'sizeThreshold',
@@ -42,33 +38,17 @@ class DetectionControls extends Component {
 		this.props.handleDetectionControlsChange(target)
 	}  
 
-	onUsingWhiteOn = (values) =>{
-		let target = {
-			name : 'usingWhite',
-			value : 1
-		}
-		this.props.handleDetectionControlsChange(target)
-	} 
-	onUsingWhiteOff = (values) =>{
-		let target = {
-			name : 'usingWhite',
-			value : 0
-		}
-		this.props.handleDetectionControlsChange(target)
-	} 
-
 	render() {
 		store.calibrationMode
-		console.log("text", store.calibrationModeText)
+		store.usingWhite
+		console.log("text", store.usingWhite)
 		const sliders = 
 				<div style={wrapperStyle}>				
 				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="showRaw" onClick={store.toggleCalibrationMode}>{store.calibrationModeText}</button>
-				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="showRaw" onClick={this.onShowRawOff}>Show Mask</button>
 				<br/>					
-				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="usingWhite" onClick={this.onUsingWhiteOn}>Use Brightness</button>
-				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="usingWhite" onClick={this.onUsingWhiteOff}>Use Colors</button>
+				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="usingWhite" onClick={store.toggleUsingWhite}>{store.usingWhiteText}</button>
 				<br/>	
-				<div style={{"width": "80px", "display" :"inline-block"}}>Blur</div><Slider min={1} max={30} step={1} defaultvalue={this.props.blurAmount}  handle={handle} onChange={this.onBlurAmountChange}/>
+				<div style={{"width": "80px", "display" :"inline-block"}}>Blur</div><Slider min={1} max={30} step={1} defaultvalue={store.blurAmount}  handle={handle} onChange={store.setBlurAmount}/>
 				<div style={{"width": "80px", "display" :"inline-block"}}>Min Size Threshold</div><Slider min={1} max={20000} step={250} defaultvalue={this.props.sizeThreshold}  handle={handle} onChange={this.onSizeThresholdChange}/>
 				</div>
 

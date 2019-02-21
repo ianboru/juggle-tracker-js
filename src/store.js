@@ -8,6 +8,10 @@ const initialHSV = {
       hs : 1,
       hv : 1,
     }
+const initialDetectionParams = {
+      blur : 12,
+      minContourSize : 20,
+    }
 
 configure({ enforceActions: "always" })
 
@@ -22,12 +26,33 @@ class Store {
   @observable filterHSV           = initialHSV
   @observable allColors           = [initialHSV]
   @observable colorNum            = 0
+  @observable usingWhite          = false
+  @observable showConnections     = false
+  @observable showTrails          = true
+  @observable showStars           = false
+  @observable discoMode           = false
+  @observable detectionParameters = initialDetectionParams
   //
   // ACTIONS
   //
   @computed get calibrationModeText(){
     return this.calibrationMode ? "Show Raw" : "Calibration View"
   } 
+  @computed get usingWhiteText(){
+    return this.usingWhite ? "Use Color" : "Use Brightness"
+  }
+  @computed get showConnectionsText(){
+    return this.showConnections ? "Show Connections" : "Hide Connections"
+  }
+  @computed get showTrailsText(){
+    return this.showTrails ? "Show Trails" : "Hide Trails"
+  }
+  @computed get showStarsText(){
+    return this.showStars ? "Show Stars" : "Hide Stars"
+  }
+  @computed get discoModeText(){
+    return this.discoMode ? "Rainbow On" : "Rainbow Off"
+  }  
   @computed get playingUploaded(){
     if(this.uploadedVideo){
       return this.uploadedVideo.currentTime > 0 && !this.uploadedVideo.paused && !this.uploadedVideo.ended
@@ -39,6 +64,10 @@ class Store {
     this.filterHSV[sliderName] = value
     this.setCurrentColorRange(this.filterHSV)
   }
+  @action setDetectionParameters(sliderName, value){
+    this.detectionParameters[sliderName] = value
+    this.setCurrentDetectionParameters(this.detectionParameters)
+  }
   @action setLiveVideo= (video) => {
     this.liveVideo = video
   }
@@ -48,8 +77,26 @@ class Store {
   @action toggleCalibrationMode = () => {
     this.calibrationMode = !this.calibrationMode
   }
+  @action toggleUsingWhite = () => {
+    this.usingWhite = !this.usingWhite
+  }
+  @action toggleShowConnections = () => {
+    this.showConnections = !this.showConnections
+  }
+  @action toggleShowTrails = () => {
+    this.showTrails = !this.showTrails
+  }
+  @action toggleShowStars = () => {
+    this.showStars = !this.showStars
+  }
+  @action toggleDiscoMode = () => {
+    this.discoMode = !this.discoMode
+  }
   @action setCurrentColorRange = (colorRange)=>{
     this.allColors[this.colorNum] = colorRange
+  }
+  @action setCurrentDetectionParameters = (detectionParameters) => {
+    this.detectionParameters = detectionParameters
   }
   @action setFilterHSV = (colorRange)=>{
     this.filterHSV = colorRange

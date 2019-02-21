@@ -43,18 +43,14 @@ class ColorSliders extends Component {
 		store.setHSVValue('lv', values[0])
 		store.setHSVValue('hv', values[1])
 	}
-
 	onBrightnessChange = (value) =>{
-		const target = {
-			name : "tv",
-			value : value
-		}
-		this.props.handleHSVSliderChange(target)
+		store.setHSVValue('tv', value)
 	} 
 
 	render() {
+		store.usingWhite
 		const sliders = 
-			this.props.usingWhite ?
+			store.usingWhite ?
 				<div style={wrapperStyle}>
 					<div style={{"width": "180px", "display" :"inline-block", "marginTop" : "15px"}}>Minumum Brightness</div><Slider min={0} max={100} step={1} defaultValue={this.props.HSV.tv} handle={handle} onChange={this.onBrightnessChange} />
 				</div> 
