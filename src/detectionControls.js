@@ -27,21 +27,9 @@ const handle = (props) => {
 };
 @observer
 class DetectionControls extends Component {
-	onBlurAmountChange = (value) =>{
-		store.setBlurAmount('blurAmount', value)
-	}
-	onSizeThresholdChange = (values) =>{
-		let target = {
-			name : 'sizeThreshold',
-			value : values
-		}
-		this.props.handleDetectionControlsChange(target)
-	}  
-
 	render() {
 		store.calibrationMode
 		store.usingWhite
-		console.log("text", store.usingWhite)
 		const sliders = 
 				<div style={wrapperStyle}>				
 				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="showRaw" onClick={store.toggleCalibrationMode}>{store.calibrationModeText}</button>
@@ -49,7 +37,7 @@ class DetectionControls extends Component {
 				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="usingWhite" onClick={store.toggleUsingWhite}>{store.usingWhiteText}</button>
 				<br/>	
 				<div style={{"width": "80px", "display" :"inline-block"}}>Blur</div><Slider min={1} max={30} step={1} defaultvalue={store.blurAmount}  handle={handle} onChange={store.setBlurAmount}/>
-				<div style={{"width": "80px", "display" :"inline-block"}}>Min Size Threshold</div><Slider min={1} max={20000} step={250} defaultvalue={this.props.sizeThreshold}  handle={handle} onChange={this.onSizeThresholdChange}/>
+				<div style={{"width": "80px", "display" :"inline-block"}}>Min Size Threshold</div><Slider min={1} max={10000} step={50} defaultvalue={store.sizeThreshold}  handle={handle} onChange={store.setSizeThreshold}/>
 				</div>
 
 		return (

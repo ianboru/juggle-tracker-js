@@ -8,10 +8,6 @@ const initialHSV = {
       hs : 1,
       hv : 1,
     }
-const initialDetectionParams = {
-      blur : 12,
-      minContourSize : 20,
-    }
 
 configure({ enforceActions: "always" })
 
@@ -32,8 +28,19 @@ class Store {
   @observable showTrails          = true
   @observable showStars           = false
   @observable discoMode           = false
+<<<<<<< HEAD
   @observable detectionParameters = initialDetectionParams
   @observable canvasOutput        = null
+=======
+  @observable blurAmount          = 12
+  @observable sizeThreshold       = 12
+  @observable animationColor      = 123
+  @observable connectionThickness = 12
+  @observable numStarsPerObject   = 12
+  @observable starLife            = .5
+  @observable trailLength         = 12
+  @observable discoIncrement      = 12
+>>>>>>> 7abb604ed01f15beeb77f93edf159f2f966e6d94
   //
   // ACTIONS
   //
@@ -47,16 +54,16 @@ class Store {
     return this.usingWhite ? "Use Color" : "Use Brightness"
   }
   @computed get showConnectionsText(){
-    return this.showConnections ? "Show Connections" : "Hide Connections"
+    return this.showConnections ? "Hide Connections" : "Show Connections"
   }
   @computed get showTrailsText(){
-    return this.showTrails ? "Show Trails" : "Hide Trails"
+    return this.showTrails ? "Hide Trails" : "Show Trails"
   }
   @computed get showStarsText(){
-    return this.showStars ? "Show Stars" : "Hide Stars"
+    return this.showStars ? "Hide Stars" : "Show Stars"
   }
   @computed get discoModeText(){
-    return this.discoMode ? "Rainbow On" : "Rainbow Off"
+    return this.discoMode ? "Rainbow Off" : "Rainbow On"
   }  
   @computed get playingUploaded(){
     if(this.uploadedVideo){
@@ -74,10 +81,6 @@ class Store {
   @action setHSVValue(sliderName, value){
     this.filterHSV[sliderName] = value
     this.setCurrentColorRange(this.filterHSV)
-  }
-  @action setDetectionParameters(sliderName, value){
-    this.detectionParameters[sliderName] = value
-    this.setCurrentDetectionParameters(this.detectionParameters)
   }
   @action setLiveVideo= (video) => {
     this.liveVideo = video
@@ -106,8 +109,29 @@ class Store {
   @action setCurrentColorRange = (colorRange)=>{
     this.allColors[this.colorNum] = colorRange
   }
-  @action setCurrentDetectionParameters = (detectionParameters) => {
-    this.detectionParameters = detectionParameters
+  @action setBlurAmount = (blurAmount) => {
+    this.blurAmount = blurAmount
+  }
+  @action setDiscoIncrement = (discoIncrement) => {
+    this.discoIncrement = discoIncrement
+  }
+  @action setTrailLength = (trailLength) => {
+    this.trailLength = trailLength
+  }
+  @action setStarLife = (starLife) => {
+    this.starLife = starLife
+  }
+  @action setNumStarsPerObject = (numStarsPerObject) => {
+    this.numStarsPerObject = numStarsPerObject
+  }
+  @action setConnectionThickness = (connectionThickness) => {
+    this.connectionThickness = connectionThickness
+  }
+  @action setSizeThreshold = (sizeThreshold) => {
+    this.sizeThreshold = sizeThreshold
+  }
+  @action setAnimationColor = (animationColor) => {
+    this.animationColor = animationColor
   }
   @action setFilterHSV = (colorRange)=>{
     this.filterHSV = colorRange

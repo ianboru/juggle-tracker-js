@@ -336,15 +336,6 @@ const initialHSV = {
       tv : initalTV,
     }
 
-const initialAnimationParameters = {
-        connectionsThickness : 12,
-        colorOne : 123,
-        colorTwo : 21,
-}
-
-const initialDetectionParameters = {
-        blurAmount : 1,
-}
 
 export default {
     RGBtoHSV,
@@ -361,7 +352,5 @@ export default {
     getColorFromImage,
     calculateRelativeCoord,
     initialHSV,
-    initialAnimationParameters,
-    initialDetectionParameters,
     getMatFromCanvas
 }

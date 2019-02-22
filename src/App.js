@@ -40,21 +40,10 @@ class App extends Component {
     tv : cvutils.initialHSV.tv,
     net : null,
     allColors : [cvutils.initialHSV],
-    positions : [],
-    totalNumColors : 1,
-    // Animation Controls (connctions, disco, and stars off, trails on)
-    showConnections:false, showStars:false, discoMode:false,
-    // Animation Parameters
-    colorOne:123, connectionsThickness:0,numStarsPerObject:0,starLife:0,trailLength:1,discoIncrement:1,
-    animationParameters : [cvutils.initialAnimationParameters],
-    // Detection Parameters
-    blurAmount : 1, sizeThreshold : 1, showRaw : true, usingWhite : false,
-    detectionParameters : [cvutils.initialDetectionParameters],    
+    positions : [], 
     canvasStream : null,
     showSelectColorText : true,
     isFacebookApp : false,
-    colorModeButtonText : 'Use White Props',
-    discoColorNumber : 0,
     discoHue : 0,
   }
 
@@ -124,13 +113,13 @@ class App extends Component {
       store.allColors.forEach((colorRange,colorNum)=>{
         // If colored balls are being used, use cvutils.colorfilter
         if(!store.usingWhite){
-          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange, 12)
+          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange, store.blurAmount)
         // If white balls are being used, use cvutils.colorWhite
         }else{
-          colorFilteredImage = cvutils.colorWhite(srcMat, colorRange, 12)
+          colorFilteredImage = cvutils.colorWhite(srcMat, colorRange, store.blurAmount)
         }
         // Get the ball locations
-        const ballLocations = cvutils.findBalls(colorFilteredImage, this.state.sizeThreshold)
+        const ballLocations = cvutils.findBalls(colorFilteredImage, store.sizeThreshold)
 
         // Update the tracking history
         this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
@@ -143,13 +132,13 @@ class App extends Component {
         }
         // Get the color values for the object being tracked (white if usingWhite)
         let color = cvutils.calculateCurrentHSV(colorRange)
-        let currentColor = this.state.colorOne
+        let currentColor = store.animationColor
         // If disco mode is on, use the current disco color
         if(store.discoMode){
           color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
           currentColor = this.state.discoHue
           // Update the disco hue so that the color changes
-          this.state.discoHue = this.state.discoHue + this.state.discoIncrement
+          this.state.discoHue = this.state.discoHue + store.discoIncrement
           // When the hue reaches 360, it goes back to zero (HSV colorspace loops)
           if(this.state.discoHue>360){
             this.state.discoHue = 0
@@ -157,13 +146,12 @@ class App extends Component {
         }
         //Draw trails
         if(store.showTrails){
-          drawingUtils.drawTrails(context,this.state.positions[colorNum], color, this.state.trailLength)
+          drawingUtils.drawTrails(context,this.state.positions[colorNum], color, store.trailLength)
         }
         // Draw connections
         if(store.showConnections){
-          //drawingUtils.drawConnections(context, this.state.positions[colorNum], color, this.state.connectionsThickness)
           drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
-
+          //drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness)
         }
         // Draw Stars
         if(store.showStars){
@@ -186,7 +174,7 @@ class App extends Component {
         drawingUtils.drawSelectColorText(context, store.isMobile, store.usingWhite)
       }
       //Trim histories to trail length
-      this.state.positions = trackingUtils.trimHistories(this.state.positions, this.state.trailLength)
+      this.state.positions = trackingUtils.trimHistories(this.state.positions, store.trailLength)
       
       //Clean up all possible data
       colorFilteredImage.delete();srcMat.delete()
@@ -197,74 +185,8 @@ class App extends Component {
     }
   }
 
-  
-  handleAnimationControlsChange=(e)=>{
-    // Log the slider change
-    console.log(e)
-    let state = this.state
-    state[e.name] =parseFloat(e.value)
-    this.setState({
-      state
-    },()=>{
-      this.setAnimationParams()
-    })
-  }
-
-  setAnimationParams=()=>{
-    console.log(this.state.showConnections)
-    let params = this.state.animationParameters
-    params = {
-      'colorOne' : this.state.colorOne,
-      'connectionsThickness' : this.state.connectionsThickness,
-      'numStarsPerObject' : this.state.numStarsPerObject,
-      'starLife' : this.state.starLife,
-      'trailLength' : this.state.trailLength,
-      'showConnections' : this.state.showConnections,
-      'showTrails' : this.state.showTrails,
-      'showStars' : this.state.showStars,
-      'discoMode' : this.state.discoMode,
-      'discoIncrement' : this.state.discoIncrement
-    }
-    this.setState({
-      animationParameters : params
-    })
-  }
-
-  handleDetectionControlsChange=(e)=>{
-    // Log the slider change
-    console.log(e)
-    let state = this.state
-    state[e.name] =parseFloat(e.value)
-    this.setState({
-      state
-    },()=>{
-      this.setDetectionParams()
-    })
-  }
-
-  setDetectionParams=()=>{
-    console.log(this.state.showConnections)
-    let params = this.state.detectionControls
-    params = {
-      'blurAmount' : this.state.blurAmount,
-      'sizeThreshold' : this.state.sizeThreshold,
-      'showRaw' : this.state.showRaw,
-      'usingWhite' : this.state.usingWhite
-    }
-    this.setState({
-      detectionParameters : params
-    })
-  }
-
-
   selectColor=(i)=>{
     store.selectColor(i)
-  }
-
-  handleTrailLength=(e)=>{
-    this.setState({
-      trailLength : e.target.value
-    })
   }
 
   showCalibrateHelp = (asdf) =>{
@@ -336,33 +258,9 @@ class App extends Component {
           <MdHelp style={{'fontSize':'15pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
         </div>
 
-    const HSV = {
-                  lh : this.state.lh,
-                  hh : this.state.hh,
-                  ls : this.state.ls,
-                  hs : this.state.hs,
-                  lv : this.state.lv,
-                  hv : this.state.hv,
-                  tv : this.state.tv
-                }
-    const AnimationParameters = {
-                  colorOne : this.state.colorOne,
-                  connectionsThickness : this.state.connectionsThickness,
-                  numStarsPerObject : this.state.numStarsPerObject,
-                  starLife : this.state.starLife,
-                  trailLength : this.state.trailLength,
-                  showConnections : this.state.showConnections,
-                  showStars : this.state.showStars,
-                  discoMode : this.state.discoMode,
-                  discoIncrement : this.state.discoIncrement
-                }
-    const DetectionControlsConst = {
-                  blurAmount : this.state.blurAmount,
-                  sizeThreshold : this.state.sizeThreshold,
-                  showRaw : this.state.showRaw,
-                  usingWhite : this.state.usingWhite
-                }
-      
+    const HSV = {}
+    const AnimationParameters = {}
+    const DetectionControlsConst = {}   
 
     const detectionControlSliders =
       <div>
