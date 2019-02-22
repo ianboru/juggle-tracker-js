@@ -32,6 +32,8 @@ class Store {
   @observable showStars           = false
   @observable discoMode           = false
   @observable detectionParameters = initialDetectionParams
+  @observable blurAmount          = 12
+  @observable sizeThreshold       = 12
   //
   // ACTIONS
   //
@@ -94,6 +96,12 @@ class Store {
   }
   @action setCurrentColorRange = (colorRange)=>{
     this.allColors[this.colorNum] = colorRange
+  }
+  @action setBlurAmount = (blurAmount) => {
+    this.blurAmount = blurAmount
+  }
+  @action setSizeThreshold = (sizeThreshold) => {
+    this.sizeThreshold = sizeThreshold
   }
   @action setCurrentDetectionParameters = (detectionParameters) => {
     this.detectionParameters = detectionParameters

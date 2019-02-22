@@ -47,7 +47,7 @@ class App extends Component {
     colorOne:123, connectionsThickness:0,numStarsPerObject:0,starLife:0,trailLength:1,discoIncrement:1,
     animationParameters : [cvutils.initialAnimationParameters],
     // Detection Parameters
-    blurAmount : 1, sizeThreshold : 1, showRaw : true, usingWhite : false,
+    showRaw : true, usingWhite : false,
     detectionParameters : [cvutils.initialDetectionParameters],    
     canvasStream : null,
     // Lists that contain data about stars
@@ -58,7 +58,6 @@ class App extends Component {
     showSelectColorText : true,
     touchTimer : null,
     isFacebookApp : false,
-    colorModeButtonText : 'Use White Props',
     discoTimer : null,
     discoColorNumber : 0,
     discoHue : 0,
@@ -128,13 +127,13 @@ class App extends Component {
       store.allColors.forEach((colorRange,colorNum)=>{
         // If colored balls are being used, use cvutils.colorfilter
         if(!store.usingWhite){
-          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange, 12)
+          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange, store.blurAmount)
         // If white balls are being used, use cvutils.colorWhite
         }else{
-          colorFilteredImage = cvutils.colorWhite(srcMat, colorRange, 12)
+          colorFilteredImage = cvutils.colorWhite(srcMat, colorRange, store.blurAmount)
         }
         // Get the ball locations
-        const ballLocations = cvutils.findBalls(colorFilteredImage, this.state.sizeThreshold)
+        const ballLocations = cvutils.findBalls(colorFilteredImage, store.sizeThreshold)
 
         // Update the tracking history
         this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
@@ -248,8 +247,6 @@ class App extends Component {
     console.log(this.state.showConnections)
     let params = this.state.detectionControls
     params = {
-      'blurAmount' : this.state.blurAmount,
-      'sizeThreshold' : this.state.sizeThreshold,
       'showRaw' : this.state.showRaw,
       'usingWhite' : this.state.usingWhite
     }
@@ -481,8 +478,7 @@ class App extends Component {
                   discoIncrement : this.state.discoIncrement
                 }
     const DetectionControlsConst = {
-                  blurAmount : this.state.blurAmount,
-                  sizeThreshold : this.state.sizeThreshold,
+
                   showRaw : this.state.showRaw,
                   usingWhite : this.state.usingWhite
                 }
