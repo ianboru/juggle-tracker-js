@@ -31,8 +31,6 @@ Tips:\n
 class App extends Component {
 
   state = {
-    // Lists that contain data about stars
-    src : null,
     dst : null,
     flippedFrame : null,
     startTime : Date.now(),
@@ -45,6 +43,10 @@ class App extends Component {
     showSelectColorText : true,
     isFacebookApp : false,
     discoHue : 0,
+    blurSize : 1,
+    closeSize : 1,
+    normalizeRGB : false,
+    normalizeHSV : false,
   }
 
   componentDidMount=()=>{
@@ -63,19 +65,16 @@ class App extends Component {
   startVideoProcessing=()=> {
     //Fix for firefox to have context available
     const context = store.canvasOutput.getContext("2d")
-    this.stopVideoProcessing();
     requestAnimationFrame(this.processVideo);
-  }
-
-  stopVideoProcessing = () =>{
-    let src = this.state.src
-    if (src != null && !src.isDeleted()) src.delete();
-    console.log("stopped video")
   }
 
   processVideo=()=> {
     let lastVideo = null
     if(store.canvasOutput){
+      if(store.videoWidth == 0){
+        requestAnimationFrame(this.processVideo);
+        return
+      }
       let video
       const context = store.canvasOutput.getContext("2d")
       if(lastVideo){ 
@@ -87,16 +86,12 @@ class App extends Component {
         drawingUtils.fitVidToCanvas(store.canvasOutput, store.uploadedVideo)
       }else{
         // Use the webcam image
-        video = store.liveVideo
         context.drawImage(store.liveVideo, 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight);
       }
-      //Skip processing until video is fully loaded
-      if(video.videoWidth == 0){
-        requestAnimationFrame(this.processVideo);
-        return
-      }
+      
+
       // Get the srcMat from the canvas
-      let srcMat = cvutils.getMatFromCanvas(context, video.videoWidth, video.videoHeight)
+      let srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
       // Flip horizontally because camera feed is pre-flipped
       if(!store.uploadedVideo){
         cv.flip(srcMat, srcMat,1)
@@ -271,7 +266,7 @@ class App extends Component {
           <AnimationControls AnimationParameters = {AnimationParameters} handleAnimationControlsChange={this.handleAnimationControlsChange}/>
       </div>
     const detectionControls = 
-      <div>
+      <div className="detection-controls">
           <DetectionControls DetectionControlsConst = {DetectionControlsConst} handleDetectionControlsChange={this.handleDetectionControlsChange}/>
       </div>
 
@@ -285,14 +280,16 @@ class App extends Component {
           {addButton}
           {detectionControlSliders}
           {detectionControls}
-          <InteractiveCanvas 
-            flippedFrame={this.state.flippedFrame}
-          ></InteractiveCanvas>
+          <div className="videoContainer">
+            {detectionControls}
+            <InteractiveCanvas 
+              flippedFrame={this.state.flippedFrame}
+            ></InteractiveCanvas>
+          </div>
           <Camera 
             canvasOutput={store.canvasOutput} 
             isFacebookApp={this.state.isFacebookApp}
             startVideoProcessing={this.startVideoProcessing}
-            stopVideoProcessing={this.stopVideoProcessing}
           />          
           {animationControlSliders}
 

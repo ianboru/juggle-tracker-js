@@ -27,8 +27,7 @@ function drawCircle(context, x,y,r, color){
 function drawTrails(context, contourPositions, color, trailLength){
   //Draw circle and trail
   if(contourPositions){
-
-    for(let i = 0; i < contourPositions.length; ++i){
+    for(let i = 0; i < contourPositions.currentNumContours; ++i){
       //Don't draw if x oordinate is -1
       if(contourPositions[i] && contourPositions[i]['x'] != -1 ){
         //Rename for convenience

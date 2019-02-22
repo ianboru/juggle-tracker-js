@@ -9,31 +9,44 @@ function getMatFromCanvas(context, width, height){
     imageData = null
     return srcMat
 }
-function colorFilter(src, colorRange, blurAmount){
+function colorFilter(src, colorRange, blurSize, closeSize,normalizeRGB,normalizeHSV){
+
     let dst = new cv.Mat();
-    // Create a two new mat objects for the image in different color spaces
-    let temp = new cv.Mat();
-    let hsv = new cv.Mat();
-    // Convert the RGBA source image to RGB
-    cv.cvtColor(src, temp, cv.COLOR_RGBA2RGB)
+
+    cv.cvtColor(src, dst, cv.COLOR_RGBA2RGB)
     // Blur the temporary image
-    let ksize = new cv.Size(blurAmount,blurAmount);
+    let ksize = new cv.Size(blurSize,blurSize);
     let anchor = new cv.Point(-1, -1);
-    cv.blur(temp, temp, ksize, anchor, cv.BORDER_DEFAULT);
+    if(blurSize > 1){
+        cv.blur(dst, dst, ksize, anchor, cv.BORDER_DEFAULT);
+    }
     // Convert the RGB temporary image to HSV
-    cv.cvtColor(temp, hsv, cv.COLOR_RGB2HSV)
+    if(normalizeRGB){
+        cv.normalize(dst, dst,0, 255, cv.NORM_MINMAX)
+    }
+    cv.cvtColor(dst, dst, cv.COLOR_RGB2HSV)
+    // Normalize
+    if(normalizeHSV){
+        cv.normalize(dst, dst,0, 255, cv.NORM_MINMAX, cv.CV_8UC1)
+    }
+
     // Get values for the color ranges from the trackbars
-    let lowerHSV = this.htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
+    let lowerHSV = htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
     lowerHSV.push(0)
-    let higherHSV = this.htmlToOpenCVHSV([colorRange.hh, colorRange.hs, colorRange.hv])
+    let higherHSV = htmlToOpenCVHSV([colorRange.hh, colorRange.hs, colorRange.hv])
     higherHSV.push(255)
     // Create the new mat objects that are the lower and upper ranges of the color
-    let low = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), lowerHSV);
-    let high = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), higherHSV);
+    let low = new cv.Mat(dst.rows, dst.cols, dst.type(), lowerHSV);
+    let high = new cv.Mat(dst.rows, dst.cols, dst.type(), higherHSV);
     // Find the colors that are within (low, high)
-    cv.inRange(hsv, low, high, dst);
+    cv.inRange(dst, low, high, dst);
+    // You can try more different parameters
+    if(closeSize > 1){
+        let M = cv.Mat.ones(closeSize, closeSize, cv.CV_8U);
+        cv.morphologyEx(dst, dst, cv.MORPH_CLOSE, M);
+    }
+
     low.delete();high.delete();
-    temp.delete();hsv.delete();
     // Return the masked image (objects are white, background is black)
     return dst
 }
@@ -49,28 +62,62 @@ function colorWhite(src, colorRange, blurAmount){
     // Return the masked image (objects are white, background is black)
     return dst
 }
+function checkCircleIntersection(circle1,circle2){
+    const dist = Math.pow(
+                    Math.pow(circle1.x-circle2.x,2) +
+                    Math.pow(circle1.y-circle2.y,2)
+                ,.5)
+    if(dist <= circle1.r + circle2.r){
+        return true
+    }else{
+        return false
+    }
+}
+function filterOverlappingContours(contourPositions){
+    const filteredContourPositions = []
+    for(let i = 0; i < contourPositions.length; ++i){
+      for(let j = i+1; j < contourPositions.length; ++j){
+        if(!contourPositions[i]|| !contourPositions[j]){
+            continue
+        }
+        const intersect = checkCircleIntersection(
+                            contourPositions[i],
+                            contourPositions[j]
+                            )
+        //set smaller intersecting contour to null
+        if(intersect && contourPositions[i].r > contourPositions[j].r){
+            contourPositions[j] = null
+        }else if(intersect && contourPositions[i].r > contourPositions[j].r){
+            contourPositions[i] = null
+        }
+      } 
+    }
+    contourPositions.forEach((position)=>{
+        if(position){
+            filteredContourPositions.push(position)
+        }
+    })
+    return filteredContourPositions
+}
 
 function findBalls(src, sizeThreshold){
-    // Minimum size of a contour to interpret as an object - sizeThreshold
     // Maximum number of contours to interpret as objects
     const maxNumContours = 3
     // Initialize contour finding data
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
     // Find contours - src is a frame filtered for the current color
-    cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_NONE);
-    // Sort contours by size
-    let sortedContourIndices = this.sortContours(contours)
+    cv.findContours(src, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
     let contourPositions = []
     // Catalogue the contour locations to draw later
-    if(sortedContourIndices.length > 0){
-      // Iterate though the largest contours
-      for(let i = 0; i < Math.min(sortedContourIndices.length, maxNumContours); ++i){
+    // Iterate though the largest contours
+      let contourNum = 0
+      for (let i = 0; i < contours.size(); ++i) {
         // Find the contour area
-        const contour = contours.get(sortedContourIndices[i])
+        const contour = contours.get(i)
         const contourArea = cv.contourArea(contour)
         //Check if contour is big enough to be a real object
-        if(contourArea > sizeThreshold){
+        if(contourArea > sizeThreshold && contourPositions.length < maxNumContours){
           // Use circle to get x,y coordinates and radius
           const circle = cv.minEnclosingCircle(contour)
           // Push the coordinates of the contour and the radius to the list of objects
@@ -80,11 +127,15 @@ function findBalls(src, sizeThreshold){
             'r' : circle.radius,
           })
         }
+        ++contourNum
         contour.delete; 
       }
+    
+    if(contourPositions.length > 0){
+        contourPositions = filterOverlappingContours(contourPositions)
     }
     // Cleanup open cv objects
-    contours.delete(); hierarchy.delete();sortedContourIndices = null
+    contours.delete(); hierarchy.delete();
     // Return list of contour positions and sizes
     return contourPositions
 }
@@ -104,19 +155,6 @@ function htmlToOpenCVHSV(htmlHSV){
     openCVHSV[2] = openCVHSV[2] * 255
     return openCVHSV
   }
-
-function sortContours(contours){
-    let contourAreas = []
-    for (let i = 0; i < contours.size(); ++i) {
-      const contourArea = cv.contourArea(contours.get(i), false)
-      contourAreas.push(contourArea)
-    }
-    const len = contourAreas.length
-    var indices = new Array(len);
-    for (let i = 0; i < len; ++i) indices[i] = i;
-    indices.sort(function (a, b) { return contourAreas[a] > contourAreas[b] ? -1 : contourAreas[a] > contourAreas[b] ? 1 : 0; });
-    return indices
-}
 
 function mean(x,y){
     return (x + y)/2
@@ -328,8 +366,8 @@ const initalTV = 55
 
 const initialHSV = {
       lh : 180,
-      ls : .2,
-      lv : .2,
+      ls : .5,
+      lv : .3,
       hh : 230,
       hs : 1,
       hv : 1,
@@ -345,7 +383,6 @@ export default {
     calculateCurrentHSVString,
     htmlToOpenCVHSV,
     mean,
-    sortContours,
     colorFilter,
     colorWhite,
     findBalls,

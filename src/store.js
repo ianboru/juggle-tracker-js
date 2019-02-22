@@ -18,6 +18,8 @@ class Store {
   //
   @observable liveVideo           = null
   @observable uploadedVideo       = null
+  @observable videoWidth          = null
+  @observable videoHeight          = null
   @observable calibrationMode     = false
   @observable calibratRect        = null
   @observable filterHSV           = initialHSV
@@ -84,6 +86,11 @@ class Store {
   @action setUploadedVideo= (video) => {
     this.uploadedVideo = video
   }
+  @action setVideoDimensions=(width,height)=>{
+    this.videoWidth = width
+    this.videoHeight = height
+  }
+  
   @action toggleCalibrationMode = () => {
     this.calibrationMode = !this.calibrationMode
   }
