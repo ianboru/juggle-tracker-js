@@ -27,11 +27,9 @@ const handle = (props) => {
 };
 @observer
 class DetectionControls extends Component {
-
 	render() {
 		store.calibrationMode
 		store.usingWhite
-		console.log("text", store.usingWhite)
 		const sliders = 
 				<div style={wrapperStyle}>				
 				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="showRaw" onClick={store.toggleCalibrationMode}>{store.calibrationModeText}</button>
