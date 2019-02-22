@@ -53,7 +53,7 @@ function colorWhite(src, colorRange, blurAmount){
 function findBalls(src, sizeThreshold){
     // Minimum size of a contour to interpret as an object - sizeThreshold
     // Maximum number of contours to interpret as objects
-    const maxNumContours = 12
+    const maxNumContours = 3
     // Initialize contour finding data
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();

@@ -28,10 +28,7 @@ class Store {
   @observable showTrails          = true
   @observable showStars           = false
   @observable discoMode           = false
-<<<<<<< HEAD
-  @observable detectionParameters = initialDetectionParams
   @observable canvasOutput        = null
-=======
   @observable blurAmount          = 12
   @observable sizeThreshold       = 12
   @observable animationColor      = 123
@@ -40,7 +37,6 @@ class Store {
   @observable starLife            = .5
   @observable trailLength         = 12
   @observable discoIncrement      = 12
->>>>>>> 7abb604ed01f15beeb77f93edf159f2f966e6d94
   //
   // ACTIONS
   //
