@@ -23,6 +23,7 @@ class Store {
   @observable liveVideo           = null
   @observable uploadedVideo       = null
   @observable calibrationMode     = false
+  @observable calibratRect        = null
   @observable filterHSV           = initialHSV
   @observable allColors           = [initialHSV]
   @observable colorNum            = 0
@@ -32,9 +33,13 @@ class Store {
   @observable showStars           = false
   @observable discoMode           = false
   @observable detectionParameters = initialDetectionParams
+  @observable canvasOutput        = null
   //
   // ACTIONS
   //
+  @computed get isMobile(){
+    return true ?  /Mobi|Android/i.test(navigator.userAgent) : false
+  }
   @computed get calibrationModeText(){
     return this.calibrationMode ? "Show Raw" : "Calibration View"
   } 
@@ -59,6 +64,12 @@ class Store {
     }else{
       return false
     }
+  }
+  @action setCanvasOutput(canvas){
+    this.canvasOutput = canvas
+  }
+  @action setCalibrationRect(rect){
+    this.calibrationRect = rect
   }
   @action setHSVValue(sliderName, value){
     this.filterHSV[sliderName] = value

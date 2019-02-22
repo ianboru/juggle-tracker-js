@@ -13,6 +13,8 @@ import Camera from './camera'
 import { MdHelp } from "react-icons/md"
 import { observer } from "mobx-react"
 import store from "./store"
+import drawingStore from "./drawingStore"
+import InteractiveCanvas from "./interactiveCanvas"
 //@observer
 const calibrateHelp = `Calibration Process:\n
 1: Click 'Calibration View' to see what the computer sees.
@@ -25,12 +27,11 @@ Tips:\n
 2: Turn on all the lights.
 3: Don't point the camera at the lights.
 `
-const touchDuration = 500
-const isMobile = true ?  /Mobi|Android/i.test(navigator.userAgent) : false
 @observer
 class App extends Component {
 
   state = {
+    // Lists that contain data about stars
     src : null,
     dst : null,
     flippedFrame : null,
@@ -50,16 +51,9 @@ class App extends Component {
     blurAmount : 1, sizeThreshold : 1, showRaw : true, usingWhite : false,
     detectionParameters : [cvutils.initialDetectionParameters],    
     canvasStream : null,
-    // Lists that contain data about stars
-    starsX:[], starsY:[], starsDx:[], starsDy:[],starsSize:[], starsColor:[],
-    // Coordinates of mouse when pressed
-    canvasMouseDownX : null, canvasMouseDownY : null,
-    calibrationRect : null,
     showSelectColorText : true,
-    touchTimer : null,
     isFacebookApp : false,
     colorModeButtonText : 'Use White Props',
-    discoTimer : null,
     discoColorNumber : 0,
     discoHue : 0,
   }
@@ -79,7 +73,7 @@ class App extends Component {
 
   startVideoProcessing=()=> {
     //Fix for firefox to have context available
-    const context = this.canvasOutput.getContext("2d")
+    const context = store.canvasOutput.getContext("2d")
     this.stopVideoProcessing();
     requestAnimationFrame(this.processVideo);
   }
@@ -91,15 +85,17 @@ class App extends Component {
   }
 
   processVideo=()=> {
-    if(this.canvasOutput){
+    let lastVideo = null
+    if(store.canvasOutput){
       let video
-      const context = this.canvasOutput.getContext("2d")
-      context.clearRect( 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight)
-      
+      const context = store.canvasOutput.getContext("2d")
+      if(lastVideo){ 
+        context.clearRect( 0, 0, video.videoWidth, video.videoHeight)
+      }
       if(store.uploadedVideo){
         // Use the uploaded file
         video = store.uploadedVideo
-        drawingUtils.fitVidToCanvas(this.canvasOutput, store.uploadedVideo)
+        drawingUtils.fitVidToCanvas(store.canvasOutput, store.uploadedVideo)
       }else{
         // Use the webcam image
         video = store.liveVideo
@@ -117,7 +113,7 @@ class App extends Component {
         cv.flip(srcMat, srcMat,1)
       }
       // If the mouse is down, clone the srcMat and save it as flippedFrame
-      if(this.state.canvasMouseDownX){
+      if(store.calibrationRect){
         this.setState({flippedFrame : srcMat.clone()})
       }
       // Show the srcMat to the user
@@ -146,7 +142,7 @@ class App extends Component {
           cv.imshow('canvasOutput',colorFilteredImage)
         }
         // Get the color values for the object being tracked (white if usingWhite)
-        let color = 'rgb(' + cvutils.hsvToRgb(this.state.colorOne, 100,100) + ')'
+        let color = cvutils.calculateCurrentHSV(colorRange)
         let currentColor = this.state.colorOne
         // If disco mode is on, use the current disco color
         if(store.discoMode){
@@ -157,7 +153,7 @@ class App extends Component {
           // When the hue reaches 360, it goes back to zero (HSV colorspace loops)
           if(this.state.discoHue>360){
             this.state.discoHue = 0
-            }
+          }
         }
         //Draw trails
         if(store.showTrails){
@@ -165,28 +161,29 @@ class App extends Component {
         }
         // Draw connections
         if(store.showConnections){
-          drawingUtils.drawConnections(context, this.state.positions[colorNum], color, this.state.connectionsThickness)
+          //drawingUtils.drawConnections(context, this.state.positions[colorNum], color, this.state.connectionsThickness)
+          drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
+
         }
         // Draw Stars
         if(store.showStars){
           // Draw the stars. Get the updated stars' positions.
-          const newStars = drawingUtils.drawStars(context, this.state.positions[colorNum],this.state.starsX,this.state.starsY,this.state.starsDx,this.state.starsDy,this.state.starsSize,this.state.starsColor,currentColor, this.state.numStarsPerObject, this.state.starLife)
+          drawingUtils.drawStars(context, this.state.positions[colorNum],currentColor, this.state.numStarsPerObject, this.state.starLife)
           // Update the global stars variable
-          this.setState(newStars)
         }
       })
 
       // If the user is clicking and draging to select a color
-      if(this.state.calibrationRect){
+      if(store.calibrationRect){
         //Draw color selection rectangle
         context.strokeStyle = "#ffffff"
-        const rect = this.state.calibrationRect
-        const scaleFactor = store.liveVideo.videoWidth/this.canvasOutput.clientWidth
+        const rect = store.calibrationRect
+        const scaleFactor = store.liveVideo.videoWidth/store.canvasOutput.clientWidth
         context.strokeRect(rect[0]*scaleFactor,rect[1]*scaleFactor,(rect[2]-rect[0])*scaleFactor,(rect[3]-rect[1])*scaleFactor)
       }
       // Shows text to instruct user
       if(this.state.showSelectColorText){
-        drawingUtils.drawSelectColorText(context, isMobile, store.usingWhite)
+        drawingUtils.drawSelectColorText(context, store.isMobile, store.usingWhite)
       }
       //Trim histories to trail length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, this.state.trailLength)
@@ -195,6 +192,7 @@ class App extends Component {
       colorFilteredImage.delete();srcMat.delete()
       colorFilteredImage = null; srcMat = null
       //Process next frame
+      lastVideo = video
       requestAnimationFrame(this.processVideo);
     }
   }
@@ -273,128 +271,6 @@ class App extends Component {
     alert(calibrateHelp)
   }
 
-  setColorFromSelectedRegion = (frame, x1, y1, x2, y2)=>{
-    let rgbRange = cvutils.getColorFromImage(
-      frame,
-      x1,
-      y1,
-      x2,
-      y2,
-    )
-
-    const lowerHSV = cvutils.RGBtoHSV(rgbRange['lr'],rgbRange['lg'],rgbRange['lb'])
-    const upperHSV = cvutils.RGBtoHSV(rgbRange['hr'],rgbRange['hg'],rgbRange['hb'])
-    // converted hsv ranges may have maxs and mins swapped
-    const hsvRange = {
-      'lh' : Math.min(lowerHSV[0],upperHSV[0]),
-      'ls' :  Math.min(lowerHSV[1],upperHSV[1]),
-      'lv' :  .2,
-      'hh' :  Math.max(lowerHSV[0],upperHSV[0]),
-      'hs' :  1,
-      'hv' :  1,
-    }
-    
-    const hDiff = hsvRange['hh'] - hsvRange['lh']
-    hsvRange['ls'] = Math.max(hsvRange['ls'],.1)
-    hsvRange['lv'] = Math.max(hsvRange['lv'],.1)
-
-    const minHDiff = 35
-    if( hDiff < minHDiff && hsvRange['hh'] < 360 - minHDiff){
-      hsvRange['hh'] = hsvRange['hh'] + minHDiff - hDiff
-    }else if( hDiff < minHDiff && hsvRange['hh'] > 350){
-      hsvRange['lh'] = hsvRange['lh'] - minHDiff + hDiff
-    }
-    store.setCurrentColorRange(hsvRange)
-    store.setFilterHSV(hsvRange)
-  }
-  
-
-  handleTouchEnd = ()=>{
-    if (this.state.touchTimer)
-        clearTimeout(this.state.touchTimer);
-      this.setState({
-        calibrationRect : null,
-        canvasMouseDownX : null,
-        canvasMouseDownY : null,
-        showSelectColorText : false,
-      })
-  }
-
-  handleCanvasMouseDown = (e)=>{
-    if(isMobile){
-      this.setState({
-        touchTimer : setTimeout(this.touchHeld, touchDuration)
-      })
-    }
-
-    const clickCoord = cvutils.calculateRelativeCoord(e, this.canvasOutput)
-    this.setState({
-      canvasMouseDownX : clickCoord[0],
-      canvasMouseDownY : clickCoord[1],
-    })
-  }
-
-  handleCanvasMouseDrag = (e)=>{
-    e.preventDefault()
-    if(this.state.canvasMouseDownX){
-      const mouseCoord = cvutils.calculateRelativeCoord(e, this.canvasOutput)
-      const context = this.canvasOutput.getContext("2d")
-      this.setState({
-        calibrationRect : [
-          this.state.canvasMouseDownX,
-          this.state.canvasMouseDownY,
-          mouseCoord[0],
-          mouseCoord[1]
-        ]
-      })
-    }
-  }
-  handleCanvasMouseUp = (e)=>{
-    const clickCoord = cvutils.calculateRelativeCoord(e, this.canvasOutput)
-    //use flipped frame that has not been drawn on yet
-    this.setColorFromSelectedRegion(
-      this.state.flippedFrame,
-      this.state.canvasMouseDownX,
-      this.state.canvasMouseDownY,
-      clickCoord[0],
-      clickCoord[1]
-    )
-   
-    this.setState({
-      canvasMouseDownX : null,
-      canvasMouseDownY : null,
-      calibrationRect : null,
-      showSelectColorText : false,
-    })
-  }
-  touchHeld = ()=>{
-    const rectWidth = 60
-    //use flipped frame that has not been drawn on yet
-    const rectLeft = this.state.canvasMouseDownX - rectWidth/2
-    const rectRight = this.state.canvasMouseDownX + rectWidth/2
-    const rectTop = this.state.canvasMouseDownY - rectWidth/2
-    const rectBottom = this.state.canvasMouseDownY + rectWidth/2
-    this.setColorFromSelectedRegion(
-      this.state.flippedFrame,
-      rectLeft,
-      rectTop,
-      rectRight,
-      rectBottom
-    )
-    
-    this.setState({
-      canvasMouseDownX : null,
-      canvasMouseDownY : null,
-      showSelectColorText : false,
-      calibrationRect : [
-          rectLeft,
-          rectTop,
-          rectRight,
-          rectBottom,
-      ]
-    })
-  }
- 
   render() {
     const colorSwatches = store.allColors.map((colorRange,index)=>{
         const borderString = index == store.colorNum ? '3px solid black' : 'none'
@@ -511,17 +387,11 @@ class App extends Component {
           {addButton}
           {detectionControlSliders}
           {detectionControls}
-          <canvas ref={ref => this.canvasOutput = ref}
-            className="center-block" id="canvasOutput"
-            onMouseDown={this.handleCanvasMouseDown}
-            onMouseUp={this.handleCanvasMouseUp}
-            onMouseMove={this.handleCanvasMouseDrag}
-            onTouchStart={this.handleCanvasMouseDown}
-            onTouchEnd={this.handleTouchEnd}
-            onTouchMove={this.handleTouchEnd}
-          ></canvas>
+          <InteractiveCanvas 
+            flippedFrame={this.state.flippedFrame}
+          ></InteractiveCanvas>
           <Camera 
-            canvasOutput={this.canvasOutput} 
+            canvasOutput={store.canvasOutput} 
             isFacebookApp={this.state.isFacebookApp}
             startVideoProcessing={this.startVideoProcessing}
             stopVideoProcessing={this.stopVideoProcessing}

@@ -1,5 +1,5 @@
 import cvutils from './cvutils';
-
+import drawingStore from './drawingStore'
 function drawSelectColorText(context, isMobile, usingWhite){
   let text
   if(isMobile && !usingWhite){
@@ -128,7 +128,7 @@ function drawAllConnections(context,allPositions, allColors){
     }
   }
 }
-function drawStars(context,positions, existingStarsX, existingStarsY, existingStarsDx, existingStarsDy, existingStarsSize, existingStarsColor, discoColor, numStarsPerObject, starLife){
+function drawStars(context,positions,  discoColor, numStarsPerObject, starLife){
 
   // Create some temporary lists
   let newStarsX = []
@@ -164,20 +164,20 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
   }
 
   // Add the old stars to the list of new stars
-  for (let i=0; i<existingStarsX.length; i++){
+  for (let i=0; i<drawingStore.starsX.length; i++){
     // Has the star burned out?
-    if (existingStarsSize[i]-.15>1){
+    if (drawingStore.starsSize[i]-.15>1){
       // The star needs to move. x and y change by dx and dy
-      newStarsX.push(existingStarsX[i]+existingStarsDx[i])
-      newStarsY.push(existingStarsY[i]+existingStarsDy[i])
+      newStarsX.push(drawingStore.starsX[i]+drawingStore.starsDx[i])
+      newStarsY.push(drawingStore.starsY[i]+drawingStore.starsDy[i])
       // Save the dx, dy. They remain constant
-      newStarsDx.push(existingStarsDx[i])
-      newStarsDy.push(existingStarsDy[i])
+      newStarsDx.push(drawingStore.starsDx[i])
+      newStarsDy.push(drawingStore.starsDy[i])
       // The star get smaller
       console.log(starLife)
-      newStarsSize.push(existingStarsSize[i]-(1-starLife))
+      newStarsSize.push(drawingStore.starsSize[i]-(1-starLife))
       // Preserve the color
-      newStarsColor.push(existingStarsColor[i])
+      newStarsColor.push(drawingStore.starsColor[i])
     }
   }
   // Draw the stars
@@ -188,14 +188,14 @@ function drawStars(context,positions, existingStarsX, existingStarsY, existingSt
     const color = newStarsColor[i]
     drawCircle(context,x,y,size,color)
   }
-  return {
+  drawingStore.setStars({
     starsX : newStarsX,
     starsY : newStarsY,
     starsDx : newStarsDx,
     starsDy : newStarsDy,
     starsSize : newStarsSize,
     starsColor : newStarsColor
-  }
+  })
 }
 function fitVidToCanvas(canvas, imageObj){
   var imageAspectRatio = imageObj.videoWidth / imageObj.videoHeight;
