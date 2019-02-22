@@ -253,21 +253,17 @@ class App extends Component {
           <MdHelp style={{'fontSize':'15pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
         </div>
 
-    const HSV = {}
-    const AnimationParameters = {}
-    const DetectionControlsConst = {}   
-
     const detectionControlSliders =
       <div>
-          <ColorSliders HSV = {HSV} usingWhite = {store.usingWhite} handleHSVSliderChange={this.handleHSVSliderChange}/>
+          <ColorSliders usingWhite = {store.usingWhite} />
       </div>
     const animationControlSliders =
       <div>
-          <AnimationControls AnimationParameters = {AnimationParameters} handleAnimationControlsChange={this.handleAnimationControlsChange}/>
+          <AnimationControls/>
       </div>
     const detectionControls = 
       <div className="detection-controls">
-          <DetectionControls DetectionControlsConst = {DetectionControlsConst} handleDetectionControlsChange={this.handleDetectionControlsChange}/>
+          <DetectionControls/>
       </div>
 
     const app =
