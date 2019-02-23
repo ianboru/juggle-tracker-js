@@ -141,11 +141,11 @@ function findBalls(src, sizeThreshold){
 }
 
 function calculateCurrentHSVString(ballColorRange,opacity){
-    return "hsl(" + ballColorRange['hh'] + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
+    return "hsl(" + mean(ballColorRange['lh'],ballColorRange['hh']) + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
 }
 
 function calculateCurrentHSV(ballColorRange,opacity){
-    return "hsl(" + ballColorRange['hh'] + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
+    return "hsl(" + mean(ballColorRange['lh'],ballColorRange['hh']) + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
 }
 
 function htmlToOpenCVHSV(htmlHSV){

@@ -12,7 +12,6 @@ import { toJS } from 'mobx'
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
-const wrapperStyle = { width: '300px', margin: '0 auto' };
 const handle = (props) => {
   const { value, dragging, index, ...restProps } = props;
   return (
@@ -51,14 +50,14 @@ class ColorSliders extends Component {
 		store.usingWhite
 		const sliders = 
 			store.usingWhite ?
-				<div style={wrapperStyle}>
-					<div style={{"width": "180px", "display" :"inline-block", "marginTop" : "15px"}}>Minumum Brightness</div><Slider min={0} max={100} step={1} defaultValue={this.props.HSV.tv} handle={handle} onChange={this.onBrightnessChange} />
+				<div>
+					<div className="slider-label" style={{"width": "180px", "display" :"inline-block", "marginTop" : "15px"}}>Minumum Brightness</div><Slider min={0} max={100} step={1} defaultValue={this.props.HSV.tv} handle={handle} onChange={this.onBrightnessChange} />
 				</div> 
 					:
-				<div style={wrapperStyle}>
-					<div style={{"width": "80px", "display" :"inline-block"}}>Hue</div><Range className="hue-slider" allowCross={false} min={0} max={360} step={1} value={[store.filterHSV.lh,store.filterHSV.hh]} handle={handle} onChange={this.onHChange} />
-					<div style={{"width": "80px", "display" :"inline-block"}}>Saturation</div><Range allowCross={false} min={0} max={1} step={.01} value={[store.filterHSV.ls,store.filterHSV.hs]}  handle={handle} onChange={this.onSChange}/>
-					<div style={{"width": "80px", "display" :"inline-block"}}>Brightness</div><Range allowCross={false}  min={0} max={1} step={.01} value={[store.filterHSV.lv,store.filterHSV.hv]}  handle={handle} onChange={this.onVChange} />
+				<div>
+					<div  className="slider-label">Hue</div><Range className="hue-slider" allowCross={false} min={0} max={360} step={1} value={[store.filterHSV.lh,store.filterHSV.hh]} handle={handle} onChange={this.onHChange} />
+					<div  className="slider-label">Saturation</div><Range allowCross={false} min={0} max={1} step={.01} value={[store.filterHSV.ls,store.filterHSV.hs]}  handle={handle} onChange={this.onSChange}/>
+					<div  className="slider-label" >Brightness</div><Range allowCross={false}  min={0} max={1} step={.01} value={[store.filterHSV.lv,store.filterHSV.hv]}  handle={handle} onChange={this.onVChange} />
 				</div>
 
 		return (

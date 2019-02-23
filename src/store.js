@@ -39,6 +39,9 @@ class Store {
   @observable starLife            = .5
   @observable trailLength         = 12
   @observable discoIncrement      = 12
+  @observable showColorControls = true
+  @observable showAnimationControls = false
+  @observable showDetectionControls = false
   //
   // ACTIONS
   //
@@ -147,6 +150,28 @@ class Store {
   @action selectColor = (colorNum)=>{
     this.colorNum = colorNum
     this.filterHSV = this.allColors[colorNum]
+  }
+  @action toggleShowControls =(type)=>{
+    if(type == "color"){
+      this.showColorControls = !this.showColorControls
+      if(this.showColorControls){
+        this.showDetectionControls = false
+        this.showAnimationControls = false
+      }
+    }else if(type == "detection"){
+      this.showDetectionControls = !this.showDetectionControls
+      if(this.showDetectionControls){
+        this.showColorControls = false
+        this.showAnimationControls = false
+      }
+    }else if(type == "animation"){
+      this.showAnimationControls = !this.showAnimationControls
+      if(this.showAnimationControls){
+        this.showDetectionControls = false
+        this.showColorControls = false
+      }
+    }
+
   }
 }
 

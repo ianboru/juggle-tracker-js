@@ -201,8 +201,8 @@ class App extends Component {
               'marginRight': '15px',
               'display':'inline-block',
               'backgroundColor' : cvutils.calculateCurrentHSV(colorRange,1),
-              'width' : '50px',
-              'height' : '50px',
+              'width' : '25px',
+              'height' : '25px',
               'border' : borderString,
               'vertical-align' : 'middle'
 
@@ -225,23 +225,20 @@ class App extends Component {
         <div>
         <div
           style={{
-            width : '350px',
+            width : '100%',
             margin : '0 auto',
             marginBottom : '15px'
           }}
          >
-        <MdHelp style={{'fontSize':'15pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
-         <h3 className="secondary-header">Animated Colors</h3>
           {colorSwatches}
            <div
             style={{
-              'fontSize':'14px',
+              'fontSize':'11px',
               'margin' : '0 auto',
               'border' : '1px solid gray',
-              'paddingTop' : '16px',
-              'paddingBottom' : '14px',
-              'width' : '50px',
-              'height' : '20px',
+              'width' : '25px',
+              'height' : '25px',
+              'padding-top' : '10px',
               'display' : 'inline-block',
               'vertical-align' : 'middle'
             }}
@@ -249,23 +246,27 @@ class App extends Component {
           >Add</div>
         </div>
         </div>) :
-        <div>
-          <MdHelp style={{'fontSize':'15pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
-        </div>
-
-    const detectionControlSliders =
-      <div>
+        null
+    console.log(store.showColorControls, store.showAnimationControls, store.showDetectionControls)
+    const colorControls = store.showColorControls ? 
+      <div className={"overlay-controls"}>
+          <h3>Color Controls</h3>
+          {addButton}
           <ColorSliders usingWhite = {store.usingWhite} />
-      </div>
-    const animationControlSliders =
-      <div>
+      </div> : null
+    const animationControls = store.showAnimationControls ? 
+      <div className="overlay-controls">
+          <h3>Animation Controls</h3>
           <AnimationControls/>
-      </div>
-    const detectionControls = 
-      <div className="detection-controls">
+      </div> : null
+    const detectionControls = store.showDetectionControls ? 
+      <div className="overlay-controls">
+          <h3>Advanced Detection Controls</h3>
           <DetectionControls/>
-      </div>
-
+      </div> : null
+    const buttonClass = (shown)=>{
+      return shown ? "active" : "inactive"
+    }
     const app =
       //Don't show app if in-app browser
       //Because getUserMedia doesn't work
@@ -273,12 +274,17 @@ class App extends Component {
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
           <div style={{marginBottom : '25px', 'fontSize' : '10px'}}>Send feedback to @arflowarts on Instagram</div>
-          {addButton}
-          {detectionControlSliders}
-          {detectionControls}
+          <MdHelp style={{'fontSize':'15pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
+          <br/>
+          <button onClick={()=>{store.toggleShowControls("color")}} className={buttonClass(store.showColorControls)}>Color Calibration</button>
+          <button onClick={()=>{store.toggleShowControls("animation")}} className={buttonClass(store.showAnimationControls)}>Animations</button>
+          <button onClick={()=>{store.toggleShowControls("detection")}} className={buttonClass(store.showDetectionControls)}>Advanced Detection</button>
+
           <div className="videoContainer">
+            {colorControls}
             {detectionControls}
-            <InteractiveCanvas 
+            {animationControls}
+            <InteractiveCanvas className="canvas"
               flippedFrame={this.state.flippedFrame}
             ></InteractiveCanvas>
           </div>
@@ -287,7 +293,6 @@ class App extends Component {
             isFacebookApp={this.state.isFacebookApp}
             startVideoProcessing={this.startVideoProcessing}
           />          
-          {animationControlSliders}
 
       </div> : null
     // TOP LAYER
