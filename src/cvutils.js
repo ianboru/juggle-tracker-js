@@ -16,9 +16,10 @@ function colorFilter(src, colorRange){
 
     cv.cvtColor(src, dst, cv.COLOR_RGBA2RGB)
     // Blur the temporary image
-    let ksize = new cv.Size(blurSize,blurSize);
-    let anchor = new cv.Point(-1, -1);
+    
     if(store.blurAmount > 1){
+        let ksize = new cv.Size(store.blurAmount,store.blurAmount);
+        let anchor = new cv.Point(-1, -1);
         cv.blur(dst, dst, ksize, anchor, cv.BORDER_DEFAULT);
     }
     // Convert the RGB temporary image to HSV
@@ -35,7 +36,7 @@ function colorFilter(src, colorRange){
     cv.inRange(dst, low, high, dst);
     // You can try more different parameters
     if(store.closeSize > 1){
-        let M = cv.Mat.ones(closeSize, closeSize, cv.CV_8U);
+        let M = cv.Mat.ones(store.closeSize, store.closeSize, cv.CV_8U);
         cv.morphologyEx(dst, dst, cv.MORPH_CLOSE, M);
     }
 
