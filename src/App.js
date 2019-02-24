@@ -119,7 +119,9 @@ class App extends Component {
         }
         // Get the color values for the object being tracked (white if usingWhite)
         let color = cvutils.calculateCurrentHSV(colorRange)
-
+        if(store.showBrushColor){
+          color = 'rgb(' + cvutils.hsvToRgb(store.brushColor, 100,100) + ')'
+        }
         // If disco mode is on, use the current disco color
         if(store.discoMode){
           color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'

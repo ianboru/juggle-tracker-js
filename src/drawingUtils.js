@@ -17,6 +17,7 @@ function drawSelectColorText(context, isMobile, usingWhite){
 
 function drawCircle(context, x,y,r, color){
     //Draw circle for coordinate and color
+    console.log(color)
     context.beginPath();
     context.arc(x, y, r, 0, 2 * Math.PI, false);
     context.fillStyle = color;
@@ -128,7 +129,6 @@ function drawAllConnections(context,allPositions, allColors){
   }
 }
 function drawStars(context,positions, color){
-  if(!color){return}
   // Create some temporary lists
   let newStarsX = []
   let newStarsY = []
