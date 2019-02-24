@@ -17,7 +17,6 @@ function drawSelectColorText(context, isMobile, usingWhite){
 
 function drawCircle(context, x,y,r, color){
     //Draw circle for coordinate and color
-    console.log(color)
     context.beginPath();
     context.arc(x, y, r, 0, 2 * Math.PI, false);
     context.fillStyle = color;
@@ -129,6 +128,8 @@ function drawAllConnections(context,allPositions, allColors){
   }
 }
 function drawStars(context,positions, color){
+  const maxStars = 500
+  const starDecayRate = .2
   // Create some temporary lists
   let newStarsX = []
   let newStarsY = []
@@ -148,14 +149,17 @@ function drawStars(context,positions, color){
         // Get the radius
         const r = positions[i]['r'].slice(-1).pop()
         // Create some stars
-        for (let numStars=0; numStars<store.numStarsPerObject+1; numStars++){
+        for (let numStars=0; numStars< store.numStarsPerObject+1; numStars++){
           // A star is born!
+          if(drawingStore.starsX.length > maxStars){
+            continue
+          }
           newStarsX.push(x + (.5-Math.random())*r) // Around the xy coordinate
           newStarsY.push(y + (.5-Math.random())*r)
           newStarsDx.push(2*(.5-Math.random())) // With a random velocity
           newStarsDy.push(2*(.5-Math.random()))
           newStarsSize.push(positions[i]['r'].slice(-1).pop()/5 + Math.random()*2) // And a random size
-          newStarsColor.push('#'+cvutils.hsvToHEX(color, 100,100))
+          newStarsColor.push("#ffbf00")
         }
       }
     }
@@ -164,7 +168,7 @@ function drawStars(context,positions, color){
   // Add the old stars to the list of new stars
   for (let i=0; i<drawingStore.starsX.length; i++){
     // Has the star burned out?
-    if (drawingStore.starsSize[i]-.15>1){
+    if (drawingStore.starsSize[i]-starDecayRate > 1){
       // The star needs to move. x and y change by dx and dy
       newStarsX.push(drawingStore.starsX[i]+drawingStore.starsDx[i])
       newStarsY.push(drawingStore.starsY[i]+drawingStore.starsDy[i])
