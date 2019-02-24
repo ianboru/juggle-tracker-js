@@ -32,10 +32,9 @@ class DetectionControls extends Component {
 		store.blurAmount
 		return (
 			<div>				
-				<button className="small-button" id="showRaw" onClick={store.toggleCalibrationMode}>{store.calibrationModeText}</button>
-				<button className="small-button" id="usingWhite" onClick={store.toggleUsingWhite}>{store.usingWhiteText}</button>
+				<button className="small-button" id="showRaw" onClick={store.toggleCalibrationMode}>Color Filter</button>
 				<div className="slider-label">Blur</div><Slider min={1} max={30} step={1} defaultValue={store.blurAmount}  handle={handle} onChange={store.setBlurAmount}/>
-				<div className="slider-label">Min Size Threshold</div><Slider min={1} max={10000} step={50} defaultValue={store.sizeThreshold}  handle={handle} onChange={store.setSizeThreshold}/>
+				<div className="slider-label">Minimum Size</div><Slider min={1} max={100} step={1} defaultValue={store.sizeThreshold} handle={handle} onChange={store.setSizeThreshold}/>
 			</div>
 		)
 	}

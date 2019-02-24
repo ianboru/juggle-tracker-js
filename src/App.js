@@ -33,20 +33,13 @@ class App extends Component {
   state = {
     dst : null,
     flippedFrame : null,
-    startTime : Date.now(),
     // Color blue (initial value for hsv sliders)
-    tv : cvutils.initialHSV.tv,
     net : null,
-    allColors : [cvutils.initialHSV],
     positions : [], 
     canvasStream : null,
     showSelectColorText : true,
     isFacebookApp : false,
     discoHue : 0,
-    blurSize : 1,
-    closeSize : 1,
-    normalizeRGB : false,
-    normalizeHSV : false,
   }
 
   componentDidMount=()=>{
@@ -246,10 +239,11 @@ class App extends Component {
         </div>
         </div>) :
         null
-    console.log(store.showColorControls, store.showAnimationControls, store.showDetectionControls)
     const colorControls = store.showColorControls ? 
       <div className={"overlay-controls"}>
           <h3>Color Controls</h3>
+          <button className="small-button" id="usingWhite" onClick={store.toggleUsingWhite}>Glowing Props</button>
+
           {addButton}
           <ColorSliders usingWhite = {store.usingWhite} />
       </div> : null

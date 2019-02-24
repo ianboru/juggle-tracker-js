@@ -1,4 +1,5 @@
 import cv from 'opencv.js';
+import store from "./store"
 function getMatFromCanvas(context, width, height){
     // Create a new blank mat (or canvas) to draw on
     let srcMat = new cv.Mat(height, width, cv.CV_8UC4);
@@ -9,7 +10,7 @@ function getMatFromCanvas(context, width, height){
     imageData = null
     return srcMat
 }
-function colorFilter(src, colorRange, blurSize, closeSize,normalizeRGB,normalizeHSV){
+function colorFilter(src, colorRange){
 
     let dst = new cv.Mat();
 
@@ -17,19 +18,11 @@ function colorFilter(src, colorRange, blurSize, closeSize,normalizeRGB,normalize
     // Blur the temporary image
     let ksize = new cv.Size(blurSize,blurSize);
     let anchor = new cv.Point(-1, -1);
-    if(blurSize > 1){
+    if(store.blurAmount > 1){
         cv.blur(dst, dst, ksize, anchor, cv.BORDER_DEFAULT);
     }
     // Convert the RGB temporary image to HSV
-    if(normalizeRGB){
-        cv.normalize(dst, dst,0, 255, cv.NORM_MINMAX)
-    }
     cv.cvtColor(dst, dst, cv.COLOR_RGB2HSV)
-    // Normalize
-    if(normalizeHSV){
-        cv.normalize(dst, dst,0, 255, cv.NORM_MINMAX, cv.CV_8UC1)
-    }
-
     // Get values for the color ranges from the trackbars
     let lowerHSV = htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
     lowerHSV.push(0)
@@ -41,7 +34,7 @@ function colorFilter(src, colorRange, blurSize, closeSize,normalizeRGB,normalize
     // Find the colors that are within (low, high)
     cv.inRange(dst, low, high, dst);
     // You can try more different parameters
-    if(closeSize > 1){
+    if(store.closeSize > 1){
         let M = cv.Mat.ones(closeSize, closeSize, cv.CV_8U);
         cv.morphologyEx(dst, dst, cv.MORPH_CLOSE, M);
     }
@@ -51,14 +44,14 @@ function colorFilter(src, colorRange, blurSize, closeSize,normalizeRGB,normalize
     return dst
 }
 
-function colorWhite(src, colorRange, blurAmount){
+function colorWhite(src, colorRange){
     cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-    let ksize = new cv.Size(blurAmount,blurAmount);
+    let ksize = new cv.Size(store.blurAmount,store.blurAmount);
     let anchor = new cv.Point(-1, -1);
     cv.blur(src, src, ksize, anchor, cv.BORDER_DEFAULT);
     let dst = new cv.Mat();
     // You can try more different parameters
-    cv.threshold(src, dst, Math.round(360*colorRange.tv/100), 255, cv.THRESH_BINARY);
+    cv.threshold(src, dst, Math.round(360*store.brightnessThreshold/100), 255, cv.THRESH_BINARY);
     // Return the masked image (objects are white, background is black)
     return dst
 }
@@ -362,19 +355,6 @@ function hsvToRgb( H,  S,  V) {
             return ''+ hexR+''+hexG+''+hexB
         }
 
-const initalTV = 55
-
-const initialHSV = {
-      lh : 180,
-      ls : .5,
-      lv : .3,
-      hh : 230,
-      hs : 1,
-      hv : 1,
-      tv : initalTV,
-    }
-
-
 export default {
     RGBtoHSV,
     hsvToRgb,
@@ -388,6 +368,5 @@ export default {
     findBalls,
     getColorFromImage,
     calculateRelativeCoord,
-    initialHSV,
     getMatFromCanvas
 }

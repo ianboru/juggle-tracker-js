@@ -8,7 +8,6 @@ const initialHSV = {
       hs : 1,
       hv : 1,
     }
-
 configure({ enforceActions: "always" })
 
 
@@ -34,7 +33,7 @@ class Store {
   @observable canvasOutput        = null
   @observable blurAmount          = 12
   @observable sizeThreshold       = 12
-  @observable brushColor          = 123
+  @observable brushColor            = 123
   @observable connectionThickness = 12
   @observable numStarsPerObject   = 12
   @observable starLife            = .5
@@ -43,6 +42,8 @@ class Store {
   @observable showColorControls = true
   @observable showAnimationControls = false
   @observable showDetectionControls = false
+  @observable brightnessThreshold  = 55
+  @observable closeAmount          = null
   //
   // ACTIONS
   //
@@ -71,6 +72,9 @@ class Store {
   @action setHSVValue(sliderName, value){
     this.filterHSV[sliderName] = value
     this.setCurrentColorRange(this.filterHSV)
+  }
+  @action setBrightnessThreshold(value){
+    this.brightnessThreshold = value
   }
   @action setLiveVideo= (video) => {
     this.liveVideo = video
