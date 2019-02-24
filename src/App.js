@@ -83,7 +83,7 @@ class App extends Component {
       
 
       // Get the srcMat from the canvas
-      let srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
+      let srcMat = cvutils.getMatFromCanvas(context, video.videoWidth, video.videoHeight)
       // Flip horizontally because camera feed is pre-flipped
       if(!store.uploadedVideo){
         cv.flip(srcMat, srcMat,1)

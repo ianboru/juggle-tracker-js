@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import cvutils from "./cvutils"
 import store from "./store"
+import "./App.css"
 const touchDuration = 500
 
 class InteractiveCanvas extends Component {
@@ -140,7 +141,8 @@ class InteractiveCanvas extends Component {
     return (
         <canvas 
           ref={ref => this.canvasOutput = ref}
-          className="center-block" id="canvasOutput"
+          id="canvasOutput"
+          className="canvas"
           onMouseDown={this.handleCanvasMouseDown}
           onMouseUp={this.handleCanvasMouseUp}
           onMouseMove={this.handleCanvasMouseDrag}

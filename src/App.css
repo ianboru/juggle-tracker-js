@@ -41,11 +41,10 @@ button {
   position : absolute;
 }
 .overlay-controls{
-    background-color: rgba(255, 255, 255, 0.75);
+    background-color: rgba(255, 255, 255, 0.7);
     border : 3px solid gray;
     z-index : 50;
     padding : 20px;
-    margin-left : 50px;
 }
 h3{
   margin : 0;
@@ -71,16 +70,17 @@ canvas{
 }
 @media screen and (max-width: 992px) {
   .overlay-controls{
-    width : 200px;
+    width : 300px;
   }
   canvas,.video-container{
+    display: block;
     width: 640px;
     height: auto;
   }
 }
 @media screen and (max-width: 600px) {
   .overlay-controls{
-    width : 120px;
+    width : 200px;
   }
   canvas,.video-container{
     display: block; 
@@ -127,7 +127,9 @@ canvas{
 }
 .large-button {
   font-size : 14px;
+  border-radius: 4px;
 }
-.large-button {
+.small-button {
   font-size : 12px;
+  border-radius: 4px;
 }

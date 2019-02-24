@@ -4,8 +4,8 @@ import Tooltip from 'rc-tooltip';
 import 'rc-tooltip/assets/bootstrap.css';
 import 'rc-slider/assets/index.css';
 import cvutils from './cvutils'
-import './detectionControls.css'
 import store from './store'
+import "./App.css"
 import { observer } from 'mobx-react'
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);

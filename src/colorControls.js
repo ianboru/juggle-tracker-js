@@ -4,11 +4,11 @@ import Tooltip from 'rc-tooltip';
 import 'rc-tooltip/assets/bootstrap.css';
 import 'rc-slider/assets/index.css';
 import cvutils from './cvutils'
-import './colorControls.css'
 import store from './store'
 import { observer } from 'mobx-react'
 import { toJS } from 'mobx'
-
+//TODO: switch to App.css, currently cancels styles for some reason 
+import "./colorControls.css"
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;

@@ -1,5 +1,6 @@
 @media screen and (max-width: 992px) {
   video{
+  	display: block; 
     width: 640px;
     height: auto;
   }

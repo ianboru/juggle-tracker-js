@@ -4,9 +4,9 @@ import Tooltip from 'rc-tooltip';
 import 'rc-tooltip/assets/bootstrap.css';
 import 'rc-slider/assets/index.css';
 import cvutils from './cvutils'
-import './animationControls.css'
 import store from './store'
 import { observer } from 'mobx-react'
+import "./App.css"
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -31,7 +31,6 @@ class AnimationControls extends Component {
 		store.showTrails
 		store.showStars
 		store.discoMode		
-		console.log(store.trailLength, store.numStarsPerObject, store.starLife)	
 		const buttonClass = (shown)=>{
 	      return shown ? "active small-button" : "inactive small-button"
 	    }
