@@ -83,7 +83,7 @@ class App extends Component {
       
 
       // Get the srcMat from the canvas
-      let srcMat = cvutils.getMatFromCanvas(context, video.videoWidth, video.videoHeight)
+      let srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
       // Flip horizontally because camera feed is pre-flipped
       if(!store.uploadedVideo){
         cv.flip(srcMat, srcMat,1)
@@ -280,7 +280,7 @@ class App extends Component {
             {colorControls}
             {detectionControls}
             {animationControls}
-            <InteractiveCanvas className="canvas"
+            <InteractiveCanvas className="center-block canvas"
               flippedFrame={this.state.flippedFrame}
             ></InteractiveCanvas>
           </div>

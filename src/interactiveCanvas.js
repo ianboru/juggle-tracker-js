@@ -142,7 +142,6 @@ class InteractiveCanvas extends Component {
         <canvas 
           ref={ref => this.canvasOutput = ref}
           id="canvasOutput"
-          className="canvas"
           onMouseDown={this.handleCanvasMouseDown}
           onMouseUp={this.handleCanvasMouseUp}
           onMouseMove={this.handleCanvasMouseDrag}

@@ -73,7 +73,6 @@ canvas{
     width : 300px;
   }
   canvas,.video-container{
-    display: block;
     width: 640px;
     height: auto;
   }
