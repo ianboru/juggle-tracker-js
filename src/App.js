@@ -127,11 +127,10 @@ class App extends Component {
         }
         // Get the color values for the object being tracked (white if usingWhite)
         let color = cvutils.calculateCurrentHSV(colorRange)
-        let currentColor = store.animationColor
+
         // If disco mode is on, use the current disco color
         if(store.discoMode){
           color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
-          currentColor = this.state.discoHue
           // Update the disco hue so that the color changes
           this.state.discoHue = this.state.discoHue + store.discoIncrement
           // When the hue reaches 360, it goes back to zero (HSV colorspace loops)
@@ -141,17 +140,17 @@ class App extends Component {
         }
         //Draw trails
         if(store.showTrails){
-          drawingUtils.drawTrails(context,this.state.positions[colorNum], color, store.trailLength)
+          drawingUtils.drawTrails(context,this.state.positions[colorNum], color)
         }
         // Draw connections
         if(store.showConnections){
-          drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
-          //drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness)
+          //drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
+          drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness)
         }
         // Draw Stars
         if(store.showStars){
           // Draw the stars. Get the updated stars' positions.
-          drawingUtils.drawStars(context, this.state.positions[colorNum],currentColor, this.state.numStarsPerObject, this.state.starLife)
+          drawingUtils.drawStars(context, this.state.positions[colorNum],color)
           // Update the global stars variable
         }
       })
@@ -265,7 +264,7 @@ class App extends Component {
           <DetectionControls/>
       </div> : null
     const buttonClass = (shown)=>{
-      return shown ? "active" : "inactive"
+      return shown ? "active large-button" : "inactive large-button"
     }
     const app =
       //Don't show app if in-app browser
@@ -273,13 +272,12 @@ class App extends Component {
       !this.state.isFacebookApp ?
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
-          <div style={{marginBottom : '25px', 'fontSize' : '10px'}}>Send feedback to @arflowarts on Instagram</div>
+          <div style={{marginBottom : '10px', 'fontSize' : '10px'}}>Send feedback to @arflowarts on Instagram</div>
           <MdHelp style={{'fontSize':'15pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
           <br/>
           <button onClick={()=>{store.toggleShowControls("color")}} className={buttonClass(store.showColorControls)}>Color Calibration</button>
           <button onClick={()=>{store.toggleShowControls("animation")}} className={buttonClass(store.showAnimationControls)}>Animations</button>
           <button onClick={()=>{store.toggleShowControls("detection")}} className={buttonClass(store.showDetectionControls)}>Advanced Detection</button>
-
           <div className="videoContainer">
             {colorControls}
             {detectionControls}

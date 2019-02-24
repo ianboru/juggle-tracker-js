@@ -30,22 +30,50 @@ class AnimationControls extends Component {
 		store.showConnections
 		store.showTrails
 		store.showStars
-		store.discoMode			
+		store.discoMode		
+		console.log(store.trailLength, store.numStarsPerObject, store.starLife)	
+		const buttonClass = (shown)=>{
+	      return shown ? "active small-button" : "inactive small-button"
+	    }
+		const connectionControls = store.showConnections ? 
+			<div>
+			  <div className="slider-label" >Line Thickness</div><Slider min={0} max={25} step={1} defaultValue={store.connectionThickness}  handle={handle} onChange={store.setConnectionThickness}/>
+			</div> : null
+		
+		const starControls = store.showStars ?
+			<div>
+				<div className="slider-label" ># Stars</div><Slider min={1} max={100} step={1} defaultValue={store.numStarsPerObject} handle={handle} onChange={store.setNumStarsPerObject}/>
+				<div className="slider-label" >Star Life</div><Slider min={0} max={1} step={.01} defaultValue={store.starLife}  handle={handle} onChange={store.setStarLife}/>
+			</div> : null
+		
+		const trailControls = store.showTrails ? 
+			<div>
+				<div className="slider-label" >Trail Length</div><Slider min={0} max={50} step={1} defaultValue={store.trailLength}  handle={handle} onChange={store.setTrailLength}/>
+			</div> : null
 
+		const rainbowControls = store.discoMode ? 
+			<div>
+				<div className="slider-label" >Rainbow Speed</div><Slider min={1} max={24} step={1} defaultValue={store.discoIncrement}  handle={handle} onChange={store.setDiscoIncrement}/>
+			</div> : null 
+
+		const brushColorControls = store.showBrushColor ? 
+			<div>
+				<div className="slider-label" >Brush Color</div><Slider className="hue-slider" min={0} max={360} step={1} defaultValue={store.brushColor} handle={handle} onChange={store.setBrushColor} />
+			</div> : null 
 		return (
 			<div>
 				<div>
-					<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="connections" onClick={store.toggleShowConnections}>{store.showConnectionsText}</button>
-					<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="trails" onClick={store.toggleShowTrails}>{store.showTrailsText}</button>				
-					<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="stars" onClick={store.toggleShowStars}>{store.showStarsText}</button>				
-					<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="disco" onClick={store.toggleDiscoMode}>{store.discoModeText}</button>
+					<button className={buttonClass(store.showConnections)}  id="connections" onClick={store.toggleShowConnections}>Connections</button>
+					<button className={buttonClass(store.showTrails)}  id="trails" onClick={store.toggleShowTrails}>Trails</button>				
+					<button className={buttonClass(store.showStars)}  id="stars" onClick={store.toggleShowStars}>Stars</button>				
+					<button className={buttonClass(store.discoMode)}  id="disco" onClick={store.toggleDiscoMode}>Rainbow</button>
+					<button className={buttonClass(store.showBrushColor)}  id="disco" onClick={store.toggleShowBrushColor}>Brush Color</button>
 				</div>
-				<div className="slider-label" >ColorOne</div><Slider className="hue-slider" min={0} max={360} step={1} defaultvalue={store.animationColor} handle={handle} onChange={store.setAnimationColor} />
-				<div className="slider-label" >Thickness</div><Slider min={0} max={25} step={1} defaultvalue={store.connectionsThickness}  handle={handle} onChange={store.setConnectionThickness}/>
-				<div className="slider-label" >Number of new stars</div><Slider min={1} max={100} step={1} defaultvalue={store.numStarsPerObject}  handle={handle} onChange={store.setNumStarsPerObject}/>
-				<div className="slider-label" >Star Life</div><Slider min={0} max={1} step={.01} defaultvalue={store.starLife}  handle={handle} onChange={store.setStarLife}/>
-				<div className="slider-label" >Trail Length</div><Slider min={0} max={50} step={1} defaultvalue={store.trailLength}  handle={handle} onChange={store.setTrailLength}/>
-				<div className="slider-label" >Disco Increment</div><Slider min={1} max={24} step={1} defaultvalue={store.discoIncrement}  handle={handle} onChange={store.setDiscoIncrement}/>
+				{brushColorControls}
+				{connectionControls}
+				{trailControls}
+				{starControls}
+				{rainbowControls}
 			</div>
 		)
 	}

@@ -29,12 +29,13 @@ class DetectionControls extends Component {
 	render() {
 		store.calibrationMode
 		store.usingWhite
+		store.blurAmount
 		return (
 			<div>				
-				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="showRaw" onClick={store.toggleCalibrationMode}>{store.calibrationModeText}</button>
-				<button style={{'fontSize':'12pt', 'marginBottom' : '10px'}}  id="usingWhite" onClick={store.toggleUsingWhite}>{store.usingWhiteText}</button>
-				<div className="slider-label">Blur</div><Slider min={1} max={30} step={1} defaultvalue={store.blurAmount}  handle={handle} onChange={store.setBlurAmount}/>
-				<div className="slider-label">Min Size Threshold</div><Slider min={1} max={10000} step={50} defaultvalue={store.sizeThreshold}  handle={handle} onChange={store.setSizeThreshold}/>
+				<button className="small-button" id="showRaw" onClick={store.toggleCalibrationMode}>{store.calibrationModeText}</button>
+				<button className="small-button" id="usingWhite" onClick={store.toggleUsingWhite}>{store.usingWhiteText}</button>
+				<div className="slider-label">Blur</div><Slider min={1} max={30} step={1} defaultValue={store.blurAmount}  handle={handle} onChange={store.setBlurAmount}/>
+				<div className="slider-label">Min Size Threshold</div><Slider min={1} max={10000} step={50} defaultValue={store.sizeThreshold}  handle={handle} onChange={store.setSizeThreshold}/>
 			</div>
 		)
 	}

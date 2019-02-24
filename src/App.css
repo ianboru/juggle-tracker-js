@@ -35,6 +35,7 @@ button {
 }
 .video-container{
   position : relative;
+  margin: 0 auto;
 }
 .overlay-controls, .canvas{
   position : absolute;
@@ -44,10 +45,9 @@ button {
     border : 3px solid gray;
     z-index : 50;
     padding : 20px;
-    margin: 0 auto;
-    left : 30px;
     margin-top : 5px;
     opacity : .75;
+    margin-left : 50px;
 }
 .active{
   background-color: darkgray;
@@ -71,7 +71,7 @@ canvas{
   .overlay-controls{
     width : 200px;
   }
-  canvas{
+  canvas,.video-container{
     width: 640px;
     height: auto;
   }
@@ -80,7 +80,7 @@ canvas{
   .overlay-controls{
     width : 120px;
   }
-  canvas{
+  canvas,.video-container{
     display: block; 
     width: 375px;
     height: auto;
@@ -123,4 +123,7 @@ canvas{
 .active, .btn:hover {
   background-color: #666;
   color: white;
+}
+.large-button {
+  font-size : 14px;
 }

@@ -29,15 +29,16 @@ class Store {
   @observable showConnections     = false
   @observable showTrails          = true
   @observable showStars           = false
+  @observable showBrushColor      = false
   @observable discoMode           = false
   @observable canvasOutput        = null
   @observable blurAmount          = 12
   @observable sizeThreshold       = 12
-  @observable animationColor      = 123
+  @observable brushColor          = 123
   @observable connectionThickness = 12
   @observable numStarsPerObject   = 12
   @observable starLife            = .5
-  @observable trailLength         = 12
+  @observable trailLength         = 1
   @observable discoIncrement      = 12
   @observable showColorControls = true
   @observable showAnimationControls = false
@@ -53,19 +54,7 @@ class Store {
   } 
   @computed get usingWhiteText(){
     return this.usingWhite ? "Use Color" : "Use Brightness"
-  }
-  @computed get showConnectionsText(){
-    return this.showConnections ? "Hide Connections" : "Show Connections"
-  }
-  @computed get showTrailsText(){
-    return this.showTrails ? "Hide Trails" : "Show Trails"
-  }
-  @computed get showStarsText(){
-    return this.showStars ? "Hide Stars" : "Show Stars"
-  }
-  @computed get discoModeText(){
-    return this.discoMode ? "Rainbow Off" : "Rainbow On"
-  }  
+  } 
   @computed get playingUploaded(){
     if(this.uploadedVideo){
       return this.uploadedVideo.currentTime > 0 && !this.uploadedVideo.paused && !this.uploadedVideo.ended
@@ -112,6 +101,9 @@ class Store {
   @action toggleDiscoMode = () => {
     this.discoMode = !this.discoMode
   }
+  @action toggleShowBrushColor = () => {
+    this.showBrushColor = !this.showBrushColor
+  }
   @action setCurrentColorRange = (colorRange)=>{
     this.allColors[this.colorNum] = colorRange
   }
@@ -136,8 +128,8 @@ class Store {
   @action setSizeThreshold = (sizeThreshold) => {
     this.sizeThreshold = sizeThreshold
   }
-  @action setAnimationColor = (animationColor) => {
-    this.animationColor = animationColor
+  @action setBrushColor = (brushColor) => {
+    this.brushColor = brushColor
   }
   @action setFilterHSV = (colorRange)=>{
     this.filterHSV = colorRange

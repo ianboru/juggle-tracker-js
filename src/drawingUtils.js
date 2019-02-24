@@ -1,5 +1,6 @@
 import cvutils from './cvutils';
 import drawingStore from './drawingStore'
+import store from './store'
 function drawSelectColorText(context, isMobile, usingWhite){
   let text
   if(isMobile && !usingWhite){
@@ -24,7 +25,7 @@ function drawCircle(context, x,y,r, color){
     context.stroke();
   }
 
-function drawTrails(context, contourPositions, color, trailLength){
+function drawTrails(context, contourPositions, color){
   //Draw circle and trail
   if(contourPositions){
     for(let i = 0; i < contourPositions.currentNumContours; ++i){
@@ -36,7 +37,7 @@ function drawTrails(context, contourPositions, color, trailLength){
         const rHistory = contourPositions[i]['r']
 
         //Don't draw a trail longer than the window
-        const maxWindowSize = trailLength
+        const maxWindowSize = store.trailLength
         let currentWindowSize  = Math.min(xHistory.length, maxWindowSize)
         //Draw circle and trail
         for (let t=0; t < currentWindowSize; ++t){
@@ -127,8 +128,8 @@ function drawAllConnections(context,allPositions, allColors){
     }
   }
 }
-function drawStars(context,positions,  discoColor, numStarsPerObject, starLife){
-
+function drawStars(context,positions, color){
+  if(!color){return}
   // Create some temporary lists
   let newStarsX = []
   let newStarsY = []
@@ -148,15 +149,15 @@ function drawStars(context,positions,  discoColor, numStarsPerObject, starLife){
         // Get the radius
         const r = positions[i]['r'].slice(-1).pop()
         // Create some stars
-        for (let numStars=0; numStars<numStarsPerObject+1; numStars++){
+        for (let numStars=0; numStars<store.numStarsPerObject+1; numStars++){
           // A star is born!
           newStarsX.push(x + (.5-Math.random())*r) // Around the xy coordinate
           newStarsY.push(y + (.5-Math.random())*r)
           newStarsDx.push(2*(.5-Math.random())) // With a random velocity
           newStarsDy.push(2*(.5-Math.random()))
           newStarsSize.push(positions[i]['r'].slice(-1).pop()/5 + Math.random()*2) // And a random size
-          //console.log(cvutils.hsvToHEX(discoColor, 100, 100))
-          newStarsColor.push('#'+cvutils.hsvToHEX(discoColor, 100,100))
+          //console.log(cvutils.hsvToHEX(color, 100, 100))
+          newStarsColor.push('#'+cvutils.hsvToHEX(color, 100,100))
         }
       }
     }
@@ -173,8 +174,8 @@ function drawStars(context,positions,  discoColor, numStarsPerObject, starLife){
       newStarsDx.push(drawingStore.starsDx[i])
       newStarsDy.push(drawingStore.starsDy[i])
       // The star get smaller
-      console.log(starLife)
-      newStarsSize.push(drawingStore.starsSize[i]-(1-starLife))
+      console.log(store.starLife)
+      newStarsSize.push(drawingStore.starsSize[i]-(1-store.starLife))
       // Preserve the color
       newStarsColor.push(drawingStore.starsColor[i])
     }
