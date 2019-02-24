@@ -101,13 +101,13 @@ class App extends Component {
       store.allColors.forEach((colorRange,colorNum)=>{
         // If colored balls are being used, use cvutils.colorfilter
         if(!store.usingWhite){
-          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange, store.blurAmount)
+          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange)
         // If white balls are being used, use cvutils.colorWhite
         }else{
-          colorFilteredImage = cvutils.colorWhite(srcMat, colorRange, store.blurAmount)
+          colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
         }
         // Get the ball locations
-        const ballLocations = cvutils.findBalls(colorFilteredImage, store.sizeThreshold)
+        const ballLocations = cvutils.findBalls(colorFilteredImage)
 
         // Update the tracking history
         this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
@@ -239,11 +239,14 @@ class App extends Component {
         </div>
         </div>) :
         null
-    const colorControls = store.showColorControls ? 
-      <div className={"overlay-controls"}>
-          <h3>Color Controls</h3>
-          <button className="small-button" id="usingWhite" onClick={store.toggleUsingWhite}>Glowing Props</button>
+    const buttonClass = (shown)=>{
+      return shown ? "active large-button" : "inactive large-button"
+    }
 
+    const colorControls = store.showColorControls ? 
+      <div className="overlay-controls">
+          <h3>Color Controls</h3>
+          <button className={buttonClass(store.usingWhite)} id="usingWhite" onClick={store.toggleUsingWhite}>Glowing Props</button>
           {addButton}
           <ColorSliders usingWhite = {store.usingWhite} />
       </div> : null
@@ -257,9 +260,7 @@ class App extends Component {
           <h3>Advanced Detection Controls</h3>
           <DetectionControls/>
       </div> : null
-    const buttonClass = (shown)=>{
-      return shown ? "active large-button" : "inactive large-button"
-    }
+    
     const app =
       //Don't show app if in-app browser
       //Because getUserMedia doesn't work

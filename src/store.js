@@ -43,7 +43,7 @@ class Store {
   @observable showAnimationControls = false
   @observable showDetectionControls = false
   @observable brightnessThreshold  = 55
-  @observable closeAmount          = null
+  @observable closeAmount          = 0
   //
   // ACTIONS
   //
@@ -113,6 +113,9 @@ class Store {
   }
   @action setBlurAmount = (blurAmount) => {
     this.blurAmount = blurAmount
+  }
+  @action setCloseAmount = (closeAmount) => {
+    this.closeAmount = closeAmount
   }
   @action setDiscoIncrement = (discoIncrement) => {
     this.discoIncrement = discoIncrement

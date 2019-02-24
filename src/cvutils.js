@@ -35,7 +35,7 @@ function colorFilter(src, colorRange){
     // Find the colors that are within (low, high)
     cv.inRange(dst, low, high, dst);
     // You can try more different parameters
-    if(store.closeSize > 1){
+    if(store.closeAmount > 0){
         let M = cv.Mat.ones(store.closeSize, store.closeSize, cv.CV_8U);
         cv.morphologyEx(dst, dst, cv.MORPH_CLOSE, M);
     }
@@ -94,9 +94,9 @@ function filterOverlappingContours(contourPositions){
     return filteredContourPositions
 }
 
-function findBalls(src, sizeThreshold){
+function findBalls(src){
     // Maximum number of contours to interpret as objects
-    const maxNumContours = 3
+    const maxNumContours = 10
     // Initialize contour finding data
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
@@ -111,7 +111,7 @@ function findBalls(src, sizeThreshold){
         const contour = contours.get(i)
         const contourArea = cv.contourArea(contour)
         //Check if contour is big enough to be a real object
-        if(contourArea > sizeThreshold && contourPositions.length < maxNumContours){
+        if(contourArea > store.sizeThreshold && contourPositions.length < maxNumContours){
           // Use circle to get x,y coordinates and radius
           const circle = cv.minEnclosingCircle(contour)
           // Push the coordinates of the contour and the radius to the list of objects
