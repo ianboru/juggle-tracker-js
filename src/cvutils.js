@@ -134,11 +134,11 @@ function findBalls(src){
     return contourPositions
 }
 
-function calculateCurrentHSVString(ballColorRange,opacity){
+function calculateCurrentHSVString(ballColorRange){
     return "hsl(" + mean(ballColorRange['lh'],ballColorRange['hh']) + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
 }
 
-function calculateCurrentHSV(ballColorRange,opacity){
+function calculateCurrentHSV(ballColorRange){
     return "hsl(" + mean(ballColorRange['lh'],ballColorRange['hh']) + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
 }
 

@@ -12,7 +12,7 @@ function drawSelectColorText(context, isMobile, usingWhite){
   }
   context.font = "30px Arial"
   context.fillStyle = "#ffffff"
-  context.fillText(text,30,40)
+  context.fillText(text,40, context.canvas.clientHeight - 40)
 }
 
 function drawCircle(context, x,y,r, color){
@@ -89,7 +89,6 @@ function drawLineGradient(x1,y1,x2,y2,color1,color2,context){
   const thickness = 5
 
   var grad= context.createLinearGradient(x1, y1, x2, y2);
-  //console.log("color", curColor, lastColor, color)
   grad.addColorStop(0, color1);
   grad.addColorStop(1, color2);
   context.beginPath();
@@ -156,7 +155,6 @@ function drawStars(context,positions, color){
           newStarsDx.push(2*(.5-Math.random())) // With a random velocity
           newStarsDy.push(2*(.5-Math.random()))
           newStarsSize.push(positions[i]['r'].slice(-1).pop()/5 + Math.random()*2) // And a random size
-          //console.log(cvutils.hsvToHEX(color, 100, 100))
           newStarsColor.push('#'+cvutils.hsvToHEX(color, 100,100))
         }
       }
@@ -174,7 +172,6 @@ function drawStars(context,positions, color){
       newStarsDx.push(drawingStore.starsDx[i])
       newStarsDy.push(drawingStore.starsDy[i])
       // The star get smaller
-      console.log(store.starLife)
       newStarsSize.push(drawingStore.starsSize[i]-(1-store.starLife))
       // Preserve the color
       newStarsColor.push(drawingStore.starsColor[i])

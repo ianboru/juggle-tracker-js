@@ -5,7 +5,7 @@ import cvutils from './cvutils';
 import drawingUtils from './drawingUtils'
 import trackingUtils from './trackingUtils'
 import { HuePicker } from 'react-color';
-import ColorSliders from './colorSliders'
+import ColorControls from './colorControls'
 import AnimationControls from './animationControls'
 import DetectionControls from './detectionControls'
 import Recorder from './recorder'
@@ -37,7 +37,6 @@ class App extends Component {
     net : null,
     positions : [], 
     canvasStream : null,
-    showSelectColorText : true,
     isFacebookApp : false,
     discoHue : 0,
   }
@@ -157,7 +156,7 @@ class App extends Component {
         context.strokeRect(rect[0]*scaleFactor,rect[1]*scaleFactor,(rect[2]-rect[0])*scaleFactor,(rect[3]-rect[1])*scaleFactor)
       }
       // Shows text to instruct user
-      if(this.state.showSelectColorText){
+      if(store.showSelectColorText){
         drawingUtils.drawSelectColorText(context, store.isMobile, store.usingWhite)
       }
       //Trim histories to trail length
@@ -192,7 +191,7 @@ class App extends Component {
             style={{
               'marginRight': '15px',
               'display':'inline-block',
-              'backgroundColor' : cvutils.calculateCurrentHSV(colorRange,1),
+              'backgroundColor' : cvutils.calculateCurrentHSV(colorRange),
               'width' : '25px',
               'height' : '25px',
               'border' : borderString,
@@ -219,7 +218,9 @@ class App extends Component {
           style={{
             width : '100%',
             margin : '0 auto',
-            marginBottom : '15px'
+            marginBottom : '10px',
+            marginTop : '10px'
+
           }}
          >
           {colorSwatches}
@@ -229,8 +230,8 @@ class App extends Component {
               'margin' : '0 auto',
               'border' : '1px solid gray',
               'width' : '25px',
-              'height' : '25px',
-              'padding-top' : '10px',
+              'height' : '22px',
+              'padding-top' : '6px',
               'display' : 'inline-block',
               'vertical-align' : 'middle'
             }}
@@ -248,7 +249,7 @@ class App extends Component {
           <h3>Color Controls</h3>
           <button className={buttonClass(store.usingWhite)} id="usingWhite" onClick={store.toggleUsingWhite}>Glowing Props</button>
           {addButton}
-          <ColorSliders usingWhite = {store.usingWhite} />
+          <ColorControls usingWhite = {store.usingWhite} />
       </div> : null
     const animationControls = store.showAnimationControls ? 
       <div className="overlay-controls">

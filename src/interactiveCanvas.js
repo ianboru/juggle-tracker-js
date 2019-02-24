@@ -13,6 +13,10 @@ class InteractiveCanvas extends Component {
     store.setCanvasOutput(this.canvasOutput)
   }
   setColorFromSelectedRegion = (frame, x1, y1, x2, y2)=>{
+    //ignore accidental clicks 
+    if(Math.abs(x1-x2) < 10){
+      return
+    }
     let rgbRange = cvutils.getColorFromImage(
       frame,
       x1,
@@ -106,7 +110,7 @@ class InteractiveCanvas extends Component {
     store.setCalibrationRect(null)
   }
   touchHeld = ()=>{
-    const rectWidth = 60
+    const rectWidth = 35
     //use flipped frame that has not been drawn on yet
     const rectLeft = this.state.canvasMouseDownX - rectWidth/2
     const rectRight = this.state.canvasMouseDownX + rectWidth/2

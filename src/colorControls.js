@@ -4,7 +4,7 @@ import Tooltip from 'rc-tooltip';
 import 'rc-tooltip/assets/bootstrap.css';
 import 'rc-slider/assets/index.css';
 import cvutils from './cvutils'
-import './colorSliders.css'
+import './colorControls.css'
 import store from './store'
 import { observer } from 'mobx-react'
 import { toJS } from 'mobx'
@@ -28,7 +28,7 @@ const handle = (props) => {
 };
 
 @observer
-class ColorSliders extends Component {
+class ColorControls extends Component {
 
 	onHChange = (values) =>{
 		store.setHSVValue('lh', values[0])
@@ -67,4 +67,4 @@ class ColorSliders extends Component {
 		)
 	}
 }
-export default ColorSliders
+export default ColorControls

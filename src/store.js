@@ -31,10 +31,10 @@ class Store {
   @observable showBrushColor      = false
   @observable discoMode           = false
   @observable canvasOutput        = null
-  @observable blurAmount          = 12
-  @observable sizeThreshold       = 12
-  @observable brushColor            = 123
-  @observable connectionThickness = 12
+  @observable blurAmount          = 8
+  @observable sizeThreshold       = 50
+  @observable brushColor          = 123
+  @observable connectionThickness = 6
   @observable numStarsPerObject   = 12
   @observable starLife            = .5
   @observable trailLength         = 1
@@ -44,6 +44,7 @@ class Store {
   @observable showDetectionControls = false
   @observable brightnessThreshold  = 55
   @observable closeAmount          = 0
+  @observable showSelectColorText  = true
   //
   // ACTIONS
   //
@@ -68,13 +69,16 @@ class Store {
   }
   @action setCalibrationRect(rect){
     this.calibrationRect = rect
+    this.showSelectColorText = false
   }
   @action setHSVValue(sliderName, value){
     this.filterHSV[sliderName] = value
     this.setCurrentColorRange(this.filterHSV)
+    this.showSelectColorText = false
   }
   @action setBrightnessThreshold(value){
     this.brightnessThreshold = value
+    this.showSelectColorText = false
   }
   @action setLiveVideo= (video) => {
     this.liveVideo = video
