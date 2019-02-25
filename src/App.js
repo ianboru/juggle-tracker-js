@@ -15,6 +15,7 @@ import { observer } from "mobx-react"
 import store from "./store"
 import drawingStore from "./drawingStore"
 import InteractiveCanvas from "./interactiveCanvas"
+import Pose from "./pose"
 //@observer
 const calibrateHelp = `Calibration Process:\n
 1: Click 'Calibration View' to see what the computer sees.
@@ -33,12 +34,11 @@ class App extends Component {
   state = {
     dst : null,
     flippedFrame : null,
-    // Color blue (initial value for hsv sliders)
-    net : null,
     positions : [], 
     canvasStream : null,
     isFacebookApp : false,
     discoHue : 0,
+    frameNum : 0
   }
 
   componentDidMount=()=>{
@@ -70,7 +70,7 @@ class App extends Component {
       let video
       const context = store.canvasOutput.getContext("2d")
       if(lastVideo){ 
-        context.clearRect( 0, 0, video.videoWidth, video.videoHeight)
+        //context.clearRect( 0, 0, video.videoWidth, video.videoHeight)
       }
       if(store.uploadedVideo){
         // Use the uploaded file
@@ -78,6 +78,7 @@ class App extends Component {
         drawingUtils.fitVidToCanvas(store.canvasOutput, store.uploadedVideo)
       }else{
         // Use the webcam image
+        video = store.liveVideo
         context.drawImage(store.liveVideo, 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight);
       }
       
@@ -117,6 +118,12 @@ class App extends Component {
           // This setting is used when calibrating the colors
           cv.imshow('canvasOutput',colorFilteredImage)
         }
+        if(store.posenet && video){
+          drawingUtils.detectPose(context,video, this.state.frameNum)
+        }
+        if(store.pose){
+          drawingUtils.drawPose(context)
+        }
         // Get the color values for the object being tracked (white if usingWhite)
         let color = cvutils.calculateCurrentHSV(colorRange)
         if(store.showBrushColor){
@@ -147,6 +154,7 @@ class App extends Component {
           drawingUtils.drawStars(context, this.state.positions[colorNum],color)
           // Update the global stars variable
         }
+        
       })
 
       // If the user is clicking and draging to select a color
@@ -169,6 +177,7 @@ class App extends Component {
       colorFilteredImage = null; srcMat = null
       //Process next frame
       lastVideo = video
+      ++this.state.frameNum
       requestAnimationFrame(this.processVideo);
     }
   }
@@ -289,7 +298,7 @@ class App extends Component {
             isFacebookApp={this.state.isFacebookApp}
             startVideoProcessing={this.startVideoProcessing}
           />          
-
+          <Pose/>
       </div> : null
     // TOP LAYER
     return (

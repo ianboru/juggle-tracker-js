@@ -1,6 +1,9 @@
 import cvutils from './cvutils';
 import drawingStore from './drawingStore'
 import store from './store'
+
+import * as tf from '@tensorflow/tfjs';
+import * as posenet from '@tensorflow-models/posenet';
 function drawSelectColorText(context, isMobile, usingWhite){
   let text
   if(isMobile && !usingWhite){
@@ -231,11 +234,31 @@ function fitVidToCanvas(canvas, imageObj){
   const context = canvas.getContext("2d")
   context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
 };
+function drawPose(context){
+  var boxSize = 10
+  const scoreThreshold = .4
+  store.pose[0].keypoints.forEach((keypoint,index)=>{
+    const positions = keypoint.position
+    if(keypoint.score > scoreThreshold){
+      drawCircle(context,positions.x,positions.y, 20,'green' )
+    }
+  })
+}
+function detectPose(context,video, frameNum){
+  var imageScaleFactor = 0.5;
+  var outputStride = 16;
+  var flipHorizontal = true;
+  store.posenet.estimateSinglePose(video,imageScaleFactor, flipHorizontal, outputStride).then(pose=>{
+    store.setPose([pose,frameNum])
+  });
+}
 export default {
     drawTrails,
     drawConnections,
     drawAllConnections,
     drawStars,
     drawSelectColorText,
-    fitVidToCanvas
+    fitVidToCanvas,
+    detectPose,
+    drawPose
 }

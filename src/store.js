@@ -46,7 +46,8 @@ class Store {
   @observable closeAmount          = 0
   @observable showSelectColorText  = true
   @observable mouseDown            = false
-
+  @observable posenet              = null
+  @observable pose                 = null
   //
   // ACTIONS
   //
@@ -180,6 +181,12 @@ class Store {
       }
     }
 
+  }
+  @action setPosenet=(posenet)=>{
+    this.posenet = posenet
+  }
+  @action setPose=(pose)=>{
+    this.pose = pose
   }
 }
 
