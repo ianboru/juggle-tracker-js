@@ -69,9 +69,8 @@ class App extends Component {
       }
       let video
       const context = store.canvasOutput.getContext("2d")
-      if(lastVideo){ 
-        context.clearRect( 0, 0, video.videoWidth, video.videoHeight)
-      }
+      context.clearRect( 0, 0, store.canvasOutput.width, store.canvasOutput.height)
+      
       if(store.uploadedVideo){
         // Use the uploaded file
         video = store.uploadedVideo
