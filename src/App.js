@@ -89,7 +89,7 @@ class App extends Component {
         cv.flip(srcMat, srcMat,1)
       }
       // If the mouse is down, clone the srcMat and save it as flippedFrame
-      if(store.calibrationRect){
+      if(store.mouseDown){
         this.setState({flippedFrame : srcMat.clone()})
       }
       // Show the srcMat to the user

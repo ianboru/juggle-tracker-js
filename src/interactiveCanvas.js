@@ -65,6 +65,7 @@ class InteractiveCanvas extends Component {
   }
 
   handleCanvasMouseDown = (e)=>{
+    store.toggleMouseDown()
     if(store.isMobile){
       this.setState({
         touchTimer : setTimeout(this.touchHeld, touchDuration)
@@ -118,7 +119,7 @@ class InteractiveCanvas extends Component {
     const rectTop = this.state.canvasMouseDownY - rectWidth/2
     const rectBottom = this.state.canvasMouseDownY + rectWidth/2
     this.setColorFromSelectedRegion(
-      this.state.flippedFrame,
+      this.props.flippedFrame,
       rectLeft,
       rectTop,
       rectRight,

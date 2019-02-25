@@ -45,6 +45,8 @@ class Store {
   @observable brightnessThreshold  = 55
   @observable closeAmount          = 0
   @observable showSelectColorText  = true
+  @observable mouseDown            = false
+
   //
   // ACTIONS
   //
@@ -153,6 +155,9 @@ class Store {
   @action selectColor = (colorNum)=>{
     this.colorNum = colorNum
     this.filterHSV = this.allColors[colorNum]
+  }
+  @action toggleMouseDown = ()=>{
+    this.mouseDown = !this.mouseDown
   }
   @action toggleShowControls =(type)=>{
     if(type == "color"){
