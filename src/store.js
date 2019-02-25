@@ -37,6 +37,7 @@ class Store {
   @observable connectionThickness = 6
   @observable numStarsPerObject   = 12
   @observable starLife            = .5
+  @observable starSize            = .5
   @observable trailLength         = 1
   @observable discoIncrement      = 12
   @observable showColorControls = true
@@ -129,6 +130,9 @@ class Store {
   }
   @action setStarLife = (starLife) => {
     this.starLife = starLife
+  }
+  @action setStarSize = (starSize) => {
+    this.starSize = starSize
   }
   @action setNumStarsPerObject = (numStarsPerObject) => {
     this.numStarsPerObject = numStarsPerObject

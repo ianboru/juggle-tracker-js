@@ -158,8 +158,8 @@ function drawStars(context,positions, color){
           newStarsY.push(y + (.5-Math.random())*r)
           newStarsDx.push(2*(.5-Math.random())) // With a random velocity
           newStarsDy.push(2*(.5-Math.random()))
-          newStarsSize.push(positions[i]['r'].slice(-1).pop()/5 + Math.random()*2) // And a random size
-          newStarsColor.push("#ffbf00")
+          newStarsSize.push(positions[i]['r'].slice(-1).pop()*Math.random()*store.starSize) // And a random size
+          newStarsColor.push(color)
         }
       }
     }

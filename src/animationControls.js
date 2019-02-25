@@ -43,6 +43,7 @@ class AnimationControls extends Component {
 			<div>
 				<div className="slider-label" ># Stars</div><Slider min={1} max={100} step={1} defaultValue={store.numStarsPerObject} handle={handle} onChange={store.setNumStarsPerObject}/>
 				<div className="slider-label" >Star Life</div><Slider min={0} max={1} step={.01} defaultValue={store.starLife}  handle={handle} onChange={store.setStarLife}/>
+				<div className="slider-label" >Star Size</div><Slider min={0} max={1} step={.01} defaultValue={store.starSize}  handle={handle} onChange={store.setStarSize}/>
 			</div> : null
 		
 		const trailControls = store.showTrails ? 
