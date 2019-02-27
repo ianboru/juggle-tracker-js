@@ -76,7 +76,8 @@ function drawTrails(context, contourPositions, color){
             const lastX = xHistory[xHistory.length - 1 - t]
             const lastY = yHistory[yHistory.length - 1 - t]
             const lastR = rHistory[rHistory.length - 1 - t]
-            drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), color)
+            const lastColor = addOpacityToColor(color, 1 - t/(currentWindowSize*2))
+            drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), lastColor)
           }
         }
       }
@@ -191,8 +192,8 @@ function drawStars(context,positions, color){
     }
   }
 
-  let opacity = .9
-  let numOpacitySteps = 15
+  let opacity = 1
+  let numOpacitySteps = 20
   // Add the old stars to the list of new stars
   for (let i=0; i<drawingStore.starsX.length; i++){
     opacity = 1 - i%store.numStarsPerObject/numOpacitySteps
