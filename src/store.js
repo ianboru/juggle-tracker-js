@@ -48,6 +48,8 @@ class Store {
   @observable showSelectColorText  = true
   @observable mouseDown            = false
   @observable flippedFrame         = null
+  @observable starSides           = 6
+  @observable starPoint           = .5
   //
   // ACTIONS
   //
@@ -135,6 +137,12 @@ class Store {
   }
   @action setStarLife = (starLife) => {
     this.starLife = starLife
+  }
+  @action setStarPoint = (starPoint) => {
+    this.starPoint = starPoint
+  }
+  @action setStarSides = (starSides) => {
+    this.starSides = starSides
   }
   @action setStarSize = (starSize) => {
     this.starSize = starSize

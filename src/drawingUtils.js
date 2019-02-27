@@ -26,13 +26,13 @@ function drawSelectColorText(context, isMobile, usingWhite){
 }
 function drawStar(ctx,x, y, r, color) {
   ctx.save();
+  let inset = store.starPoint
+  let sides = store.starSides
   ctx.strokeStyle = color;
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.translate(x, y);
   ctx.moveTo(0,0-r);
-  const inset = .2
-  const sides = 6
   for (var i = 0; i < sides; i++) {
       ctx.rotate(Math.PI / sides);
       ctx.lineTo(0, 0 - (r*inset));
