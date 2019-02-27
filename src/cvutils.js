@@ -105,7 +105,6 @@ function findBalls(src){
     let contourPositions = []
     // Catalogue the contour locations to draw later
     // Iterate though the largest contours
-      let contourNum = 0
       for (let i = 0; i < contours.size(); ++i) {
         // Find the contour area
         const contour = contours.get(i)
@@ -121,8 +120,7 @@ function findBalls(src){
             'r' : circle.radius,
           })
         }
-        ++contourNum
-        contour.delete; 
+        contour.delete(); 
       }
     
     if(contourPositions.length > 0){
@@ -209,13 +207,15 @@ function getColorFromImage(imageData,minX,minY,maxX,maxY){
 
 function RGBtoHSV(r, g, b) {
     if (arguments.length === 1) {
-        g = r.g, b = r.b, r = r.r;
+        g = r.g
+        b = r.b
+        r = r.r;
     }
-    var max = Math.max(r, g, b), min = Math.min(r, g, b),
-        d = max - min,
-        h,
-        s = (max === 0 ? 0 : d / max),
-        v = max / 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b)
+    let d = max - min
+    let h
+    let s = (max === 0 ? 0 : d / max)
+    let v = max / 255;
 
     switch (max) {
         case min: h = 0; break;
@@ -236,14 +236,14 @@ function hsvToRgb( H,  S,  V) {
         S /= 100;
         V /= 100;
 
-        if (S == 0)
+        if (S === 0)
         {
             R = V * 255;
             G = V * 255;
             B = V * 255;
         } else {
             let var_h = H * 6;
-            if (var_h == 6)
+            if (var_h === 6)
                 var_h = 0; // H must be < 1
             let var_i = Math.floor(var_h); // Or ... var_i =
                                                             // floor( var_h )
@@ -254,23 +254,23 @@ function hsvToRgb( H,  S,  V) {
             let var_r;
             let var_g;
             let var_b;
-            if (var_i == 0) {
+            if (var_i === 0) {
                 var_r = V;
                 var_g = var_3;
                 var_b = var_1;
-            } else if (var_i == 1) {
+            } else if (var_i === 1) {
                 var_r = var_2;
                 var_g = V;
                 var_b = var_1;
-            } else if (var_i == 2) {
+            } else if (var_i === 2) {
                 var_r = var_1;
                 var_g = V;
                 var_b = var_3;
-            } else if (var_i == 3) {
+            } else if (var_i === 3) {
                 var_r = var_1;
                 var_g = var_2;
                 var_b = V;
-            } else if (var_i == 4) {
+            } else if (var_i === 4) {
                 var_r = var_3;
                 var_g = var_1;
                 var_b = V;
@@ -294,14 +294,14 @@ function hsvToRgb( H,  S,  V) {
             S /= 100;
             V /= 100;
 
-            if (S == 0)
+            if (S === 0)
             {
                 R = V * 255;
                 G = V * 255;
                 B = V * 255;
             } else {
                 let var_h = H * 6;
-                if (var_h == 6)
+                if (var_h === 6)
                     var_h = 0; // H must be < 1
                 let var_i = Math.floor(var_h); // Or ... var_i =
                                                                 // floor( var_h )
@@ -312,23 +312,23 @@ function hsvToRgb( H,  S,  V) {
                 let var_r;
                 let var_g;
                 let var_b;
-                if (var_i == 0) {
+                if (var_i === 0) {
                     var_r = V;
                     var_g = var_3;
                     var_b = var_1;
-                } else if (var_i == 1) {
+                } else if (var_i === 1) {
                     var_r = var_2;
                     var_g = V;
                     var_b = var_1;
-                } else if (var_i == 2) {
+                } else if (var_i === 2) {
                     var_r = var_1;
                     var_g = V;
                     var_b = var_3;
-                } else if (var_i == 3) {
+                } else if (var_i === 3) {
                     var_r = var_1;
                     var_g = var_2;
                     var_b = V;
-                } else if (var_i == 4) {
+                } else if (var_i === 4) {
                     var_r = var_3;
                     var_g = var_1;
                     var_b = V;
@@ -343,11 +343,11 @@ function hsvToRgb( H,  S,  V) {
                 B = var_b * 255;
             }
             let hexR = R.toString(16)
-            if (hexR.length == 1){ hexR = '0' + hexR}
+            if (hexR.length === 1){ hexR = '0' + hexR}
             let hexG = G.toString(16)
-            if (hexG.length == 1){ hexG = '0' + hexG}
+            if (hexG.length === 1){ hexG = '0' + hexG}
             let hexB = B.toString(16)
-            if (hexB.length == 1){ hexB = '0' + hexB}
+            if (hexB.length === 1){ hexB = '0' + hexB}
             hexR = hexR.substring(0,2)
             hexG = hexG.substring(0,2)
             hexB = hexB.substring(0,2)

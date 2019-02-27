@@ -83,8 +83,6 @@ class InteractiveCanvas extends Component {
     e.preventDefault()
     if(this.state.canvasMouseDownX){
       const mouseCoord = cvutils.calculateRelativeCoord(e, this.canvasOutput)
-      const context = this.canvasOutput.getContext("2d")
-      console.log("setting")
       store.setCalibrationRect([
         this.state.canvasMouseDownX,
         this.state.canvasMouseDownY,

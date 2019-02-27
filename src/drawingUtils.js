@@ -30,7 +30,7 @@ function drawTrails(context, contourPositions, color){
   if(contourPositions){
     for(let i = 0; i < contourPositions.currentNumContours; ++i){
       //Don't draw if x oordinate is -1
-      if(contourPositions[i] && contourPositions[i]['x'] != -1 ){
+      if(contourPositions[i] && contourPositions[i]['x'] !== -1 ){
         //Rename for convenience
         const xHistory = contourPositions[i]['x']
         const yHistory = contourPositions[i]['y']
@@ -42,7 +42,7 @@ function drawTrails(context, contourPositions, color){
         //Draw circle and trail
         for (let t=0; t < currentWindowSize; ++t){
           //At least draw the ball itself
-          if(xHistory[xHistory.length - 1 - t] > -1 && xHistory[xHistory.length - 1 - t] != -1 ){
+          if(xHistory[xHistory.length - 1 - t] > -1 && xHistory[xHistory.length - 1 - t] !== -1 ){
 
             //Look backwards in history stepping by t
             const lastX = xHistory[xHistory.length - 1 - t]
@@ -66,8 +66,8 @@ function drawConnections(context,positions, color, thickness){
     for(let i = 0; i < numObjects; ++i){
       for(let j = i+1; j < numObjects; ++j){
         if(
-          positions[i] && positions[i]['x'].slice(-1).pop() != -1 &&
-          positions[j] && positions[j]['x'].slice(-1).pop() != -1
+          positions[i] && positions[i]['x'].slice(-1).pop() !== -1 &&
+          positions[j] && positions[j]['x'].slice(-1).pop() !== -1
         ){
           const curBallX = positions[i]['x'].slice(-1).pop()
           const curBallY = positions[i]['y'].slice(-1).pop()
@@ -103,17 +103,15 @@ function drawAllConnections(context,allPositions, allColors){
   const flattenedPositionColors = []
   for(let i = 0; i < allPositions.length; ++i){
     for(let j = 0; j < allPositions[i].length; ++j){
-      if(allPositions[i][j].x.slice(-1).pop() != -1){
+      if(allPositions[i][j].x.slice(-1).pop() !== -1){
         flattenedPositions.push(allPositions[i][j])
         flattenedPositionColors.push(cvutils.calculateCurrentHSV(allColors[i]))
       }
     }
   }
-  let lastObject = {}
   let lastColor = {}
-  let firstColor
   let curColor
-  let curObjectX ; let curObjectY ; let lastObjectX ; let lastObjectY;let firstObjectX; let firstObjectY
+  let curObjectX ; let curObjectY ; let lastObjectX ; let lastObjectY;
   
   for(let i = 0; i < flattenedPositions.length; ++i){
     for(let j = i+1; j < flattenedPositions.length; ++j){

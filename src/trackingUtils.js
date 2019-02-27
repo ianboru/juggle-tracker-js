@@ -53,7 +53,7 @@ function trimHistories(positions, trailLength){
       //check if object hasn't been detected in a while
       let keepBall = false
       for(let i=0; i < Math.min(trailLength,history['x'].length);++i){
-        if(history['x'][i] != -1){
+        if(history['x'][i] !== -1){
           keepBall = true
           break
         }

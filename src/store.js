@@ -1,4 +1,4 @@
-import { action, configure, computed, observable, toJS } from "mobx"
+import { action, configure, computed, observable} from "mobx"
 
 const initialHSV = {
       lh : 180,
@@ -164,19 +164,19 @@ class Store {
     this.mouseDown = !this.mouseDown
   }
   @action toggleShowControls =(type)=>{
-    if(type == "color"){
+    if(type === "color"){
       this.showColorControls = !this.showColorControls
       if(this.showColorControls){
         this.showDetectionControls = false
         this.showAnimationControls = false
       }
-    }else if(type == "detection"){
+    }else if(type === "detection"){
       this.showDetectionControls = !this.showDetectionControls
       if(this.showDetectionControls){
         this.showColorControls = false
         this.showAnimationControls = false
       }
-    }else if(type == "animation"){
+    }else if(type === "animation"){
       this.showAnimationControls = !this.showAnimationControls
       if(this.showAnimationControls){
         this.showDetectionControls = false

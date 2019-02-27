@@ -3,12 +3,9 @@ import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 import 'rc-tooltip/assets/bootstrap.css';
 import 'rc-slider/assets/index.css';
-import cvutils from './cvutils'
 import store from './store'
 import "./App.css"
 import { observer } from 'mobx-react'
-const createSliderWithTooltip = Slider.createSliderWithTooltip;
-const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
 const handle = (props) => {
   const { value, dragging, index, ...restProps } = props;
@@ -31,9 +28,6 @@ const buttonClass = (shown)=>{
 @observer
 class DetectionControls extends Component {
 	render() {
-		store.calibrationMode
-		store.usingWhite
-		store.blurAmount
 		return (
 			<div>	
 				<div>			

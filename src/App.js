@@ -4,16 +4,13 @@ import cv from 'opencv.js';
 import cvutils from './cvutils';
 import drawingUtils from './drawingUtils'
 import trackingUtils from './trackingUtils'
-import { HuePicker } from 'react-color';
 import ColorControls from './colorControls'
 import AnimationControls from './animationControls'
 import DetectionControls from './detectionControls'
-import Recorder from './recorder'
 import Camera from './camera'
 import { MdHelp } from "react-icons/md"
 import { observer } from "mobx-react"
 import store from "./store"
-import drawingStore from "./drawingStore"
 import InteractiveCanvas from "./interactiveCanvas"
 //@observer
 const calibrateHelp = `Calibration Process:\n
@@ -61,19 +58,16 @@ class App extends Component {
   }
 
   processVideo=()=> {
-    let lastVideo = null
     if(store.canvasOutput){
-      if(store.videoWidth == 0){
+      if(store.videoWidth === 0){
         requestAnimationFrame(this.processVideo);
         return
       }
-      let video
       const context = store.canvasOutput.getContext("2d")
       context.clearRect( 0, 0, store.canvasOutput.width, store.canvasOutput.height)
       
       if(store.uploadedVideo){
         // Use the uploaded file
-        video = store.uploadedVideo
         drawingUtils.fitVidToCanvas(store.canvasOutput, store.uploadedVideo)
       }else{
         // Use the webcam image
@@ -111,7 +105,7 @@ class App extends Component {
         this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
 
         // If in calibration mode
-        if(store.calibrationMode && colorNum == store.colorNum){
+        if(store.calibrationMode && colorNum === store.colorNum){
           // Initialize final canvas with the mask of the colors within the color ranges
           // This setting is used when calibrating the colors
           cv.imshow('canvasOutput',colorFilteredImage)
@@ -167,7 +161,6 @@ class App extends Component {
       colorFilteredImage.delete();srcMat.delete()
       colorFilteredImage = null; srcMat = null
       //Process next frame
-      lastVideo = video
       requestAnimationFrame(this.processVideo);
     }
   }
@@ -182,7 +175,7 @@ class App extends Component {
 
   render() {
     const colorSwatches = store.allColors.map((colorRange,index)=>{
-        const borderString = index == store.colorNum ? '3px solid black' : 'none'
+        const borderString = index === store.colorNum ? '3px solid black' : 'none'
 
         return(
           // only return the color swatches if the user is on the color mode
