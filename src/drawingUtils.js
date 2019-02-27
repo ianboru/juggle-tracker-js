@@ -1,6 +1,16 @@
 import cvutils from './cvutils';
 import drawingStore from './drawingStore'
 import store from './store'
+function addOpacityToColor(color,opacity){
+  if(color.includes("rgb(")){
+    color = color.replace("rgb","rgba")
+    color = color.replace(")","," + opacity + ")")
+  }else if(color.includes("hsl(")){
+    color = color.replace("hsl", "hsla")
+    color = color.replace(")","," + opacity + ")")
+  }
+  return color
+}
 function drawSelectColorText(context, isMobile, usingWhite){
   let text
   if(isMobile && !usingWhite){
@@ -14,7 +24,25 @@ function drawSelectColorText(context, isMobile, usingWhite){
   context.fillStyle = "#ffffff"
   context.fillText(text,40, context.canvas.clientHeight - 40)
 }
-
+function drawStar(ctx,x, y, r, color) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.translate(x, y);
+  ctx.moveTo(0,0-r);
+  const inset = .2
+  const sides = 6
+  for (var i = 0; i < sides; i++) {
+      ctx.rotate(Math.PI / sides);
+      ctx.lineTo(0, 0 - (r*inset));
+      ctx.rotate(Math.PI / sides);
+      ctx.lineTo(0, 0 - r);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
 function drawCircle(context, x,y,r, color){
     //Draw circle for coordinate and color
     context.beginPath();
@@ -163,8 +191,11 @@ function drawStars(context,positions, color){
     }
   }
 
+  let opacity = .9
+  let numOpacitySteps = 15
   // Add the old stars to the list of new stars
   for (let i=0; i<drawingStore.starsX.length; i++){
+    opacity = 1 - i%store.numStarsPerObject/numOpacitySteps
     // Has the star burned out?
     if (drawingStore.starsSize[i]-starDecayRate > 1){
       // The star needs to move. x and y change by dx and dy
@@ -176,7 +207,8 @@ function drawStars(context,positions, color){
       // The star get smaller
       newStarsSize.push(drawingStore.starsSize[i]-(1-store.starLife))
       // Preserve the color
-      newStarsColor.push(drawingStore.starsColor[i])
+      color = addOpacityToColor(drawingStore.starsColor[i],opacity)
+      newStarsColor.push(color)
     }
   }
   // Draw the stars
@@ -185,7 +217,7 @@ function drawStars(context,positions, color){
     const y = newStarsY[i]
     const size = newStarsSize[i]
     const color = newStarsColor[i]
-    drawCircle(context,x,y,size,color)
+    drawStar(context,x,y,size,color)
   }
   drawingStore.setStars({
     starsX : newStarsX,

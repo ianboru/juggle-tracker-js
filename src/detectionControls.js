@@ -31,7 +31,7 @@ class DetectionControls extends Component {
 		return (
 			<div>	
 				<div>			
-					<button className={buttonClass(store.calibrationMode)} id="showRaw" onClick={store.toggleCalibrationMode}>Color Filter</button>
+					<button className={buttonClass(store.calibrationMode)} id="showRaw" onClick={store.toggleCalibrationMode}>Calibration View</button>
 				</div>
 				<div className="slider-label">Blur</div><Slider min={1} max={30} step={1} defaultValue={store.blurAmount}  handle={handle} onChange={store.setBlurAmount}/>
 				<div className="slider-label">Minimum Size</div><Slider min={0} max={2000} step={20} defaultValue={store.sizeThreshold} handle={handle} onChange={store.setSizeThreshold}/>

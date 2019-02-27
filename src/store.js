@@ -108,6 +108,9 @@ class Store {
   }
   @action toggleShowStars = () => {
     this.showStars = !this.showStars
+    if(this.showStars && this.showTrails){
+      this.showTrails = false
+    }
   }
   @action toggleDiscoMode = () => {
     this.discoMode = !this.discoMode
