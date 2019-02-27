@@ -29,7 +29,6 @@ class App extends Component {
 
   state = {
     dst : null,
-    flippedFrame : null,
     // Color blue (initial value for hsv sliders)
     net : null,
     positions : [], 
@@ -83,7 +82,7 @@ class App extends Component {
       }
       // If the mouse is down, clone the srcMat and save it as flippedFrame
       if(store.mouseDown){
-        this.setState({flippedFrame : srcMat.clone()})
+        store.setFlippedFrame(srcMat.clone())
       }
       // Show the srcMat to the user
       cv.imshow('canvasOutput',srcMat)
@@ -145,9 +144,10 @@ class App extends Component {
       // If the user is clicking and draging to select a color
       if(store.calibrationRect){
         //Draw color selection rectangle
+        console.log(store.calibrationRect)
         context.strokeStyle = "#ffffff"
         const rect = store.calibrationRect
-        const scaleFactor = store.liveVideo.videoWidth/store.canvasOutput.clientWidth
+        const scaleFactor = store.videoWidth/store.canvasOutput.clientWidth
         context.strokeRect(rect[0]*scaleFactor,rect[1]*scaleFactor,(rect[2]-rect[0])*scaleFactor,(rect[3]-rect[1])*scaleFactor)
       }
       // Shows text to instruct user
@@ -273,9 +273,7 @@ class App extends Component {
             {colorControls}
             {detectionControls}
             {animationControls}
-            <InteractiveCanvas className="center-block canvas"
-              flippedFrame={this.state.flippedFrame}
-            ></InteractiveCanvas>
+            <InteractiveCanvas className="center-block canvas"/>
           </div>
           <Camera 
             canvasOutput={store.canvasOutput} 

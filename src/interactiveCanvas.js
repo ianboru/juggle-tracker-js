@@ -62,10 +62,12 @@ class InteractiveCanvas extends Component {
         showSelectColorText : false,
       })
       store.setCalibrationRect(null)
+      store.setFlippedFrame(null)
+      store.setMouseDown(false)
   }
 
   handleCanvasMouseDown = (e)=>{
-    store.toggleMouseDown()
+    store.setMouseDown(true)
     if(store.isMobile){
       this.setState({
         touchTimer : setTimeout(this.touchHeld, touchDuration)
@@ -90,12 +92,13 @@ class InteractiveCanvas extends Component {
         mouseCoord[1]
       ])
     }
+
   }
   handleCanvasMouseUp = (e)=>{
     const clickCoord = cvutils.calculateRelativeCoord(e, this.canvasOutput)
     //use flipped frame that has not been drawn on yet
     this.setColorFromSelectedRegion(
-      this.props.flippedFrame,
+      store.flippedFrame,
       this.state.canvasMouseDownX,
       this.state.canvasMouseDownY,
       clickCoord[0],
@@ -108,6 +111,8 @@ class InteractiveCanvas extends Component {
       showSelectColorText : false,
     })
     store.setCalibrationRect(null)
+    store.setFlippedFrame(null)
+    store.setMouseDown(false)
   }
   touchHeld = ()=>{
     const rectWidth = 35
@@ -117,7 +122,7 @@ class InteractiveCanvas extends Component {
     const rectTop = this.state.canvasMouseDownY - rectWidth/2
     const rectBottom = this.state.canvasMouseDownY + rectWidth/2
     this.setColorFromSelectedRegion(
-      this.props.flippedFrame,
+      store.flippedFrame,
       rectLeft,
       rectTop,
       rectRight,
@@ -135,6 +140,9 @@ class InteractiveCanvas extends Component {
           rectRight,
           rectBottom,
     ])
+    store.setFlippedFrame(null)
+    store.setMouseDown(false)
+
   }
   render(){
     return (

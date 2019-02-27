@@ -47,7 +47,7 @@ class Store {
   @observable closeAmount          = 0
   @observable showSelectColorText  = true
   @observable mouseDown            = false
-
+  @observable flippedFrame         = null
   //
   // ACTIONS
   //
@@ -160,8 +160,8 @@ class Store {
     this.colorNum = colorNum
     this.filterHSV = this.allColors[colorNum]
   }
-  @action toggleMouseDown = ()=>{
-    this.mouseDown = !this.mouseDown
+  @action setMouseDown = (state)=>{
+    this.mouseDown = state
   }
   @action toggleShowControls =(type)=>{
     if(type === "color"){
@@ -183,7 +183,12 @@ class Store {
         this.showColorControls = false
       }
     }
-
+  }
+  @action setFlippedFrame=(frame)=>{
+    if(this.flippedFrame){
+      this.flippedFrame.delete()
+    }
+    this.flippedFrame = frame
   }
 }
 
