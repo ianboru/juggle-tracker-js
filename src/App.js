@@ -125,8 +125,10 @@ class App extends Component {
           }
         }
         //Draw trails
-        if(store.showTrails){
-          drawingUtils.drawTrails(context,this.state.positions[colorNum], color)
+        if(store.showTrails && store.allColors.length == 1){
+          drawingUtils.drawLineTrails(context,this.state.positions[colorNum], color)
+        }else if(store.showTrails && store.allColors.length > 1){
+          drawingUtils.drawCircleTrails(context,this.state.positions[colorNum], color)
         }
         // Draw connections
         if(store.showConnections){

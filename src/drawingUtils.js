@@ -24,25 +24,7 @@ function drawSelectColorText(context, isMobile, usingWhite){
   context.fillStyle = "#ffffff"
   context.fillText(text,40, context.canvas.clientHeight - 40)
 }
-function drawStar(ctx,x, y, r, color) {
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.translate(x, y);
-  ctx.moveTo(0,0-r);
-  const inset = .2
-  const sides = 6
-  for (var i = 0; i < sides; i++) {
-      ctx.rotate(Math.PI / sides);
-      ctx.lineTo(0, 0 - (r*inset));
-      ctx.rotate(Math.PI / sides);
-      ctx.lineTo(0, 0 - r);
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
+
 function drawCircle(context, x,y,r, color){
     //Draw circle for coordinate and color
     context.beginPath();
@@ -53,7 +35,7 @@ function drawCircle(context, x,y,r, color){
     context.stroke();
   }
 
-function drawTrails(context, contourPositions, color){
+function drawCircleTrails(context, contourPositions, color){
   //Draw circle and trail
   if(contourPositions){
     for(let i = 0; i < contourPositions.currentNumContours; ++i){
@@ -84,7 +66,50 @@ function drawTrails(context, contourPositions, color){
     }
   }
 }
+function drawLineTrails(context, contourPositions, color){
+  //Draw circle and trail
+  if(contourPositions){
+    for(let i = 0; i < contourPositions.currentNumContours; ++i){
+      //Don't draw if x oordinate is -1
+      if(contourPositions[i] && contourPositions[i]['x'] !== -1 ){
+        //Rename for convenience
+        const xHistory = contourPositions[i]['x']
+        const yHistory = contourPositions[i]['y']
+        const rHistory = contourPositions[i]['r']
 
+        //Don't draw a trail longer than the window
+        const maxWindowSize = store.trailLength
+        let currentWindowSize  = Math.min(xHistory.length, maxWindowSize)
+        //Draw circle and trail
+        for (let t=0; t < currentWindowSize; ++t){
+          //At least draw the ball itself
+          if(xHistory[xHistory.length - 1 - t] > -1 && xHistory[xHistory.length - 2 - t] !== -1 ){
+
+            //Look backwards in history stepping by t
+            const lastX = xHistory[xHistory.length - 1 - t]
+            const lastY = yHistory[yHistory.length - 1 - t]
+            const lastR = rHistory[rHistory.length - 1 - t]
+            if(currentWindowSize > 1){
+              const curX = xHistory[xHistory.length - 2 - t]
+              const curY = yHistory[yHistory.length - 2 - t]
+              const curR = rHistory[rHistory.length - 2 - t]
+              context.beginPath();
+              context.moveTo(lastX, lastY);
+              context.lineTo(curX, curY);
+              context.lineWidth = curR - curR*t/currentWindowSize;
+              context.stroke();
+            }
+  
+            const lastColor = addOpacityToColor(color, 1 - t/(currentWindowSize*2))
+            if(t == 0){
+              drawCircle(context,lastX, lastY, lastR, lastColor)
+            }
+          }
+        }
+      }
+    }
+  }
+}
 function drawConnections(context,positions, color, thickness){
   if(!positions){
     return
@@ -156,7 +181,7 @@ function drawAllConnections(context,allPositions, allColors){
 }
 function drawStars(context,positions, color){
   const maxStars = 500
-  const starDecayRate = .2
+  const starDecayRate = .25
   // Create some temporary lists
   let newStarsX = []
   let newStarsY = []
@@ -165,7 +190,10 @@ function drawStars(context,positions, color){
   let newStarsSize = []
   let newStarsColor = []
   // If data exists for this object, proceed
+  let initialOpacity = .65
+
   if(positions){
+
     // Iterate though each contour for this color
     for(let i = 0; i < positions.currentNumContours; ++i){
       // If this a contour in this colorNum exists, proceed
@@ -176,50 +204,50 @@ function drawStars(context,positions, color){
         // Get the radius
         const r = positions[i]['r'].slice(-1).pop()
         // Create some stars
-        for (let numStars=0; numStars< store.numStarsPerObject+1; numStars++){
+        for (let starNum=0; starNum< store.numStarsPerObject+1; starNum++){
           // A star is born!
           if(drawingStore.starsX.length > maxStars){
             continue
           }
-          newStarsX.push(x + (.5-Math.random())*r) // Around the xy coordinate
-          newStarsY.push(y + (.5-Math.random())*r)
+          const curX = x + (.5-Math.random())*r
+          const curY = y + (.5-Math.random())*r
+          newStarsX.push(curX) // Around the xy coordinate
+          newStarsY.push(curY)
           newStarsDx.push(2*(.5-Math.random())) // With a random velocity
           newStarsDy.push(2*(.5-Math.random()))
-          newStarsSize.push(positions[i]['r'].slice(-1).pop()*Math.random()*store.starSize) // And a random size
+          const size = positions[i]['r'].slice(-1).pop()*Math.random()*store.starSize
+          newStarsSize.push(size) // And a random size
           newStarsColor.push(color)
+          drawStar(context,curX,curY,size,color, initialOpacity)
         }
       }
     }
   }
 
-  let opacity = 1
-  let numOpacitySteps = 20
   // Add the old stars to the list of new stars
   for (let i=0; i<drawingStore.starsX.length; i++){
-    opacity = 1 - i%store.numStarsPerObject/numOpacitySteps
     // Has the star burned out?
     if (drawingStore.starsSize[i]-starDecayRate > 1){
       // The star needs to move. x and y change by dx and dy
-      newStarsX.push(drawingStore.starsX[i]+drawingStore.starsDx[i])
-      newStarsY.push(drawingStore.starsY[i]+drawingStore.starsDy[i])
+      const x = drawingStore.starsX[i]+drawingStore.starsDx[i]
+      const y = drawingStore.starsY[i]+drawingStore.starsDy[i]
+      const color = drawingStore.starsColor[i]
+      newStarsX.push(x)
+      newStarsY.push(y)
       // Save the dx, dy. They remain constant
       newStarsDx.push(drawingStore.starsDx[i])
       newStarsDy.push(drawingStore.starsDy[i])
       // The star get smaller
-      newStarsSize.push(drawingStore.starsSize[i]-(1-store.starLife))
+      const size = drawingStore.starsSize[i]-(1-store.starLife)
+      const opacity = Math.min( initialOpacity, initialOpacity * size/10)
+
+      newStarsSize.push(size)
       // Preserve the color
-      color = addOpacityToColor(drawingStore.starsColor[i],opacity)
       newStarsColor.push(color)
+      drawStar(context,x,y,size,color, opacity)
     }
   }
-  // Draw the stars
-  for (let i=0; i< newStarsX.length; i++){
-    const x = newStarsX[i]
-    const y = newStarsY[i]
-    const size = newStarsSize[i]
-    const color = newStarsColor[i]
-    drawStar(context,x,y,size,color)
-  }
+
   drawingStore.setStars({
     starsX : newStarsX,
     starsY : newStarsY,
@@ -228,6 +256,32 @@ function drawStars(context,positions, color){
     starsSize : newStarsSize,
     starsColor : newStarsColor
   })
+}
+function drawStar(context,x, y, r, color, opacityBySize) {
+  context.save();
+ 
+  // draw shape
+  const strokeColor = addOpacityToColor(color, .4)
+  const fillColor = addOpacityToColor(color, opacityBySize)
+  context.beginPath();
+  context.lineWidth = r*.2;
+  context.strokeStyle = strokeColor;
+  context.fillStyle = fillColor;
+  context.translate(x, y);
+  context.moveTo(0,0-r);
+  context.shadowBlur = r*.2;
+  context.shadowColor = "black";
+  const inset = .15
+  const sides = 6
+  for (var i = 0; i < sides; i++) {
+      context.rotate(Math.PI / sides);
+      context.lineTo(0, 0 - (r*inset));
+      context.rotate(Math.PI / sides);
+      context.lineTo(0, 0 - r);
+  }
+  context.closePath();
+  context.fill();
+  context.restore();
 }
 function fitVidToCanvas(canvas, imageObj){
   var imageAspectRatio = imageObj.videoWidth / imageObj.videoHeight;
@@ -263,7 +317,8 @@ function fitVidToCanvas(canvas, imageObj){
   context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
 };
 export default {
-    drawTrails,
+    drawCircleTrails,
+    drawLineTrails,
     drawConnections,
     drawAllConnections,
     drawStars,
