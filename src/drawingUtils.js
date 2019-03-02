@@ -162,7 +162,7 @@ function drawStars(context,positions, color){
         // Create some stars
         for (let starNum=0; starNum< store.numStarsPerObject+1; starNum++){
           // A star is born!
-          if(drawingStore.starsX.length > maxStars){
+          if(drawingStore.starsX.length + starNum > maxStars){
             continue
           }
           const curX = x + (.5-Math.random())*r

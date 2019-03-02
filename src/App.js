@@ -125,15 +125,14 @@ class App extends Component {
           }
         }
         //Draw trails
-        if(store.showTrails && store.allColors.length == 1){
-          drawingUtils.drawLineTrails(context,this.state.positions[colorNum], color)
-        }else if(store.showTrails && store.allColors.length > 1){
+        if(store.showTrails){
           drawingUtils.drawCircleTrails(context,this.state.positions[colorNum], color)
         }
+        
         // Draw connections
         if(store.showConnections){
-          //drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
-          drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness)
+          drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
+          //drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness)
         }
         // Draw Stars
         if(store.showStars){

@@ -69,6 +69,7 @@ function checkCircleIntersection(circle1,circle2){
 }
 function filterOverlappingContours(contourPositions){
     const filteredContourPositions = []
+    console.log(contourPositions.length)
     for(let i = 0; i < contourPositions.length; ++i){
       for(let j = i+1; j < contourPositions.length; ++j){
         if(!contourPositions[i]|| !contourPositions[j]){
@@ -81,7 +82,7 @@ function filterOverlappingContours(contourPositions){
         //set smaller intersecting contour to null
         if(intersect && contourPositions[i].r > contourPositions[j].r){
             contourPositions[j] = null
-        }else if(intersect && contourPositions[i].r > contourPositions[j].r){
+        }else if(intersect && contourPositions[i].r < contourPositions[j].r){
             contourPositions[i] = null
         }
       } 
