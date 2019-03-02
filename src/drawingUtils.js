@@ -66,50 +66,6 @@ function drawCircleTrails(context, contourPositions, color){
     }
   }
 }
-function drawLineTrails(context, contourPositions, color){
-  //Draw circle and trail
-  if(contourPositions){
-    for(let i = 0; i < contourPositions.currentNumContours; ++i){
-      //Don't draw if x oordinate is -1
-      if(contourPositions[i] && contourPositions[i]['x'] !== -1 ){
-        //Rename for convenience
-        const xHistory = contourPositions[i]['x']
-        const yHistory = contourPositions[i]['y']
-        const rHistory = contourPositions[i]['r']
-
-        //Don't draw a trail longer than the window
-        const maxWindowSize = store.trailLength
-        let currentWindowSize  = Math.min(xHistory.length, maxWindowSize)
-        //Draw circle and trail
-        for (let t=0; t < currentWindowSize; ++t){
-          //At least draw the ball itself
-          if(xHistory[xHistory.length - 1 - t] > -1 && xHistory[xHistory.length - 2 - t] !== -1 ){
-
-            //Look backwards in history stepping by t
-            const lastX = xHistory[xHistory.length - 1 - t]
-            const lastY = yHistory[yHistory.length - 1 - t]
-            const lastR = rHistory[rHistory.length - 1 - t]
-            if(currentWindowSize > 1){
-              const curX = xHistory[xHistory.length - 2 - t]
-              const curY = yHistory[yHistory.length - 2 - t]
-              const curR = rHistory[rHistory.length - 2 - t]
-              context.beginPath();
-              context.moveTo(lastX, lastY);
-              context.lineTo(curX, curY);
-              context.lineWidth = curR - curR*t/currentWindowSize;
-              context.stroke();
-            }
-  
-            const lastColor = addOpacityToColor(color, 1 - t/(currentWindowSize*2))
-            if(t == 0){
-              drawCircle(context,lastX, lastY, lastR, lastColor)
-            }
-          }
-        }
-      }
-    }
-  }
-}
 function drawConnections(context,positions, color, thickness){
   if(!positions){
     return
