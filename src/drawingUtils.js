@@ -274,7 +274,6 @@ function fitVidToCanvas(canvas, imageObj){
 };
 export default {
     drawCircleTrails,
-    drawLineTrails,
     drawConnections,
     drawAllConnections,
     drawStars,
