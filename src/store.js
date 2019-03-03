@@ -26,6 +26,7 @@ class Store {
   @observable colorNum            = 0
   @observable usingWhite          = false
   @observable showConnections     = false
+  @observable showAllConnections  = false
   @observable showTrails          = true
   @observable showStars           = false
   @observable showBrushColor      = false
@@ -102,6 +103,15 @@ class Store {
   }
   @action toggleShowConnections = () => {
     this.showConnections = !this.showConnections
+    if(this.showConnections){
+      this.showAllConnections = false
+    }
+  }
+  @action toggleShowAllConnections = () => {
+    this.showAllConnections = !this.showAllConnections
+    if(this.showAllConnections){
+      this.showConnections = false
+    }
   }
   @action toggleShowTrails = () => {
     this.showTrails = !this.showTrails

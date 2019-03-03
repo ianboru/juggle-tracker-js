@@ -131,8 +131,10 @@ class App extends Component {
         
         // Draw connections
         if(store.showConnections){
+          drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness)
+        }
+        if(store.showAllConnections){
           drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
-          //drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness)
         }
         // Draw Stars
         if(store.showStars){

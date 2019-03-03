@@ -6,6 +6,20 @@ import 'rc-slider/assets/index.css';
 import store from './store'
 import { observer } from 'mobx-react'
 import "./App.css"
+import trailsInactive from "./assets/trails_inactive.png"
+import connectSameInactive from "./assets/connect_same_inactive.png"
+import connectAllInactive from "./assets/connect_all_inactive.png"
+import starsInactive from "./assets/stars_inactive.png"
+import rainbowInactive from "./assets/rainbow_inactive.png"
+import brushInactive from "./assets/brush_inactive.png"
+
+import trailsActive from "./assets/trails_active.png"
+import connectSameActive from "./assets/connect_same_active.png"
+import connectAllActive from "./assets/connect_all_active.png"
+import starsActive from "./assets/stars_active.png"
+import rainbowActive from "./assets/rainbow_active.png"
+import brushActive from "./assets/brush_active.png"
+
 const Handle = Slider.Handle;
 const handle = (props) => {
   const { value, dragging, index, ...restProps } = props;
@@ -56,11 +70,12 @@ class AnimationControls extends Component {
 		return (
 			<div>
 				<div>
-					<button className={buttonClass(store.showConnections)}  id="connections" onClick={store.toggleShowConnections}>Connections</button>
-					<button className={buttonClass(store.showTrails)}  id="trails" onClick={store.toggleShowTrails}>Trails</button>				
-					<button className={buttonClass(store.showStars)}  id="stars" onClick={store.toggleShowStars}>Stars</button>				
-					<button className={buttonClass(store.discoMode)}  id="disco" onClick={store.toggleDiscoMode}>Rainbow</button>
-					<button className={buttonClass(store.showBrushColor)}  id="disco" onClick={store.toggleShowBrushColor}>Brush Color</button>
+						<img title="trails" onClick={store.toggleShowTrails} src={store.showTrails ? trailsActive : trailsInactive}/>
+						<img title="connect same colors" onClick={store.toggleShowConnections} src={store.showConnections ? connectSameActive : connectSameInactive}/>
+						<img title="connect all colors" onClick={store.toggleShowAllConnections} src={store.showAllConnections ? connectAllActive : connectAllInactive}/>
+						<img title="stars" onClick={store.toggleShowStars} src={store.showStars ? starsActive : starsInactive}/>
+						<img title="rainbow" onClick={store.toggleDiscoMode} src={store.discoMode ? rainbowActive : rainbowInactive}/>
+						<img title="brush color" onClick={store.toggleShowBrushColor} src={store.showBrushColor ? brushActive : brushInactive}/>
 				</div>
 				{brushColorControls}
 				{connectionControls}

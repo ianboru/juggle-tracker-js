@@ -146,7 +146,7 @@ function drawStars(context,positions, color){
   let newStarsSize = []
   let newStarsColor = []
   // If data exists for this object, proceed
-  let initialOpacity = .65
+  let initialOpacity = .75
 
   if(positions){
 
