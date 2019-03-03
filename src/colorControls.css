@@ -1,18 +1,19 @@
 .rc-slider-rail{
-  height : 13px;
+  height : 16px;
+  background-color: darkgray
 }
 .rc-slider-track{
-  height : 13px;
+  height : 16px;
 }
 .rc-slider-step{
-  height : 13px;
+  height : 16px;
 }
 .rc-slider-handle{
-  height : 21px;
-  width : 21px;
+  height : 23px;
+  width : 23px;
 }
 .rc-slider{
-  margin-bottom: 5px;
+  margin-bottom: 7px;
   display: inline-block;
   user-select: none;
     -khtml-user-select: none;

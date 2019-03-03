@@ -88,7 +88,7 @@ canvas{
   }
 }
 .slider-label{
-  font-size: 12px;
+  font-size: 14px;
   width : 140px;
   display : inline-block;
 }
@@ -132,3 +132,4 @@ canvas{
   font-size : 12px;
   border-radius: 4px;
 }
+

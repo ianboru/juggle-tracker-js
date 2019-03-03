@@ -51,8 +51,6 @@ class AnimationControls extends Component {
 				<div className="slider-label" ># Stars</div><Slider min={1} max={100} step={1} defaultValue={store.numStarsPerObject} handle={handle} onChange={store.setNumStarsPerObject}/>
 				<div className="slider-label" >Star Life</div><Slider min={0} max={1} step={.01} defaultValue={store.starLife}  handle={handle} onChange={store.setStarLife}/>
 				<div className="slider-label" >Star Size</div><Slider min={0} max={1} step={.01} defaultValue={store.starSize}  handle={handle} onChange={store.setStarSize}/>
-				<div className="slider-label" >Star Pointiness</div><Slider min={0} max={.75} step={.01} defaultValue={store.starPoint}  handle={handle} onChange={store.setStarPoint}/>
-				<div className="slider-label" >Star Sides</div><Slider min={2} max={10} step={1} defaultValue={store.starSides}  handle={handle} onChange={store.setStarSides}/>
 			</div> : null
 		
 		const trailControls = store.showTrails ? 
@@ -72,12 +70,12 @@ class AnimationControls extends Component {
 		return (
 			<div>
 				<div>
-						<img title="trails" onClick={store.toggleShowTrails} src={store.showTrails ? trailsActive : trailsInactive}/>
-						<img title="connect same colors" onClick={store.toggleShowConnections} src={store.showConnections ? connectSameActive : connectSameInactive}/>
-						<img title="connect all colors" onClick={store.toggleShowAllConnections} src={store.showAllConnections ? connectAllActive : connectAllInactive}/>
-						<img title="stars" onClick={store.toggleShowStars} src={store.showStars ? starsActive : starsInactive}/>
-						<img title="rainbow" onClick={store.toggleDiscoMode} src={store.discoMode ? rainbowActive : rainbowInactive}/>
-						<img title="brush color" onClick={store.toggleShowBrushColor} src={store.showBrushColor ? brushActive : brushInactive}/>
+					<img title="trails" onClick={store.toggleShowTrails} src={store.showTrails ? trailsActive : trailsInactive}/>
+					<img title="connect same colors" onClick={store.toggleShowConnections} src={store.showConnections ? connectSameActive : connectSameInactive}/>
+					<img title="connect all colors" onClick={store.toggleShowAllConnections} src={store.showAllConnections ? connectAllActive : connectAllInactive}/>
+					<img title="stars" onClick={store.toggleShowStars} src={store.showStars ? starsActive : starsInactive}/>
+					<img title="rainbow" onClick={store.toggleDiscoMode} src={store.discoMode ? rainbowActive : rainbowInactive}/>
+					<img title="brush color" onClick={store.toggleShowBrushColor} src={store.showBrushColor ? brushActive : brushInactive}/>
 				</div>
 				{brushColorControls}
 				{connectionControls}

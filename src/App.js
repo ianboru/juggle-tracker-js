@@ -271,7 +271,7 @@ class App extends Component {
           <br/>
           <button onClick={()=>{store.toggleShowControls("color")}} className={buttonClass(store.showColorControls)}>Color Calibration</button>
           <button onClick={()=>{store.toggleShowControls("animation")}} className={buttonClass(store.showAnimationControls)}>Animations</button>
-          <button onClick={()=>{store.toggleShowControls("detection")}} className={buttonClass(store.showDetectionControls)}>Advanced Detection</button>
+          <button onClick={()=>{store.toggleShowControls("detection")}} className={buttonClass(store.showDetectionControls)}>Advanced Calibration</button>
           <div className="videoContainer">
             {colorControls}
             {detectionControls}
