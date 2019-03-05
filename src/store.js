@@ -51,6 +51,7 @@ class Store {
   @observable flippedFrame         = null
   @observable starSides           = 6
   @observable starPoint           = .5
+  @observable hiddenCanvas        = null
   //
   // ACTIONS
   //
@@ -73,6 +74,10 @@ class Store {
   @action setCanvasOutput(canvas){
     this.canvasOutput = canvas
   }
+  @action setHiddenCanvas(canvas){
+    this.hiddenCanvas = canvas
+  }
+
   @action setCalibrationRect(rect){
     this.calibrationRect = rect
     this.showSelectColorText = false

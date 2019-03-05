@@ -69,7 +69,6 @@ function checkCircleIntersection(circle1,circle2){
 }
 function filterOverlappingContours(contourPositions){
     const filteredContourPositions = []
-    console.log(contourPositions.length)
     for(let i = 0; i < contourPositions.length; ++i){
       for(let j = i+1; j < contourPositions.length; ++j){
         if(!contourPositions[i]|| !contourPositions[j]){
@@ -94,7 +93,36 @@ function filterOverlappingContours(contourPositions){
     })
     return filteredContourPositions
 }
+function getContourImage(src){
+    const dst = cv.Mat.zeros(src.cols, src.rows, cv.CV_8UC3);
 
+    // Maximum number of contours to interpret as objects
+    const maxNumContours = 10
+    // Initialize contour finding data
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+    // Find contours - src is a frame filtered for the current color
+    cv.findContours(src, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    let contourPositions = []
+    // Catalogue the contour locations to draw later
+    // Iterate though the largest contours
+      for (let i = 0; i < contours.size(); ++i) {
+        // Find the contour area
+        const contour = contours.get(i)
+        const contourArea = cv.contourArea(contour)
+        //Check if contour is big enough to be a real object
+        if(contourArea > store.sizeThreshold && contourPositions.length < maxNumContours){
+          // Use circle to get x,y coordinates and radius
+          let color = new cv.Scalar(255,0,0);
+          cv.drawContours(dst, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
+        }
+        contour.delete(); 
+      }
+    // Cleanup open cv objects
+    contours.delete(); hierarchy.delete();
+    // Return list of contour positions and sizes
+    return dst
+}
 function findBalls(src){
     // Maximum number of contours to interpret as objects
     const maxNumContours = 10
@@ -370,5 +398,6 @@ export default {
     findBalls,
     getColorFromImage,
     calculateRelativeCoord,
-    getMatFromCanvas
+    getMatFromCanvas,
+    getContourImage
 }

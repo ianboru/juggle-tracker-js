@@ -55,7 +55,7 @@ class Camera extends Component {
   }
   stopCamera=()=> {
     if (!this.state.streaming) return;
-    this.props.canvasOutput.getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
+    store.canvasOutput.getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
     this.video.srcObject=null;
     this.state.stream.getVideoTracks()[0].stop();
     this.state.streaming = false
@@ -104,7 +104,7 @@ class Camera extends Component {
     if (!this.state.recording) {
       // Capture the video stream, and set recording to true
       this.setState({
-        canvasStream : this.props.canvasOutput.captureStream(),
+        canvasStream : store.canvasOutput.captureStream(),
         recording : true
       })
     } else {
@@ -118,15 +118,15 @@ class Camera extends Component {
   }
   render(){
 
-    const uploadFileButton = this.input ? <button style={{'fontSize':'12pt'}} onClick={this.handleInputClick}>Upload Video</button> : null
+    const uploadFileButton = this.input ? <button style={{'margin-bottom':'10px','fontSize':'12pt'}} onClick={this.handleInputClick}>Upload Video</button> : null
     let playUploadedButton
     if(store.uploadedVideo){
-      playUploadedButton = this.state.fileUploaded ? <button style={{'fontSize':'12pt'}} id="playUploadedButton" onClick={this.handlePlayUploaded}>Play Video</button> : null
+      playUploadedButton = this.state.fileUploaded ? <button style={{'margin-bottom':'10px','fontSize':'12pt'}} id="playUploadedButton" onClick={this.handlePlayUploaded}>Play Video</button> : null
     }
 
     const screenRecordText = iOSDevice ? "Record with iOS screen recording " : null
     const recordingText = this.state.recording ? "Stop Recording" : "Start Recording"
-    const recordingButton = iOSDevice ? null : <button style={{'fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>{recordingText}</button>
+    const recordingButton = iOSDevice ? null : <button style={{'margin-bottom':'10px','fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>{recordingText}</button>
 
     const videoControls =
       <div>

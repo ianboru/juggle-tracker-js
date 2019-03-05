@@ -35,6 +35,7 @@ class App extends Component {
     canvasStream : null,
     isFacebookApp : false,
     discoHue : 0,
+    startTime : null
   }
 
   componentDidMount=()=>{
@@ -43,6 +44,8 @@ class App extends Component {
       isFacebookApp
     })
     document.title = "AR Flow Arts"
+    store.setHiddenCanvas(this.hiddenCanvas)
+
   }
 
   isFacebookApp=()=>{
@@ -53,101 +56,118 @@ class App extends Component {
   startVideoProcessing=()=> {
     //Fix for firefox to have context available
     const context = store.canvasOutput.getContext("2d")
-    requestAnimationFrame(this.processVideo);
-  }
+    const hiddenContext = store.hiddenCanvas.getContext("2d")
 
-  processVideo=()=> {
+    this.state.startTime = new Date().getTime();
+    requestAnimationFrame(this.animate);
+  }
+  handleVideoData=(canvas)=>{
+    const context = canvas.getContext("2d")
+    context.clearRect( 0, 0, canvas.width, canvas.height)
+    if(store.uploadedVideo){
+      // Use the uploaded file
+      drawingUtils.fitVidToCanvas(canvas, store.uploadedVideo)
+    }else{
+      // Use the webcam image
+      context.drawImage(store.liveVideo, 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight);
+    }
+
+    // Get the srcMat from the canvas
+    let srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
+    // Flip horizontally because camera feed is pre-flipped
+    if(!store.uploadedVideo){
+      cv.flip(srcMat, srcMat,1)
+    }
+    // If the mouse is down, clone the srcMat and save it as flippedFrame
+    if(store.mouseDown){
+      store.setFlippedFrame(srcMat.clone())
+    }
+    // Show the srcMat to the user
+    cv.imshow('canvasOutput',srcMat)
+    return srcMat
+  }
+  processCurrentColor=(colorRange, colorNum, context,srcMat)=>{
+    let colorFilteredImage
+    let contourImage
+    // If colored balls are being used, use cvutils.colorfilter
+    if(!store.usingWhite){
+      colorFilteredImage = cvutils.colorFilter(srcMat, colorRange)
+    // If white balls are being used, use cvutils.colorWhite
+    }else{
+      colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
+    }
+    contourImage = cvutils.getContourImage(colorFilteredImage)
+
+    // Get the ball locations
+    const ballLocations = cvutils.findBalls(colorFilteredImage)
+
+    // Update the tracking history
+    this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
+
+    // If in calibration mode
+    if(store.calibrationMode && colorNum === store.colorNum){
+      // Initialize final canvas with the mask of the colors within the color ranges
+      // This setting is used when calibrating the colors
+      //cv.imshow('hiddenCanvas',colorFilteredImage)
+      cv.imshow('hiddenCanvas',contourImage)
+    }
+    // Get the color values for the object being tracked (white if usingWhite)
+    let color = cvutils.calculateCurrentHSV(colorRange)
+    this.drawEffects(context,colorNum,color)
+    colorFilteredImage.delete()
+    contourImage.delete()
+  }
+  drawEffects=(context,colorNum,color)=>{
+    if(store.showBrushColor){
+      color = 'rgb(' + cvutils.hsvToRgb(store.brushColor, 100,100) + ')'
+    }
+    // If disco mode is on, use the current disco color
+    if(store.discoMode){
+      color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
+      // Update the disco hue so that the color changes
+      this.state.discoHue = this.state.discoHue + store.discoIncrement
+      // When the hue reaches 360, it goes back to zero (HSV colorspace loops)
+      if(this.state.discoHue>360){
+        this.state.discoHue = 0
+      }
+    }
+    //Draw trails
+    if(store.showTrails){
+      drawingUtils.drawCircleTrails(context,this.state.positions[colorNum], color)
+    }
+    
+    // Draw connections
+    if(store.showConnections){
+      drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness)
+    }
+    if(store.showAllConnections){
+      drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
+    }
+    // Draw Stars
+    if(store.showStars){
+      // Draw the stars. Get the updated stars' positions.
+      drawingUtils.drawStars(context, this.state.positions[colorNum],color)
+      // Update the global stars variable
+    }
+  }
+  animate=()=> {
+
     if(store.canvasOutput){
       if(store.videoWidth === 0){
-        requestAnimationFrame(this.processVideo);
-        return
+        requestAnimationFrame(this.animate);
       }
       const context = store.canvasOutput.getContext("2d")
-      context.clearRect( 0, 0, store.canvasOutput.width, store.canvasOutput.height)
+      let srcMat = this.handleVideoData(store.canvasOutput);
       
-      if(store.uploadedVideo){
-        // Use the uploaded file
-        drawingUtils.fitVidToCanvas(store.canvasOutput, store.uploadedVideo)
-      }else{
-        // Use the webcam image
-        context.drawImage(store.liveVideo, 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight);
-      }
-      
-
-      // Get the srcMat from the canvas
-      let srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
-      // Flip horizontally because camera feed is pre-flipped
-      if(!store.uploadedVideo){
-        cv.flip(srcMat, srcMat,1)
-      }
-      // If the mouse is down, clone the srcMat and save it as flippedFrame
-      if(store.mouseDown){
-        store.setFlippedFrame(srcMat.clone())
-      }
-      // Show the srcMat to the user
-      cv.imshow('canvasOutput',srcMat)
-      // Create a temporary image to store the color segmentation
-      let colorFilteredImage
       // Iterate through each color being tracked
+      
       store.allColors.forEach((colorRange,colorNum)=>{
-        // If colored balls are being used, use cvutils.colorfilter
-        if(!store.usingWhite){
-          colorFilteredImage = cvutils.colorFilter(srcMat, colorRange)
-        // If white balls are being used, use cvutils.colorWhite
-        }else{
-          colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
-        }
-        // Get the ball locations
-        const ballLocations = cvutils.findBalls(colorFilteredImage)
-
-        // Update the tracking history
-        this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
-
-        // If in calibration mode
-        if(store.calibrationMode && colorNum === store.colorNum){
-          // Initialize final canvas with the mask of the colors within the color ranges
-          // This setting is used when calibrating the colors
-          cv.imshow('canvasOutput',colorFilteredImage)
-        }
-        // Get the color values for the object being tracked (white if usingWhite)
-        let color = cvutils.calculateCurrentHSV(colorRange)
-        if(store.showBrushColor){
-          color = 'rgb(' + cvutils.hsvToRgb(store.brushColor, 100,100) + ')'
-        }
-        // If disco mode is on, use the current disco color
-        if(store.discoMode){
-          color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
-          // Update the disco hue so that the color changes
-          this.state.discoHue = this.state.discoHue + store.discoIncrement
-          // When the hue reaches 360, it goes back to zero (HSV colorspace loops)
-          if(this.state.discoHue>360){
-            this.state.discoHue = 0
-          }
-        }
-        //Draw trails
-        if(store.showTrails){
-          drawingUtils.drawCircleTrails(context,this.state.positions[colorNum], color)
-        }
-        
-        // Draw connections
-        if(store.showConnections){
-          drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness)
-        }
-        if(store.showAllConnections){
-          drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
-        }
-        // Draw Stars
-        if(store.showStars){
-          // Draw the stars. Get the updated stars' positions.
-          drawingUtils.drawStars(context, this.state.positions[colorNum],color)
-          // Update the global stars variable
-        }
+        this.processCurrentColor(colorRange, colorNum, context, srcMat)
       })
 
       // If the user is clicking and draging to select a color
       if(store.calibrationRect){
         //Draw color selection rectangle
-        console.log(store.calibrationRect)
         context.strokeStyle = "#ffffff"
         const rect = store.calibrationRect
         const scaleFactor = store.videoWidth/store.canvasOutput.clientWidth
@@ -157,14 +177,15 @@ class App extends Component {
       if(store.showSelectColorText){
         drawingUtils.drawSelectColorText(context, store.isMobile, store.usingWhite)
       }
+      //var destCtx = store.canvasOutput.getContext('2d');
+      //destCtx.drawImage(store.hiddenCanvas, 0,0, store.videWidth, store.hiddenCanvas.videoHeight)
       //Trim histories to trail length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, store.trailLength)
       
-      //Clean up all possible data
-      colorFilteredImage.delete();srcMat.delete()
-      colorFilteredImage = null; srcMat = null
+      srcMat.delete();srcMat = null;
       //Process next frame
-      requestAnimationFrame(this.processVideo);
+      requestAnimationFrame(this.animate);
+
     }
   }
 
@@ -265,7 +286,7 @@ class App extends Component {
       !this.state.isFacebookApp ?
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
-          <div style={{marginBottom : '10px', 'fontSize' : '10px'}}>Version 0.4 Beta</div>
+          <div style={{marginBottom : '10px', 'fontSize' : '10px'}}>Version 0.5 Beta</div>
           <div style={{marginBottom : '10px', 'fontSize' : '10px'}}>Send feedback to @arflowarts on Instagram</div>
           <MdHelp style={{'fontSize':'15pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
           <br/>
@@ -277,9 +298,13 @@ class App extends Component {
             {detectionControls}
             {animationControls}
             <InteractiveCanvas className="center-block canvas"/>
+            <canvas 
+              ref={ref => this.hiddenCanvas = ref}
+              id="hiddenCanvas"
+              className="canvas"
+            ></canvas>
           </div>
           <Camera 
-            canvasOutput={store.canvasOutput} 
             isFacebookApp={this.state.isFacebookApp}
             startVideoProcessing={this.startVideoProcessing}
           />          
