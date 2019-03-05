@@ -46,7 +46,6 @@ class Camera extends Component {
           that.video.setAttribute("height", videoHeight);
           that.state.streaming = true 
           store.setVideoDimensions(that.video.videoWidth, that.video.videoHeight)
-
           that.state.videoWidth = videoWidth
           that.state.videoHeight = videoHeight
         }

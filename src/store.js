@@ -100,6 +100,8 @@ class Store {
   @action setVideoDimensions=(width,height)=>{
     this.videoWidth = width
     this.videoHeight = height
+    this.canvasOutput.width = width
+    this.canvasOutput.height = height
   }
   
   @action toggleCalibrationMode = () => {

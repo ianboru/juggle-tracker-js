@@ -63,13 +63,15 @@ class App extends Component {
   }
   handleVideoData=(canvas)=>{
     const context = canvas.getContext("2d")
+    canvas.width = store.videoWidth
+    canvas.height = store.videoHeight
     context.clearRect( 0, 0, canvas.width, canvas.height)
     if(store.uploadedVideo){
       // Use the uploaded file
       drawingUtils.fitVidToCanvas(canvas, store.uploadedVideo)
     }else{
       // Use the webcam image
-      context.drawImage(store.liveVideo, 0, 0, store.liveVideo.videoWidth, store.liveVideo.videoHeight);
+      context.drawImage(store.liveVideo, 0, 0, store.videoWidth, store.videoHeight);
     }
 
     // Get the srcMat from the canvas
@@ -83,7 +85,7 @@ class App extends Component {
       store.setFlippedFrame(srcMat.clone())
     }
     // Show the srcMat to the user
-    cv.imshow('canvasOutput',srcMat)
+    cv.imshow('hiddenCanvas',srcMat)
     return srcMat
   }
   processCurrentColor=(colorRange, colorNum, context,srcMat)=>{
@@ -156,8 +158,8 @@ class App extends Component {
       if(store.videoWidth === 0){
         requestAnimationFrame(this.animate);
       }
-      const context = store.canvasOutput.getContext("2d")
-      let srcMat = this.handleVideoData(store.canvasOutput);
+      const context = store.hiddenCanvas.getContext("2d")
+      let srcMat = this.handleVideoData(store.hiddenCanvas);
       
       // Iterate through each color being tracked
       
@@ -166,19 +168,19 @@ class App extends Component {
       })
 
       // If the user is clicking and draging to select a color
+      const scaleFactor = store.videoWidth/store.hiddenCanvas.clientWidth
       if(store.calibrationRect){
         //Draw color selection rectangle
         context.strokeStyle = "#ffffff"
         const rect = store.calibrationRect
-        const scaleFactor = store.videoWidth/store.canvasOutput.clientWidth
         context.strokeRect(rect[0]*scaleFactor,rect[1]*scaleFactor,(rect[2]-rect[0])*scaleFactor,(rect[3]-rect[1])*scaleFactor)
       }
       // Shows text to instruct user
       if(store.showSelectColorText){
         drawingUtils.drawSelectColorText(context, store.isMobile, store.usingWhite)
       }
-      //var destCtx = store.canvasOutput.getContext('2d');
-      //destCtx.drawImage(store.hiddenCanvas, 0,0, store.videWidth, store.hiddenCanvas.videoHeight)
+      var destCtx = store.canvasOutput.getContext('2d');
+      destCtx.drawImage(store.hiddenCanvas, 0,0, store.videoWidth, store.videoHeight)
       //Trim histories to trail length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, store.trailLength)
       
