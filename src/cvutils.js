@@ -10,30 +10,32 @@ function getMatFromCanvas(context, width, height){
     imageData = null
     return srcMat
 }
-function colorFilter(src, colorRange){
-
+function prepareImage(src){
     let dst = new cv.Mat();
-
     cv.cvtColor(src, dst, cv.COLOR_RGBA2RGB)
     // Blur the temporary image
-    
+
     if(store.blurAmount > 1){
         let ksize = new cv.Size(store.blurAmount,store.blurAmount);
         let anchor = new cv.Point(-1, -1);
-        cv.blur(dst, dst, ksize, anchor, cv.BORDER_DEFAULT);
+        cv.blur(dst, dst, ksize, anchor, cv.BORDER_DEFAULT)
     }
     // Convert the RGB temporary image to HSV
     cv.cvtColor(dst, dst, cv.COLOR_RGB2HSV)
+    return dst
+}
+function colorFilter(src, colorRange){
+    let dst = new cv.Mat();
     // Get values for the color ranges from the trackbars
     let lowerHSV = htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
     lowerHSV.push(0)
     let higherHSV = htmlToOpenCVHSV([colorRange.hh, colorRange.hs, colorRange.hv])
     higherHSV.push(255)
     // Create the new mat objects that are the lower and upper ranges of the color
-    let low = new cv.Mat(dst.rows, dst.cols, dst.type(), lowerHSV);
-    let high = new cv.Mat(dst.rows, dst.cols, dst.type(), higherHSV);
+    let low = new cv.Mat(src.rows, src.cols, src.type(), lowerHSV);
+    let high = new cv.Mat(src.rows, src.cols, src.type(), higherHSV);
     // Find the colors that are within (low, high)
-    cv.inRange(dst, low, high, dst);
+    cv.inRange(src, low, high, dst);
     // You can try more different parameters
     if(store.closeAmount > 0){
         let M = cv.Mat.ones(store.closeSize, store.closeSize, cv.CV_8U);
@@ -399,5 +401,6 @@ export default {
     getColorFromImage,
     calculateRelativeCoord,
     getMatFromCanvas,
-    getContourImage
+    getContourImage,
+    prepareImage
 }
