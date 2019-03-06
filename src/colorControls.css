@@ -22,9 +22,14 @@
     -webkit-user-select: none;
 }
 .rc-slider-tooltip{
-  background-color: "#A9A9A9";
+  opacity : .95;
+  z-index: 100;
+}
+.rc-slider-tooltip-inner{
+  background-color: black;
   color : "white";
   opacity : .95;
+  z-index: 100;
 }
 .hue-slider .rc-slider-rail{
   background: #ff3232; /* Old browsers */
