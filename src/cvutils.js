@@ -14,7 +14,6 @@ function prepareImage(src){
     let dst = new cv.Mat();
     cv.cvtColor(src, dst, cv.COLOR_RGBA2RGB)
     // Blur the temporary image
-
     if(store.blurAmount > 1){
         let ksize = new cv.Size(store.blurAmount,store.blurAmount);
         let anchor = new cv.Point(-1, -1);
@@ -41,7 +40,6 @@ function colorFilter(src, colorRange){
         let M = cv.Mat.ones(store.closeSize, store.closeSize, cv.CV_8U);
         cv.morphologyEx(dst, dst, cv.MORPH_CLOSE, M);
     }
-
     low.delete();high.delete();
     // Return the masked image (objects are white, background is black)
     return dst

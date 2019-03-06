@@ -62,6 +62,26 @@ class App extends Component {
     this.state.startTime = new Date().getTime();
     requestAnimationFrame(this.handleVideoData);
   }
+  handleCanvasData=()=>{
+    // Get the srcMat from the canvas
+    const context = store.hiddenCanvas.getContext("2d")
+    this.state.srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
+    // Flip horizontally because camera feed is pre-flipped
+    if(!store.uploadedVideo){
+      cv.flip(this.state.srcMat, this.state.srcMat,1)
+    }
+    // If the mouse is down, clone the srcMat and save it as flippedFrame
+    if(store.mouseDown){
+      store.setFlippedFrame(this.state.srcMat.clone())
+    }
+    // Show the srcMat to the user
+    cv.imshow('hiddenCanvas',this.state.srcMat)
+  }
+  computerVision=()=>{
+    const preparedImage = cvutils.prepareImage(this.state.srcMat)
+    this.processColors(preparedImage)
+    preparedImage.delete()
+  }
   handleVideoData=()=>{
     if(store.videoWidth === 0){
       requestAnimationFrame(this.handleVideoData);
@@ -79,29 +99,10 @@ class App extends Component {
       // Use the webcam image
       context.drawImage(store.liveVideo, 0, 0, store.videoWidth, store.videoHeight);
     }
-
-    // Get the srcMat from the canvas
-    this.state.srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
-    const srcMat = this.state.srcMat
-    // Flip horizontally because camera feed is pre-flipped
-    if(!store.uploadedVideo){
-      cv.flip(srcMat, srcMat,1)
-    }
-    // If the mouse is down, clone the srcMat and save it as flippedFrame
-    if(store.mouseDown){
-      store.setFlippedFrame(this.state.srcMat.clone())
-    }
-    // Show the this.state.srcMat to the user
-    cv.imshow('hiddenCanvas',this.state.srcMat)
-    this.state.srcMat = cvutils.prepareImage(srcMat)
-    this.processColors()
+    requestAnimationFrame(this.handleCanvasData)
+    requestAnimationFrame(this.computerVision)
   }
   processCurrentColor=(colorFilteredImage, colorRange, colorNum, context)=>{
-    const srcMat = this.state.srcMat
-    let contourImage
-
-    contourImage = cvutils.getContourImage(colorFilteredImage)
-
     // Get the ball locations
     const ballLocations = cvutils.findBalls(colorFilteredImage)
     // Update the tracking history
@@ -112,15 +113,15 @@ class App extends Component {
       // Initialize final canvas with the mask of the colors within the color ranges
       // This setting is used when calibrating the colors
       //cv.imshow('hiddenCanvas',colorFilteredImage)
+      let contourImage = cvutils.getContourImage(colorFilteredImage)
       cv.imshow('hiddenCanvas',contourImage)
+       contourImage.delete()
+
     }
     // Get the color values for the object being tracked (white if usingWhite)
     let color = cvutils.calculateCurrentHSV(colorRange)
-    //requestAnimationFrame(()=>{
-        this.drawEffects(colorNum,color)
-      //}
-    //)
-    contourImage.delete()
+    this.drawEffects(colorNum,color)
+
   }
   drawEffects=(colorNum,color)=>{
     const context = store.hiddenCanvas.getContext("2d")
@@ -156,28 +157,22 @@ class App extends Component {
       // Update the global stars variable
     }
   }
-  processColors = ()=>{
+  processColors = (srcMat)=>{
     const context = store.hiddenCanvas.getContext("2d")
-    const srcMat = this.state.srcMat
     store.allColors.forEach((colorRange,colorNum)=>{
       let colorFilteredImage
-      requestAnimationFrame(
-        ()=>{
-          // If colored balls are being used, use cvutils.colorfilter
-          if(!store.usingWhite){
-            colorFilteredImage = cvutils.colorFilter(srcMat, colorRange)
-          // If white balls are being used, use cvutils.colorWhite
-          }else{
-            colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
-          }
-        }
-      )
-      requestAnimationFrame(
-        ()=>{
-          this.processCurrentColor(colorFilteredImage, colorRange, colorNum, context)
-          colorFilteredImage.delete()
-        }
-      )
+ 
+      // If colored balls are being used, use cvutils.colorfilter
+      if(!store.usingWhite){
+        colorFilteredImage = cvutils.colorFilter(srcMat, colorRange)
+      // If white balls are being used, use cvutils.colorWhite
+      }else{
+        colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
+      }
+
+      this.processCurrentColor(colorFilteredImage, colorRange, colorNum, context)
+      colorFilteredImage.delete()
+
     })
     requestAnimationFrame(this.finalizeDrawing)
 
