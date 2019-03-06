@@ -78,9 +78,19 @@ class App extends Component {
     cv.imshow('hiddenCanvas',this.state.srcMat)
   }
   computerVision=()=>{
-    const preparedImage = cvutils.prepareImage(this.state.srcMat)
-    this.processColors(preparedImage)
-    preparedImage.delete()
+    requestAnimationFrame(()=>{
+      //console.log("prepare")
+      this.state.srcMat = cvutils.prepareImage(this.state.srcMat)
+    })
+    requestAnimationFrame(()=>{
+      //console.log("process")
+      this.processColors(this.state.srcMat)
+    })
+    requestAnimationFrame(()=>{
+      //console.log("finalize")
+      this.finalizeDrawing()
+      //preparedImage.delete()
+    })
   }
   handleVideoData=()=>{
     if(store.videoWidth === 0){
@@ -119,9 +129,7 @@ class App extends Component {
 
     }
     // Get the color values for the object being tracked (white if usingWhite)
-    let color = cvutils.calculateCurrentHSV(colorRange)
-    this.drawEffects(colorNum,color)
-
+    colorFilteredImage.delete()
   }
   drawEffects=(colorNum,color)=>{
     const context = store.hiddenCanvas.getContext("2d")
@@ -159,9 +167,8 @@ class App extends Component {
   }
   processColors = (srcMat)=>{
     const context = store.hiddenCanvas.getContext("2d")
+    let colorFilteredImage
     store.allColors.forEach((colorRange,colorNum)=>{
-      let colorFilteredImage
- 
       // If colored balls are being used, use cvutils.colorfilter
       if(!store.usingWhite){
         colorFilteredImage = cvutils.colorFilter(srcMat, colorRange)
@@ -169,13 +176,12 @@ class App extends Component {
       }else{
         colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
       }
-
-      this.processCurrentColor(colorFilteredImage, colorRange, colorNum, context)
-      colorFilteredImage.delete()
-
+      requestAnimationFrame(()=>{
+        this.processCurrentColor(colorFilteredImage, colorRange, colorNum, context)
+      })
+      let color = cvutils.calculateCurrentHSV(colorRange)
+      this.drawEffects(colorNum,color)
     })
-    requestAnimationFrame(this.finalizeDrawing)
-
   }
   finalizeDrawing=()=> {
     const context = store.hiddenCanvas.getContext("2d")

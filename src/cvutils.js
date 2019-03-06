@@ -10,9 +10,8 @@ function getMatFromCanvas(context, width, height){
     imageData = null
     return srcMat
 }
-function prepareImage(src){
-    let dst = new cv.Mat();
-    cv.cvtColor(src, dst, cv.COLOR_RGBA2RGB)
+function prepareImage(dst){
+    cv.cvtColor(dst, dst, cv.COLOR_RGBA2RGB)
     // Blur the temporary image
     if(store.blurAmount > 1){
         let ksize = new cv.Size(store.blurAmount,store.blurAmount);
