@@ -13,12 +13,16 @@ class Camera extends Component {
     videoWidth : null,
     fileUploaded : true,
         recording : null,
+        mounted : true
 
   }
   componentDidMount(){
     if(!this.props.isFaceBookApp){
       this.startCamera()
     }
+    this.setState({
+      mounted : true
+    })
   }
   startCamera=()=>{
       let that = this
@@ -100,6 +104,7 @@ class Camera extends Component {
  toggleRecording=()=>{
     // Change the text on the record button
     // User wants to record
+    console.log(this.state.recording)
     if (!this.state.recording) {
       // Capture the video stream, and set recording to true
       this.setState({
@@ -116,8 +121,7 @@ class Camera extends Component {
     }
   }
   render(){
-
-    const uploadFileButton = this.input ? <button style={{'margin-bottom':'10px','fontSize':'12pt'}} onClick={this.handleInputClick}>Upload Video</button> : null
+    const uploadFileButton = this.state.mounted && this.input ? <button style={{'margin-bottom':'10px','fontSize':'12pt'}} onClick={this.handleInputClick}>Upload Video</button> : null
     let playUploadedButton
     if(store.uploadedVideo){
       playUploadedButton = this.state.fileUploaded ? <button style={{'margin-bottom':'10px','fontSize':'12pt'}} id="playUploadedButton" onClick={this.handlePlayUploaded}>Play Video</button> : null
@@ -126,7 +130,6 @@ class Camera extends Component {
     const screenRecordText = iOSDevice ? "Record with iOS screen recording " : null
     const recordingText = this.state.recording ? "Stop Recording" : "Start Recording"
     const recordingButton = iOSDevice ? null : <button style={{'margin-bottom':'10px','fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>{recordingText}</button>
-
     const videoControls =
       <div>
         <div style={{'marginBottom' :'10px'}}>
@@ -138,7 +141,6 @@ class Camera extends Component {
       </div>
 
     return(
-
       <span>
         <video hidden={true} muted playsInline autoPlay className="invisible live-video" ref={ref => this.video = ref}></video>
         <video hidden={true} muted playsInline autoPlay onEnded={this.handleVideoEnded}   className="invisible live-video" ref={ref => this.uploadedVideo = ref}></video>
