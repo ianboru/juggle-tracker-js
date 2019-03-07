@@ -60,48 +60,39 @@ class App extends Component {
     const hiddenContext = store.hiddenCanvas.getContext("2d")
 
     this.state.startTime = new Date().getTime();
-    requestAnimationFrame(this.handleVideoData);
+    this.handleVideoData();
   }
   handleCanvasData=()=>{
     // Get the srcMat from the canvas
-    const context = store.hiddenCanvas.getContext("2d")
-    this.state.srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
+    const context = store.canvasOutput.getContext("2d")
+    const srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
     // Flip horizontally because camera feed is pre-flipped
     if(!store.uploadedVideo){
-      cv.flip(this.state.srcMat, this.state.srcMat,1)
+      cv.flip(srcMat, srcMat,1)
     }
+    this.setState({srcMat})
+    console.log("set src")
     // If the mouse is down, clone the srcMat and save it as flippedFrame
     if(store.mouseDown){
-      store.setFlippedFrame(this.state.srcMat.clone())
+      store.setFlippedFrame(srcMat.clone())
     }
     // Show the srcMat to the user
-    cv.imshow('hiddenCanvas',this.state.srcMat)
+    cv.imshow('canvasOutput',srcMat)
   }
-  computerVision=()=>{
-    requestAnimationFrame(()=>{
-      //console.log("prepare")
-      this.state.srcMat = cvutils.prepareImage(this.state.srcMat)
-    })
-    requestAnimationFrame(()=>{
-      //console.log("process")
-      this.processColors(this.state.srcMat)
-    })
-    requestAnimationFrame(()=>{
-      //console.log("finalize")
-      this.finalizeDrawing()
-      //preparedImage.delete()
-    })
-  }
+
   handleVideoData=()=>{
     if(store.videoWidth === 0){
-      requestAnimationFrame(this.handleVideoData);
+      this.handleVideoData;
       return
     }
-    const canvas = store.hiddenCanvas
+    console.log("videoing")
+    const canvas = store.canvasOutput
     const context = canvas.getContext("2d")
-    canvas.width = store.videoWidth
-    canvas.height = store.videoHeight
-    //context.clearRect( 0, 0, canvas.width, canvas.height)
+    const outputContext = store.canvasOutput.getContext("2d")
+    /*canvas.width = store.videoWidth
+    canvas.height = store.videoHeight*/
+    context.clearRect( 0, 0, store.videoWidth, store.videoHeight)
+
     if(store.uploadedVideo){
       // Use the uploaded file
       drawingUtils.fitVidToCanvas(canvas, store.uploadedVideo)
@@ -110,29 +101,39 @@ class App extends Component {
       context.drawImage(store.liveVideo, 0, 0, store.videoWidth, store.videoHeight);
     }
     requestAnimationFrame(this.handleCanvasData)
-    requestAnimationFrame(this.computerVision)
+    if(this.state.srcMat){
+      const srcMat = cvutils.prepareImage(this.state.srcMat)
+      console.log("prepared")
+      this.setState({srcMat})
+      requestAnimationFrame(()=>{
+        this.processColors(srcMat)
+      })
+      requestAnimationFrame(this.finalizeDrawing)
+    }
+    this.state.positions = trackingUtils.trimHistories(this.state.positions, store.trailLength)
+    //Process next frame
+    requestAnimationFrame(this.handleVideoData)
   }
   processCurrentColor=(colorFilteredImage, colorRange, colorNum, context)=>{
     // Get the ball locations
     const ballLocations = cvutils.findBalls(colorFilteredImage)
     // Update the tracking history
     this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
-
     // If in calibration mode
     if(store.calibrationMode && colorNum === store.colorNum){
       // Initialize final canvas with the mask of the colors within the color ranges
       // This setting is used when calibrating the colors
       //cv.imshow('hiddenCanvas',colorFilteredImage)
       let contourImage = cvutils.getContourImage(colorFilteredImage)
-      cv.imshow('hiddenCanvas',contourImage)
-       contourImage.delete()
-
+      cv.resize(contourImage, contourImage,  new cv.Size(),store.videoWidth/contourImage.cols,store.videoHeight/contourImage.rows, cv.INTER_LINEAR );
+      cv.imshow('canvasOutput',contourImage)
+      contourImage.delete()
     }
     // Get the color values for the object being tracked (white if usingWhite)
     colorFilteredImage.delete()
   }
   drawEffects=(colorNum,color)=>{
-    const context = store.hiddenCanvas.getContext("2d")
+    const context = store.canvasOutput.getContext("2d")
     if(store.showBrushColor){
       color = 'rgb(' + cvutils.hsvToRgb(store.brushColor, 100,100) + ')'
     }
@@ -166,7 +167,7 @@ class App extends Component {
     }
   }
   processColors = (srcMat)=>{
-    const context = store.hiddenCanvas.getContext("2d")
+    const context = store.canvasOutput.getContext("2d")
     let colorFilteredImage
     store.allColors.forEach((colorRange,colorNum)=>{
       // If colored balls are being used, use cvutils.colorfilter
@@ -176,16 +177,16 @@ class App extends Component {
       }else{
         colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
       }
-      requestAnimationFrame(()=>{
+      //requestAnimationFrame(()=>{
         this.processCurrentColor(colorFilteredImage, colorRange, colorNum, context)
-      })
+      //})
       let color = cvutils.calculateCurrentHSV(colorRange)
       this.drawEffects(colorNum,color)
     })
   }
   finalizeDrawing=()=> {
-    const context = store.hiddenCanvas.getContext("2d")
-    const scaleFactor = store.videoWidth/store.hiddenCanvas.width
+    const context = store.canvasOutput.getContext("2d")
+    const scaleFactor = store.videoWidth/store.canvasOutput.width
     if(store.calibrationRect){
       //Draw color selection rectangle
       context.strokeStyle = "#ffffff"
@@ -196,15 +197,9 @@ class App extends Component {
     if(store.showSelectColorText){
       drawingUtils.drawSelectColorText(context, store.isMobile, store.usingWhite)
     }
-    var destCtx = store.canvasOutput.getContext('2d');
-    destCtx.drawImage(store.hiddenCanvas, 0,0, store.videoWidth, store.videoHeight)
     //Trim histories to trail length
-    this.state.positions = trackingUtils.trimHistories(this.state.positions, store.trailLength)
-    
-    //Process next frame
     this.state.srcMat.delete();
 
-    requestAnimationFrame(this.handleVideoData);
   }
 
   selectColor=(i)=>{
