@@ -157,16 +157,16 @@ class App extends Component {
     if(store.canvasOutput){
       if(store.videoWidth === 0){
         requestAnimationFrame(this.animate);
+        return
       }
       const context = store.hiddenCanvas.getContext("2d")
       let srcMat = this.handleVideoData(store.hiddenCanvas);
       
       // Iterate through each color being tracked
-      
+      srcMat = cvutils.prepareImage(srcMat)
       store.allColors.forEach((colorRange,colorNum)=>{
         this.processCurrentColor(colorRange, colorNum, context, srcMat)
       })
-
       // If the user is clicking and draging to select a color
       const scaleFactor = store.videoWidth/store.hiddenCanvas.width
       if(store.calibrationRect){

@@ -32,7 +32,7 @@ class Store {
   @observable showBrushColor      = false
   @observable discoMode           = false
   @observable canvasOutput        = null
-  @observable blurAmount          = 8
+  @observable blurAmount          = 0
   @observable sizeThreshold       = 50
   @observable brushColor          = 123
   @observable connectionThickness = 6
