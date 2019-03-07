@@ -24,6 +24,7 @@ Tips:\n
 2: Turn on all the lights.
 3: Don't point the camera at the lights.
 `
+let tempMat = new cv.Mat();
 @observer
 class App extends Component {
 
@@ -93,7 +94,7 @@ class App extends Component {
     let contourImage
     // If colored balls are being used, use cvutils.colorfilter
     if(!store.usingWhite){
-      colorFilteredImage = cvutils.colorFilter(srcMat, colorRange)
+      colorFilteredImage = cvutils.colorFilter(srcMat, tempMat, colorRange)
     // If white balls are being used, use cvutils.colorWhite
     }else{
       colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
@@ -116,7 +117,6 @@ class App extends Component {
     // Get the color values for the object being tracked (white if usingWhite)
     let color = cvutils.calculateCurrentHSV(colorRange)
     this.drawEffects(context,colorNum,color)
-    colorFilteredImage.delete()
     contourImage.delete()
   }
   drawEffects=(context,colorNum,color)=>{

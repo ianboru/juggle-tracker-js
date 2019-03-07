@@ -21,8 +21,7 @@ function prepareImage(dst){
     cv.cvtColor(dst, dst, cv.COLOR_RGB2HSV)
     return dst
 }
-function colorFilter(src, colorRange){
-    let dst = new cv.Mat();
+function colorFilter(src, dst, colorRange){
     // Get values for the color ranges from the trackbars
     let lowerHSV = htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
     lowerHSV.push(0)
@@ -140,12 +139,15 @@ function findBalls(src){
         //Check if contour is big enough to be a real object
         if(contourArea > store.sizeThreshold && contourPositions.length < maxNumContours){
           // Use circle to get x,y coordinates and radius
-          const circle = cv.minEnclosingCircle(contour)
+          //const circle = cv.minEnclosingCircle(contour)
+          const M = cv.moments(contour)
+          const cx = M['m10']/M['m00']
+          const cy = M['m01']/M['m00']
           // Push the coordinates of the contour and the radius to the list of objects
           contourPositions.push({
-            'x' : circle.center.x,
-            'y' : circle.center.y,
-            'r' : circle.radius,
+            'x' : cx,
+            'y' : cy,
+            'r' : Math.pow(contourArea/Math.PI,.5)
           })
         }
         contour.delete(); 
