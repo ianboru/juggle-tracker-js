@@ -64,9 +64,10 @@ class App extends Component {
   }
   handleVideoData=(canvas)=>{
     const context = canvas.getContext("2d")
-    canvas.width = store.videoWidth
-    canvas.height = store.videoHeight
-    context.clearRect( 0, 0, canvas.width, canvas.height)
+    const outputContext = store.canvasOutput.getContext("2d")
+    context.clearRect( 0, 0, store.videoWidth, store.videoHeight)
+    outputContext.clearRect( 0, 0, store.videoWidth, store.videoHeight)
+
     if(store.uploadedVideo){
       // Use the uploaded file
       drawingUtils.fitVidToCanvas(canvas, store.uploadedVideo)

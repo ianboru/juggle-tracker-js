@@ -139,15 +139,15 @@ function findBalls(src){
         //Check if contour is big enough to be a real object
         if(contourArea > store.sizeThreshold && contourPositions.length < maxNumContours){
           // Use circle to get x,y coordinates and radius
-          //const circle = cv.minEnclosingCircle(contour)
-          const M = cv.moments(contour)
-          const cx = M['m10']/M['m00']
-          const cy = M['m01']/M['m00']
+          const circle = cv.minEnclosingCircle(contour)
+          /*const M = cv.moments(contour)
+          const x = M['m10']/M['m00']
+          const cy = M['m01']/M['m00'])*/
           // Push the coordinates of the contour and the radius to the list of objects
           contourPositions.push({
-            'x' : cx,
-            'y' : cy,
-            'r' : Math.pow(contourArea/Math.PI,.5)
+            'x' : circle.center.x,
+            'y' : circle.center.y,
+            'r' : circle.radius,
           })
         }
         contour.delete(); 
