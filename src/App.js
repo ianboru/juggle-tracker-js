@@ -36,7 +36,8 @@ class App extends Component {
     canvasStream : null,
     isFacebookApp : false,
     discoHue : 0,
-    startTime : null
+    startTime : null,
+    contourLocations : []
   }
 
   componentDidMount=()=>{
@@ -92,7 +93,6 @@ class App extends Component {
   }
   processCurrentColor=(colorRange, colorNum, context,srcMat)=>{
     let colorFilteredImage
-    let contourImage
     // If colored balls are being used, use cvutils.colorfilter
     if(!store.usingWhite){
       colorFilteredImage = cvutils.colorFilter(srcMat, tempMat, colorRange)
@@ -100,25 +100,26 @@ class App extends Component {
     }else{
       colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
     }
-    contourImage = cvutils.getContourImage(colorFilteredImage)
-
-    // Get the ball locations
-    const ballLocations = cvutils.findBalls(colorFilteredImage)
-
-    // Update the tracking history
-    this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
-
+    if(!store.showContourOutlines){
+       // Get the ball locations
+      const ballLocations = cvutils.findBalls(colorFilteredImage)
+      // Update the tracking history
+      this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
+    }else{
+      this.state.contourLocations = cvutils.findContours(colorFilteredImage)
+    }
+    
     // If in calibration mode
     if(store.calibrationMode && colorNum === store.colorNum){
       // Initialize final canvas with the mask of the colors within the color ranges
       // This setting is used when calibrating the colors
-      //cv.imshow('hiddenCanvas',colorFilteredImage)
+      let contourImage= cvutils.getContourImage(colorFilteredImage)
       cv.imshow('hiddenCanvas',contourImage)
+      contourImage.delete()
     }
     // Get the color values for the object being tracked (white if usingWhite)
     let color = cvutils.calculateCurrentHSV(colorRange)
     this.drawEffects(context,colorNum,color)
-    contourImage.delete()
   }
   drawEffects=(context,colorNum,color)=>{
     if(store.showBrushColor){
@@ -138,7 +139,9 @@ class App extends Component {
     if(store.showTrails){
       drawingUtils.drawCircleTrails(context,this.state.positions[colorNum], color)
     }
-    
+    if(store.showContourOutlines){
+      drawingUtils.drawContours(context,this.state.contourLocations, color)
+    }
     // Draw connections
     if(store.showConnections){
       drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness)

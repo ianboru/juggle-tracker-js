@@ -41,9 +41,10 @@ class Store {
   @observable starSize            = .5
   @observable trailLength         = 1
   @observable discoIncrement      = 12
-  @observable showColorControls = true
+  @observable showColorControls   = true
   @observable showAnimationControls = false
   @observable showDetectionControls = false
+  @observable showContourOutlines  = false
   @observable brightnessThreshold  = 55
   @observable closeAmount          = 0
   @observable showSelectColorText  = true
