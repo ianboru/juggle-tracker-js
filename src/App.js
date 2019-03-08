@@ -24,6 +24,7 @@ Tips:\n
 2: Turn on all the lights.
 3: Don't point the camera at the lights.
 `
+let tempMat = new cv.Mat();
 @observer
 class App extends Component {
 
@@ -36,7 +37,7 @@ class App extends Component {
     isFacebookApp : false,
     discoHue : 0,
     startTime : null,
-    srcMat : null
+    contourLocations : []
   }
 
   componentDidMount=()=>{
@@ -60,38 +61,13 @@ class App extends Component {
     const hiddenContext = store.hiddenCanvas.getContext("2d")
 
     this.state.startTime = new Date().getTime();
-    this.handleVideoData();
+    requestAnimationFrame(this.animate);
   }
-  handleCanvasData=()=>{
-    // Get the srcMat from the canvas
-    const context = store.canvasOutput.getContext("2d")
-    const srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
-    // Flip horizontally because camera feed is pre-flipped
-    if(!store.uploadedVideo){
-      cv.flip(srcMat, srcMat,1)
-    }
-    this.setState({srcMat})
-    console.log("set src")
-    // If the mouse is down, clone the srcMat and save it as flippedFrame
-    if(store.mouseDown){
-      store.setFlippedFrame(srcMat.clone())
-    }
-    // Show the srcMat to the user
-    cv.imshow('canvasOutput',srcMat)
-  }
-
-  handleVideoData=()=>{
-    if(store.videoWidth === 0){
-      this.handleVideoData;
-      return
-    }
-    console.log("videoing")
-    const canvas = store.canvasOutput
+  handleVideoData=(canvas)=>{
     const context = canvas.getContext("2d")
     const outputContext = store.canvasOutput.getContext("2d")
-    /*canvas.width = store.videoWidth
-    canvas.height = store.videoHeight*/
     context.clearRect( 0, 0, store.videoWidth, store.videoHeight)
+    outputContext.clearRect( 0, 0, store.videoWidth, store.videoHeight)
 
     if(store.uploadedVideo){
       // Use the uploaded file
@@ -100,40 +76,52 @@ class App extends Component {
       // Use the webcam image
       context.drawImage(store.liveVideo, 0, 0, store.videoWidth, store.videoHeight);
     }
-    requestAnimationFrame(this.handleCanvasData)
-    if(this.state.srcMat){
-      const srcMat = cvutils.prepareImage(this.state.srcMat)
-      console.log("prepared")
-      this.setState({srcMat})
-      requestAnimationFrame(()=>{
-        this.processColors(srcMat)
-      })
-      requestAnimationFrame(this.finalizeDrawing)
+
+    // Get the srcMat from the canvas
+    let srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
+    // Flip horizontally because camera feed is pre-flipped
+    if(!store.uploadedVideo){
+      cv.flip(srcMat, srcMat,1)
     }
-    this.state.positions = trackingUtils.trimHistories(this.state.positions, store.trailLength)
-    //Process next frame
-    requestAnimationFrame(this.handleVideoData)
+    // If the mouse is down, clone the srcMat and save it as flippedFrame
+    if(store.mouseDown){
+      store.setFlippedFrame(srcMat.clone())
+    }
+    // Show the srcMat to the user
+    cv.imshow('hiddenCanvas',srcMat)
+    return srcMat
   }
-  processCurrentColor=(colorFilteredImage, colorRange, colorNum, context)=>{
-    // Get the ball locations
-    const ballLocations = cvutils.findBalls(colorFilteredImage)
-    // Update the tracking history
-    this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
+  processCurrentColor=(colorRange, colorNum, context,srcMat)=>{
+    let colorFilteredImage
+    // If colored balls are being used, use cvutils.colorfilter
+    if(!store.usingWhite){
+      colorFilteredImage = cvutils.colorFilter(srcMat, tempMat, colorRange)
+    // If white balls are being used, use cvutils.colorWhite
+    }else{
+      colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
+    }
+    if(!store.showContourOutlines){
+       // Get the ball locations
+      const ballLocations = cvutils.findBalls(colorFilteredImage)
+      // Update the tracking history
+      this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
+    }else{
+      this.state.contourLocations = cvutils.findContours(colorFilteredImage)
+    }
+    
     // If in calibration mode
     if(store.calibrationMode && colorNum === store.colorNum){
       // Initialize final canvas with the mask of the colors within the color ranges
       // This setting is used when calibrating the colors
-      //cv.imshow('hiddenCanvas',colorFilteredImage)
-      let contourImage = cvutils.getContourImage(colorFilteredImage)
-      cv.resize(contourImage, contourImage,  new cv.Size(),store.videoWidth/contourImage.cols,store.videoHeight/contourImage.rows, cv.INTER_LINEAR );
-      cv.imshow('canvasOutput',contourImage)
+      let contourImage= cvutils.getContourImage(colorFilteredImage)
+      cv.imshow('hiddenCanvas',contourImage)
       contourImage.delete()
     }
     // Get the color values for the object being tracked (white if usingWhite)
-    colorFilteredImage.delete()
+    let color = cvutils.calculateCurrentHSV(colorRange)
+    this.drawEffects(context,colorNum,color)
   }
-  drawEffects=(colorNum,color)=>{
-    const context = store.canvasOutput.getContext("2d")
+  drawEffects=(context,colorNum,color)=>{
     if(store.showBrushColor){
       color = 'rgb(' + cvutils.hsvToRgb(store.brushColor, 100,100) + ')'
     }
@@ -151,7 +139,9 @@ class App extends Component {
     if(store.showTrails){
       drawingUtils.drawCircleTrails(context,this.state.positions[colorNum], color)
     }
-    
+    if(store.showContourOutlines){
+      drawingUtils.drawContours(context,this.state.contourLocations, color)
+    }
     // Draw connections
     if(store.showConnections){
       drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness)
@@ -166,40 +156,43 @@ class App extends Component {
       // Update the global stars variable
     }
   }
-  processColors = (srcMat)=>{
-    const context = store.canvasOutput.getContext("2d")
-    let colorFilteredImage
-    store.allColors.forEach((colorRange,colorNum)=>{
-      // If colored balls are being used, use cvutils.colorfilter
-      if(!store.usingWhite){
-        colorFilteredImage = cvutils.colorFilter(srcMat, colorRange)
-      // If white balls are being used, use cvutils.colorWhite
-      }else{
-        colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
-      }
-      //requestAnimationFrame(()=>{
-        this.processCurrentColor(colorFilteredImage, colorRange, colorNum, context)
-      //})
-      let color = cvutils.calculateCurrentHSV(colorRange)
-      this.drawEffects(colorNum,color)
-    })
-  }
-  finalizeDrawing=()=> {
-    const context = store.canvasOutput.getContext("2d")
-    const scaleFactor = store.videoWidth/store.canvasOutput.width
-    if(store.calibrationRect){
-      //Draw color selection rectangle
-      context.strokeStyle = "#ffffff"
-      const rect = store.calibrationRect
-      context.strokeRect(rect[0]*scaleFactor,rect[1]*scaleFactor,(rect[2]-rect[0])*scaleFactor,(rect[3]-rect[1])*scaleFactor)
-    }
-    // Shows text to instruct user
-    if(store.showSelectColorText){
-      drawingUtils.drawSelectColorText(context, store.isMobile, store.usingWhite)
-    }
-    //Trim histories to trail length
-    this.state.srcMat.delete();
+  animate=()=> {
 
+    if(store.canvasOutput){
+      if(store.videoWidth === 0){
+        requestAnimationFrame(this.animate);
+        return
+      }
+      const context = store.hiddenCanvas.getContext("2d")
+      let srcMat = this.handleVideoData(store.hiddenCanvas);
+      
+      // Iterate through each color being tracked
+      srcMat = cvutils.prepareImage(srcMat)
+      store.allColors.forEach((colorRange,colorNum)=>{
+        this.processCurrentColor(colorRange, colorNum, context, srcMat)
+      })
+      // If the user is clicking and draging to select a color
+      const scaleFactor = store.videoWidth/store.hiddenCanvas.width
+      if(store.calibrationRect){
+        //Draw color selection rectangle
+        context.strokeStyle = "#ffffff"
+        const rect = store.calibrationRect
+        context.strokeRect(rect[0]*scaleFactor,rect[1]*scaleFactor,(rect[2]-rect[0])*scaleFactor,(rect[3]-rect[1])*scaleFactor)
+      }
+      // Shows text to instruct user
+      if(store.showSelectColorText){
+        drawingUtils.drawSelectColorText(context, store.isMobile, store.usingWhite)
+      }
+      var destCtx = store.canvasOutput.getContext('2d');
+      destCtx.drawImage(store.hiddenCanvas, 0,0, store.videoWidth, store.videoHeight)
+      //Trim histories to trail length
+      this.state.positions = trackingUtils.trimHistories(this.state.positions, store.trailLength)
+      
+      srcMat.delete();srcMat = null;
+      //Process next frame
+      requestAnimationFrame(this.animate);
+
+    }
   }
 
   selectColor=(i)=>{

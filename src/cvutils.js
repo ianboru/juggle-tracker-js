@@ -11,7 +11,6 @@ function getMatFromCanvas(context, width, height){
     return srcMat
 }
 function prepareImage(dst){
-    cv.cvtColor(dst, dst, cv.COLOR_RGBA2RGB)
     // Blur the temporary image
     if(store.blurAmount > 1){
         let ksize = new cv.Size(store.blurAmount,store.blurAmount);
@@ -22,8 +21,8 @@ function prepareImage(dst){
     cv.cvtColor(dst, dst, cv.COLOR_RGB2HSV)
     return dst
 }
-function colorFilter(src, colorRange){
-    let dst = new cv.Mat();
+
+function colorFilter(src, dst, colorRange){
     // Get values for the color ranges from the trackbars
     let lowerHSV = htmlToOpenCVHSV([colorRange.lh, colorRange.ls, colorRange.lv])
     lowerHSV.push(0)
@@ -92,8 +91,8 @@ function filterOverlappingContours(contourPositions){
     })
     return filteredContourPositions
 }
-function getContourImage(src){
-    const dst = cv.Mat.zeros(src.cols, src.rows, cv.CV_8UC3);
+function findContours(src){
+    const dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
 
     // Maximum number of contours to interpret as objects
     const maxNumContours = 10
@@ -112,11 +111,49 @@ function getContourImage(src){
         //Check if contour is big enough to be a real object
         if(contourArea > store.sizeThreshold && contourPositions.length < maxNumContours){
           // Use circle to get x,y coordinates and radius
-          let color = new cv.Scalar(255,0,0);
-          cv.drawContours(dst, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
+          for (let j = 0;j< contour.rows;j++){
+            if(j%2 == 0){
+                continue
+            }
+            contourPositions.push({
+                'x' : contour.data32S[j*2],
+                'y' : contour.data32S[j*2+1],
+                'r' : contourArea/25000
+            })
+          }
         }
         contour.delete(); 
       }
+    // Cleanup open cv objects
+    contours.delete(); hierarchy.delete();
+    // Return list of contour positions and sizes
+    return contourPositions
+}
+function getContourImage(src){
+    const dst = cv.Mat.zeros( src.rows,src.cols, cv.CV_8UC3);
+
+    // Maximum number of contours to interpret as objects
+    const maxNumContours = 10
+    // Initialize contour finding data
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+    // Find contours - src is a frame filtered for the current color
+    cv.findContours(src, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    let contourPositions = []
+    // Catalogue the contour locations to draw later
+    // Iterate though the largest contours
+    for (let i = 0; i < contours.size(); ++i) {
+    // Find the contour area
+    const contour = contours.get(i)
+    const contourArea = cv.contourArea(contour)
+    //Check if contour is big enough to be a real object
+    if(contourArea > store.sizeThreshold && contourPositions.length < maxNumContours){
+      // Use circle to get x,y coordinates and radius
+      let color = new cv.Scalar(255,0,0);
+      cv.drawContours(dst, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
+    }
+    contour.delete(); 
+    }
     // Cleanup open cv objects
     contours.delete(); hierarchy.delete();
     // Return list of contour positions and sizes
@@ -141,6 +178,9 @@ function findBalls(src){
         if(contourArea > store.sizeThreshold && contourPositions.length < maxNumContours){
           // Use circle to get x,y coordinates and radius
           const circle = cv.minEnclosingCircle(contour)
+          /*const M = cv.moments(contour)
+          const x = M['m10']/M['m00']
+          const cy = M['m01']/M['m00'])*/
           // Push the coordinates of the contour and the radius to the list of objects
           contourPositions.push({
             'x' : circle.center.x,

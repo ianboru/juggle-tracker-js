@@ -34,7 +34,32 @@ function drawCircle(context, x,y,r, color){
     context.strokeStyle = color;
     context.stroke();
   }
-
+function drawContours(context, contourPositions, color){
+  //Draw circle and trail
+  if(contourPositions && contourPositions[0] && contourPositions.length > 1){
+    context.beginPath();
+    context.moveTo(contourPositions[0]['x'], contourPositions[0]['y'])
+    context.strokeStyle = color
+    context.lineWidth = 1;
+    for(let i = 1; i < contourPositions.length; ++i){
+      //Don't draw if x oordinate is -1
+      if(contourPositions[i]){
+        //Rename for convenience
+        const xHistory = contourPositions[i]['x']
+        const yHistory = contourPositions[i]['y']
+        const rHistory = contourPositions[i]['r']
+        //Draw circle and trail
+        const lastX = xHistory
+        const lastY = yHistory
+        const lastR = rHistory
+        //drawCircle(context,lastX, lastY, lastR*1, lastColor)
+        context.lineTo(lastX, lastY)
+        context.moveTo(lastX, lastY)
+      }
+    }
+    context.stroke();
+  }
+}
 function drawCircleTrails(context, contourPositions, color){
   //Draw circle and trail
   if(contourPositions){
@@ -278,5 +303,6 @@ export default {
     drawAllConnections,
     drawStars,
     drawSelectColorText,
-    fitVidToCanvas
+    fitVidToCanvas,
+    drawContours
 }
