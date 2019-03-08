@@ -92,7 +92,7 @@ function filterOverlappingContours(contourPositions){
     return filteredContourPositions
 }
 function getContourImage(src){
-    const dst = cv.Mat.zeros(src.cols, src.rows, cv.CV_8UC3);
+    const dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
 
     // Maximum number of contours to interpret as objects
     const maxNumContours = 10
