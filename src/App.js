@@ -13,16 +13,25 @@ import { observer } from "mobx-react"
 import store from "./store"
 import InteractiveCanvas from "./interactiveCanvas"
 //@observer
-const calibrateHelp = `Calibration Process:\n
-1: Click 'Calibration View' to see what the computer sees.
-2: Set 'Hue Center' slider to approximate color of prop
-3: Adjust the sliders so that the props are white and the background is black.
-4: Make the 'saturation' and 'value' ranges as large as possible.
+const calibrateHelp = `Calibration Process\n
+  == Basic Calibration ==
+  1: (optional) Click and drag a box over the prop 
+  2: Adjust Hue sliders to capture the range of colors on your prop
+  3: Raise Saturation minimum to cut out less colored background objects
+     Lower Saturation minimum to include less colored parts of prop
+  4: Raise Value minimum to cut out darker background objects
+  4: Lower Value minimum to include darker parts of the props
+  5: Add another color and repeat if your props are multiple colors 
 
-Tips:\n
-1: Use bright balls that are distinct colors from background and clothes.
-2: Turn on all the lights.
-3: Don't point the camera at the lights.
+  == Advanced Calibration ==
+  1: Click "Advanced Calibaion"
+  2: Click "Calibration View", this shows what is being detected for the current color
+  3: Repeat == Basic Calibration ==
+  
+  == Tips== 
+  1: Use bright balls that are distinct colors from background and clothes.
+  2: Turn on all the lights.
+  3: Light yourself and props from the front not the back
 `
 let tempMat = new cv.Mat();
 @observer
@@ -91,14 +100,14 @@ class App extends Component {
     cv.imshow('hiddenCanvas',srcMat)
     return srcMat
   }
-  processCurrentColor=(colorRange, colorNum, context,srcMat)=>{
+  processCurrentColor=(colorRange=null, colorNum=null, context,srcMat)=>{
     let colorFilteredImage
     // If colored balls are being used, use cvutils.colorfilter
     if(!store.usingWhite){
       colorFilteredImage = cvutils.colorFilter(srcMat, tempMat, colorRange)
     // If white balls are being used, use cvutils.colorWhite
     }else{
-      colorFilteredImage = cvutils.colorWhite(srcMat, colorRange)
+      colorFilteredImage = cvutils.colorWhite(srcMat, tempMat)
     }
     if(!store.showContourOutlines){
        // Get the ball locations
@@ -113,7 +122,7 @@ class App extends Component {
     if(store.calibrationMode && colorNum === store.colorNum){
       // Initialize final canvas with the mask of the colors within the color ranges
       // This setting is used when calibrating the colors
-      let contourImage= cvutils.getContourImage(colorFilteredImage)
+      let contourImage= cvutils.getContourImage(colorFilteredImage, colorRange)
       cv.imshow('hiddenCanvas',contourImage)
       contourImage.delete()
     }
@@ -157,7 +166,6 @@ class App extends Component {
     }
   }
   animate=()=> {
-
     if(store.canvasOutput){
       if(store.videoWidth === 0){
         requestAnimationFrame(this.animate);
@@ -168,9 +176,13 @@ class App extends Component {
       
       // Iterate through each color being tracked
       srcMat = cvutils.prepareImage(srcMat)
-      store.allColors.forEach((colorRange,colorNum)=>{
-        this.processCurrentColor(colorRange, colorNum, context, srcMat)
-      })
+      if(!store.usingWhite){
+        store.allColors.forEach((colorRange,colorNum)=>{
+          this.processCurrentColor(colorRange, colorNum, context, srcMat)
+        })
+      }else{
+        this.processCurrentColor(null, null, context, srcMat)
+      }
       // If the user is clicking and draging to select a color
       const scaleFactor = store.videoWidth/store.hiddenCanvas.width
       if(store.calibrationRect){
@@ -187,7 +199,6 @@ class App extends Component {
       destCtx.drawImage(store.hiddenCanvas, 0,0, store.videoWidth, store.videoHeight)
       //Trim histories to trail length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, store.trailLength)
-      
       srcMat.delete();srcMat = null;
       //Process next frame
       requestAnimationFrame(this.animate);
@@ -292,9 +303,9 @@ class App extends Component {
       !this.state.isFacebookApp ?
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
-          <div style={{marginBottom : '10px', 'fontSize' : '10px'}}>Version 0.5 Beta</div>
+          <div style={{marginBottom : '10px', 'fontSize' : '10px'}}>Version 1.0</div>
           <div style={{marginBottom : '10px', 'fontSize' : '10px'}}>Send feedback to @arflowarts on Instagram</div>
-          <MdHelp style={{'fontSize':'15pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
+          <MdHelp style={{'fontSize':'18pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
           <br/>
           <button onClick={()=>{store.toggleShowControls("color")}} className={buttonClass(store.showColorControls)}>Color Calibration</button>
           <button onClick={()=>{store.toggleShowControls("animation")}} className={buttonClass(store.showAnimationControls)}>Animations</button>

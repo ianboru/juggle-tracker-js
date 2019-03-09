@@ -43,12 +43,14 @@ function colorFilter(src, dst, colorRange){
     return dst
 }
 
-function colorWhite(src, colorRange){
+function colorWhite(src,dst){
     cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-    let ksize = new cv.Size(store.blurAmount,store.blurAmount);
-    let anchor = new cv.Point(-1, -1);
-    cv.blur(src, src, ksize, anchor, cv.BORDER_DEFAULT);
-    let dst = new cv.Mat();
+    if(store.blurAmount > 0){
+      let ksize = new cv.Size(store.blurAmount,store.blurAmount);
+        let anchor = new cv.Point(-1, -1);
+        cv.blur(src, src, ksize, anchor, cv.BORDER_DEFAULT);  
+    }
+    
     // You can try more different parameters
     cv.threshold(src, dst, Math.round(360*store.brightnessThreshold/100), 255, cv.THRESH_BINARY);
     // Return the masked image (objects are white, background is black)
@@ -129,7 +131,7 @@ function findContours(src){
     // Return list of contour positions and sizes
     return contourPositions
 }
-function getContourImage(src){
+function getContourImage(src,colorRange){
     const dst = cv.Mat.zeros( src.rows,src.cols, cv.CV_8UC3);
 
     // Maximum number of contours to interpret as objects
@@ -149,7 +151,20 @@ function getContourImage(src){
     //Check if contour is big enough to be a real object
     if(contourArea > store.sizeThreshold && contourPositions.length < maxNumContours){
       // Use circle to get x,y coordinates and radius
-      let color = new cv.Scalar(255,0,0);
+      let color 
+      if(colorRange){
+        const colorString = hsvToRgb(
+            mean(colorRange['lh'],colorRange['hh']), 100, 100
+        )
+        const rgbArray = colorString.split(',')
+        color = new cv.Scalar(
+            parseInt(rgbArray[0]),
+            parseInt(rgbArray[1]),
+            parseInt(rgbArray[2])
+        )
+      }else{
+        color = new cv.Scalar(255,0,0);
+      } 
       cv.drawContours(dst, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
     }
     contour.delete(); 
