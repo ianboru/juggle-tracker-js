@@ -111,7 +111,7 @@ function findContours(src){
         const contour = contours.get(i)
         const contourArea = cv.contourArea(contour)
         //Check if contour is big enough to be a real object
-        if(contourArea > store.sizeThreshold && contourPositions.length < maxNumContours){
+        if(contourArea > store.sizeThreshold/imageScale && contourPositions.length < maxNumContours){
           // Use circle to get x,y coordinates and radius
           for (let j = 0;j< contour.rows;j++){
             if(j%2 == 0){
@@ -149,7 +149,7 @@ function getContourImage(src,colorRange){
     const contour = contours.get(i)
     const contourArea = cv.contourArea(contour)
     //Check if contour is big enough to be a real object
-    if(contourArea > store.sizeThreshold && contourPositions.length < maxNumContours){
+    if(contourArea > store.sizeThreshold/imageScale && contourPositions.length < maxNumContours){
       // Use circle to get x,y coordinates and radius
       let color 
       if(colorRange){
@@ -190,7 +190,7 @@ function findBalls(src){
         const contour = contours.get(i)
         const contourArea = cv.contourArea(contour)
         //Check if contour is big enough to be a real object
-        if(contourArea > store.sizeThreshold && contourPositions.length < maxNumContours){
+        if(contourArea > store.sizeThreshold/imageScale && contourPositions.length < maxNumContours){
           // Use circle to get x,y coordinates and radius
           const circle = cv.minEnclosingCircle(contour)
           /*const M = cv.moments(contour)
