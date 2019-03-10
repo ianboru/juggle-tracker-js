@@ -12,7 +12,6 @@ import { MdHelp } from "react-icons/md"
 import { observer } from "mobx-react"
 import store from "./store"
 import InteractiveCanvas from "./interactiveCanvas"
-//@observer
 const calibrateHelp = `Calibration Process\n
   == Basic Calibration ==
   1: (optional) Click and drag a box over the prop 
@@ -98,6 +97,8 @@ class App extends Component {
     }
     // Show the srcMat to the user
     cv.imshow('hiddenCanvas',srcMat)
+    srcMat = this.resize(srcMat)
+
     return srcMat
   }
   processCurrentColor=(colorRange=null, colorNum=null, context,srcMat)=>{
@@ -165,6 +166,12 @@ class App extends Component {
       // Update the global stars variable
     }
   }
+  resize=(src)=> {
+    let dsize = new cv.Size(src.cols/cvutils.imageScale,src.rows/cvutils.imageScale);
+    // You can try more different parameters
+    cv.resize(src, src, dsize, 0, 0, cv.INTER_LINEAR);
+    return src
+  }
   animate=()=> {
     if(store.canvasOutput){
       if(store.videoWidth === 0){
@@ -173,7 +180,6 @@ class App extends Component {
       }
       const context = store.hiddenCanvas.getContext("2d")
       let srcMat = this.handleVideoData(store.hiddenCanvas);
-      
       // Iterate through each color being tracked
       srcMat = cvutils.prepareImage(srcMat)
       if(!store.usingWhite){
@@ -199,7 +205,8 @@ class App extends Component {
       destCtx.drawImage(store.hiddenCanvas, 0,0, store.videoWidth, store.videoHeight)
       //Trim histories to trail length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, store.trailLength)
-      srcMat.delete();srcMat = null;
+      //srcMat.delete();srcMat = null;
+      srcMat.delete();srcMat = null
       //Process next frame
       requestAnimationFrame(this.animate);
 

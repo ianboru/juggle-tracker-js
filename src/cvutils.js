@@ -438,6 +438,7 @@ function hsvToRgb( H,  S,  V) {
             //console.log('val is  '+hexR.substring(0,2))
             return ''+ hexR+''+hexG+''+hexB
         }
+const imageScale = 5
 
 export default {
     RGBtoHSV,
@@ -454,5 +455,6 @@ export default {
     calculateRelativeCoord,
     getMatFromCanvas,
     getContourImage,
-    prepareImage
+    prepareImage,
+    imageScale
 }

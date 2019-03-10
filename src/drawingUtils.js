@@ -1,6 +1,7 @@
 import cvutils from './cvutils';
 import drawingStore from './drawingStore'
 import store from './store'
+
 function addOpacityToColor(color,opacity){
   if(color.includes("rgb(")){
     color = color.replace("rgb","rgba")

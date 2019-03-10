@@ -1,3 +1,5 @@
+import cvutils from './cvutils';
+
 function updateBallHistories(contourPositions, colorNum, allPositions){
   // Maximum number of contours that will be interpreted as objects
   const maxNumContours = 12
@@ -21,9 +23,10 @@ function updateBallHistories(contourPositions, colorNum, allPositions){
       }
       ++numContoursOverThreshold
       //Add latest coordinates to history
-      allPositions[colorNum][i]['x'].push(contourPositions[i].x)
-      allPositions[colorNum][i]['y'].push(contourPositions[i].y)
-      allPositions[colorNum][i]['r'].push(contourPositions[i].r)
+      console.log(contourPositions[i].x, contourPositions[i].x*cvutils.imageScale)
+      allPositions[colorNum][i]['x'].push(contourPositions[i].x*cvutils.imageScale)
+      allPositions[colorNum][i]['y'].push(contourPositions[i].y*cvutils.imageScale)
+      allPositions[colorNum][i]['r'].push(contourPositions[i].r*cvutils.imageScale)
     }
     allPositions[colorNum]["currentNumContours"] = numContoursOverThreshold
   }
