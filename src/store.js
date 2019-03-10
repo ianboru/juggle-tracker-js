@@ -40,6 +40,8 @@ class Store {
   @observable starLife            = .5
   @observable starSize            = .5
   @observable trailLength         = 1
+  @observable opacity             = 1
+  @observable trailThickness      = 1
   @observable discoIncrement      = 12
   @observable showColorControls   = true
   @observable showAnimationControls = false
@@ -157,6 +159,12 @@ class Store {
   }
   @action setTrailLength = (trailLength) => {
     this.trailLength = trailLength
+  }
+  @action setTrailThickness = (trailThickness) => {
+    this.trailThickness = trailThickness
+  }
+  @action setOpacity = (opacity) => {
+    this.opacity = opacity
   }
   @action setStarLife = (starLife) => {
     this.starLife = starLife

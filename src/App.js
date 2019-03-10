@@ -146,14 +146,14 @@ class App extends Component {
     }
     //Draw trails
     if(store.showTrails){
-      drawingUtils.drawCircleTrails(context,this.state.positions[colorNum], color)
+      drawingUtils.drawCircleTrails(context,this.state.positions[colorNum], color, store.trailThickness, store.opacity)
     }
     if(store.showContourOutlines){
       drawingUtils.drawContours(context,this.state.contourLocations, color)
     }
     // Draw connections
     if(store.showConnections){
-      drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness)
+      drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness, store.opacity)
     }
     if(store.showAllConnections){
       drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)

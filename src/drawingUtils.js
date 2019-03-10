@@ -25,15 +25,6 @@ function drawSelectColorText(context, isMobile, usingWhite){
   context.fillText(text,40, context.canvas.clientHeight - 40)
 }
 
-function drawCircle(context, x,y,r, color){
-    //Draw circle for coordinate and color
-    context.beginPath();
-    context.arc(x, y, r, 0, 2 * Math.PI, false);
-    context.fillStyle = color;
-    context.fill();
-    context.strokeStyle = color;
-    context.stroke();
-  }
 function drawContours(context, contourPositions, color){
   //Draw circle and trail
   if(contourPositions && contourPositions[0] && contourPositions.length > 1){
@@ -60,7 +51,7 @@ function drawContours(context, contourPositions, color){
     context.stroke();
   }
 }
-function drawCircleTrails(context, contourPositions, color){
+function drawCircleTrails(context, contourPositions, color, trailThickness, trailOpacity){
   //Draw circle and trail
   if(contourPositions){
     for(let i = 0; i < contourPositions.length; ++i){
@@ -83,15 +74,16 @@ function drawCircleTrails(context, contourPositions, color){
             const lastX = xHistory[xHistory.length - 1 - t]
             const lastY = yHistory[yHistory.length - 1 - t]
             const lastR = rHistory[rHistory.length - 1 - t]
-            const lastColor = addOpacityToColor(color, 1 - t/(currentWindowSize*2))
-            drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), lastColor)
+            const lastColor = addOpacityToColor(color, trailOpacity*(1 - t/(currentWindowSize*2)))
+            //drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), lastColor)
+            drawCircle(context,lastX, lastY, 2*trailThickness*lastR*(1-(t/currentWindowSize)), lastColor, trailOpacity)
           }
         }
       }
     }
   }
 }
-function drawConnections(context,positions, color, thickness){
+function drawConnections(context,positions, color, thickness, opacity){
   if(!positions){
     return
   }
@@ -109,10 +101,13 @@ function drawConnections(context,positions, color, thickness){
 
           const nextBallX = positions[j]['x'].slice(-1).pop()
           const nextBallY = positions[j]['y'].slice(-1).pop()
+
+          const lastColor = addOpacityToColor(color, opacity)
+          
           context.beginPath();
           context.moveTo(curBallX, curBallY)
           context.lineTo(nextBallX, nextBallY)
-          context.strokeStyle = color
+          context.strokeStyle = lastColor
           context.lineWidth = thickness;
           context.stroke();
         }
@@ -263,6 +258,14 @@ function drawStar(context,x, y, r, color, opacityBySize) {
   context.closePath();
   context.fill();
   context.restore();
+}
+function drawCircle(context, x,y,r, color, alpha){
+    context.beginPath();
+    context.arc(x, y, r, 0, 2 * Math.PI, false);
+    context.fillStyle = color;
+    context.fill();
+    context.strokeStyle = color;
+    context.stroke();
 }
 function fitVidToCanvas(canvas, imageObj){
   var imageAspectRatio = imageObj.videoWidth / imageObj.videoHeight;
