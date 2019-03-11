@@ -163,7 +163,7 @@ function getContourImage(src,colorRange){
             parseInt(rgbArray[2])
         )
       }else{
-        color = new cv.Scalar(255,0,0);
+        color = new cv.Scalar(255,255,255);
       } 
       cv.drawContours(dst, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
     }
@@ -438,7 +438,7 @@ function hsvToRgb( H,  S,  V) {
             //console.log('val is  '+hexR.substring(0,2))
             return ''+ hexR+''+hexG+''+hexB
         }
-const imageScale = 5
+const imageScale = 1
 
 export default {
     RGBtoHSV,

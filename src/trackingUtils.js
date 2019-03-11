@@ -23,7 +23,6 @@ function updateBallHistories(contourPositions, colorNum, allPositions){
       }
       ++numContoursOverThreshold
       //Add latest coordinates to history
-      console.log(contourPositions[i].x, contourPositions[i].x*cvutils.imageScale)
       allPositions[colorNum][i]['x'].push(contourPositions[i].x*cvutils.imageScale)
       allPositions[colorNum][i]['y'].push(contourPositions[i].y*cvutils.imageScale)
       allPositions[colorNum][i]['r'].push(contourPositions[i].r*cvutils.imageScale)

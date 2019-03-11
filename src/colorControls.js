@@ -24,7 +24,9 @@ const handle = (props) => {
     </Tooltip>
   );
 };
-
+const buttonClass = (shown)=>{
+  return shown ? "active small-button" : "inactive small-button"
+}
 @observer
 class ColorControls extends Component {
 

@@ -29,32 +29,40 @@ class Camera extends Component {
       // Break if the camera is already streaming
       if (this.state.streaming) return;
       // Get video
-      navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user'}, audio: false})
-      .then(function(s) {
-        console.log("got user media")
-        //Set stream to stop later
-        that.state.stream = s
-        //Set stream to video tag
-        that.video.srcObject = s;
-        that.video.play();
-        store.setLiveVideo(that.video)
-      })
-      .catch(function(err) {
-        console.log("An error occured! " + err);
-      });
-      this.video.addEventListener("canplay", function(ev){
-        if (!store.streaming) {
-          let videoWidth = that.video.videoWidth;
-          let videoHeight = that.video.videoHeight;
-          that.video.setAttribute("width", videoWidth);
-          that.video.setAttribute("height", videoHeight);
-          that.state.streaming = true 
-          store.setVideoDimensions(that.video.videoWidth, that.video.videoHeight)
-          that.state.videoWidth = videoWidth
-          that.state.videoHeight = videoHeight
-        }
+      try{
+        navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user'}, audio: false})
+        .then(function(s) {
+          console.log("got user media")
+          //Set stream to stop later
+          that.state.stream = s
+          //Set stream to video tag
+          that.video.srcObject = s;
+          that.video.play();
+          store.setLiveVideo(that.video)
+        })
+        .catch(function(err) {
+          console.log("An error occured! " + err);
+          store.setVideoDimensions(640, 480)
+          that.props.startVideoProcessing();
+        });
+        this.video.addEventListener("canplay", function(ev){
+          if (!store.streaming) {
+            let videoWidth = that.video.videoWidth;
+            let videoHeight = that.video.videoHeight;
+            that.video.setAttribute("width", videoWidth);
+            that.video.setAttribute("height", videoHeight);
+            that.state.streaming = true 
+            store.setVideoDimensions(that.video.videoWidth, that.video.videoHeight)
+            that.state.videoWidth = videoWidth
+            that.state.videoHeight = videoHeight
+          }
+          that.props.startVideoProcessing();
+        }, false);
+      }catch(error){
+        console.log("error 2", error)
+        store.setVideoDimensions(640, 480)
         that.props.startVideoProcessing();
-      }, false);
+      }
   }
   stopCamera=()=> {
     if (!this.state.streaming) return;

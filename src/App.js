@@ -82,6 +82,9 @@ class App extends Component {
       drawingUtils.fitVidToCanvas(canvas, store.uploadedVideo)
     }else{
       // Use the webcam image
+      if(!store.liveVideo){
+        return null
+      }
       context.drawImage(store.liveVideo, 0, 0, store.videoWidth, store.videoHeight);
     }
 
@@ -97,18 +100,20 @@ class App extends Component {
     }
     // Show the srcMat to the user
     cv.imshow('hiddenCanvas',srcMat)
-    srcMat = this.resize(srcMat)
 
     return srcMat
   }
   processCurrentColor=(colorRange=null, colorNum=null, context,srcMat)=>{
     let colorFilteredImage
+    let color
     // If colored balls are being used, use cvutils.colorfilter
     if(!store.usingWhite){
       colorFilteredImage = cvutils.colorFilter(srcMat, tempMat, colorRange)
+      color = cvutils.calculateCurrentHSV(colorRange)
     // If white balls are being used, use cvutils.colorWhite
     }else{
       colorFilteredImage = cvutils.colorWhite(srcMat, tempMat)
+      color = "hsl(175,0%,100%)"
     }
     if(!store.showContourOutlines){
        // Get the ball locations
@@ -120,7 +125,7 @@ class App extends Component {
     }
     
     // If in calibration mode
-    if(store.calibrationMode && colorNum === store.colorNum){
+    if(store.calibrationMode && (colorNum === store.colorNum || store.usingWhite)){
       // Initialize final canvas with the mask of the colors within the color ranges
       // This setting is used when calibrating the colors
       let contourImage= cvutils.getContourImage(colorFilteredImage, colorRange)
@@ -128,7 +133,7 @@ class App extends Component {
       contourImage.delete()
     }
     // Get the color values for the object being tracked (white if usingWhite)
-    let color = cvutils.calculateCurrentHSV(colorRange)
+    
     this.drawEffects(context,colorNum,color)
   }
   drawEffects=(context,colorNum,color)=>{
@@ -166,22 +171,33 @@ class App extends Component {
       // Update the global stars variable
     }
   }
-  resize=(src)=> {
+  downSize=(src)=> {
     let dsize = new cv.Size(src.cols/cvutils.imageScale,src.rows/cvutils.imageScale);
+    // You can try more different parameters
+    cv.resize(src, src, dsize, 0, 0, cv.INTER_LINEAR);
+    return src
+  }
+  upSize=(src)=> {
+    let dsize = new cv.Size(src.cols*cvutils.imageScale,src.rows*cvutils.imageScale);
     // You can try more different parameters
     cv.resize(src, src, dsize, 0, 0, cv.INTER_LINEAR);
     return src
   }
   animate=()=> {
     if(store.canvasOutput){
-      if(store.videoWidth === 0){
+      if(store.videoWidth === 0 || store.videoWidth == null && !store.uploadedVideo){
         requestAnimationFrame(this.animate);
         return
       }
       const context = store.hiddenCanvas.getContext("2d")
       let srcMat = this.handleVideoData(store.hiddenCanvas);
+      if(!srcMat){
+        requestAnimationFrame(this.animate);
+        return
+      }
       // Iterate through each color being tracked
       srcMat = cvutils.prepareImage(srcMat)
+
       if(!store.usingWhite){
         store.allColors.forEach((colorRange,colorNum)=>{
           this.processCurrentColor(colorRange, colorNum, context, srcMat)
@@ -289,7 +305,8 @@ class App extends Component {
     const colorControls = store.showColorControls ? 
       <div className="overlay-controls">
           <h3>Color Controls</h3>
-          <button className={buttonClass(store.usingWhite)} id="usingWhite" onClick={store.toggleUsingWhite}>Glowing Props</button>
+          <button className={buttonClass(store.calibrationMode)} id="showRaw" onClick={store.toggleCalibrationMode}>Calibration View</button>
+          <button className={buttonClass(store.usingWhite)} id="usingWhite" onClick={store.toggleUsingWhite}>Bright Props</button>
           {addButton}
           <ColorControls usingWhite = {store.usingWhite} />
       </div> : null

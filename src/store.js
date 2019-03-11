@@ -111,9 +111,14 @@ class Store {
     this.calibrationMode = !this.calibrationMode
     this.showConnections     = false
     this.showAllConnections  = false
-    this.showTrails          = false
+    if(this.calibrationMode){
+      this.showTrails          = false
+    }else{
+      this.showTrails          = true
+    }
     this.showStars           = false
     this.showBrushColor      = false
+
   }
   @action toggleUsingWhite = () => {
     this.usingWhite = !this.usingWhite
