@@ -77,7 +77,7 @@ function drawCircleTrails(context, contourPositions, color, trailThickness, trai
             const lastR = rHistory[rHistory.length - 1 - t]
             const lastColor = addOpacityToColor(color, trailOpacity*(1 - t/(currentWindowSize*2)))
             //drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), lastColor)
-            drawCircle(context,lastX, lastY, 2*trailThickness*lastR*(1-(t/currentWindowSize)), lastColor, trailOpacity)
+            drawCircle(context,lastX, lastY, trailThickness*lastR*(1-(t/currentWindowSize)), lastColor, trailOpacity)
           }
         }
       }
@@ -136,7 +136,9 @@ function drawAllConnections(context,allPositions, allColors){
     for(let j = 0; j < allPositions[i].length; ++j){
       if(allPositions[i][j].x.slice(-1).pop() !== -1){
         flattenedPositions.push(allPositions[i][j])
-        flattenedPositionColors.push(cvutils.calculateCurrentHSV(allColors[i]))
+        const color = addOpacityToColor(cvutils.calculateCurrentHSV(allColors[i]), store.opacity)
+        flattenedPositionColors.push(color)
+
       }
     }
   }
@@ -167,7 +169,7 @@ function drawStars(context,positions, color){
   let newStarsSize = []
   let newStarsColor = []
   // If data exists for this object, proceed
-  let initialOpacity = .75
+  let initialOpacity = .75*store.opacity
 
   if(positions){
 

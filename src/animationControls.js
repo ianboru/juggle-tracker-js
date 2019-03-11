@@ -45,7 +45,6 @@ class AnimationControls extends Component {
 		const connectionControls = store.showConnections ? 
 			<div>
 			  <div className="slider-label" >Line Thickness</div><Slider min={0} max={25} step={1} defaultValue={store.connectionThickness}  handle={handle} onChange={store.setConnectionThickness}/>
-			  <div className="slider-label" >Opacity</div><Slider min={0} max={1} step={.01} defaultValue={store.opacity}  handle={handle} onChange={store.setOpacity}/>
 			</div> : null
 		
 		const starControls = store.showStars ?
@@ -58,8 +57,7 @@ class AnimationControls extends Component {
 		const trailControls = store.showTrails ? 
 			<div>
 				<div className="slider-label" >Trail Length</div><Slider min={0} max={50} step={1} defaultValue={store.trailLength}  handle={handle} onChange={store.setTrailLength}/>
-				<div className="slider-label" >Trail Thickness</div><Slider min={0} max={1} step={.01} defaultValue={store.trailThickness}  handle={handle} onChange={store.setTrailThickness}/>
-				<div className="slider-label" >Opacity</div><Slider min={0} max={1} step={.01} defaultValue={store.opacity}  handle={handle} onChange={store.setOpacity}/>
+				<div className="slider-label" >Trail Thickness</div><Slider min={0} max={2} step={.01} defaultValue={store.trailThickness}  handle={handle} onChange={store.setTrailThickness}/>
 			</div> : null
 
 		const rainbowControls = store.discoMode ? 
@@ -81,11 +79,13 @@ class AnimationControls extends Component {
 					<img title="rainbow" onClick={store.toggleDiscoMode} src={store.discoMode ? rainbowActive : rainbowInactive}/>
 					<img title="brush color" onClick={store.toggleShowBrushColor} src={store.showBrushColor ? brushActive : brushInactive}/>
 				</div>
+				<div className="slider-label" >Animation Opacity</div><Slider min={0} max={1} step={.01} defaultValue={store.opacity}  handle={handle} onChange={store.setOpacity}/>
 				{brushColorControls}
 				{connectionControls}
 				{trailControls}
 				{starControls}
 				{rainbowControls}
+
 			</div>
 		)
 	}

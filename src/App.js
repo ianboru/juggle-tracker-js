@@ -100,7 +100,7 @@ class App extends Component {
     }
     // Show the srcMat to the user
     cv.imshow('hiddenCanvas',srcMat)
-
+    srcMat = cvutils.downSize(srcMat)
     return srcMat
   }
   processCurrentColor=(colorRange=null, colorNum=null, context,srcMat)=>{
@@ -129,7 +129,16 @@ class App extends Component {
       // Initialize final canvas with the mask of the colors within the color ranges
       // This setting is used when calibrating the colors
       let contourImage= cvutils.getContourImage(colorFilteredImage, colorRange)
-      cv.imshow('hiddenCanvas',contourImage)
+      let upSizedContours 
+      if(store.imageScale != 1){
+        upSizedContours = cvutils.upSize(contourImage.clone())
+      }
+      if(upSizedContours){
+        cv.imshow('hiddenCanvas',upSizedContours)
+        upSizedContours.delete()
+      }else{
+        cv.imshow('hiddenCanvas',contourImage)
+      }
       contourImage.delete()
     }
     // Get the color values for the object being tracked (white if usingWhite)
@@ -170,18 +179,6 @@ class App extends Component {
       drawingUtils.drawStars(context, this.state.positions[colorNum],color)
       // Update the global stars variable
     }
-  }
-  downSize=(src)=> {
-    let dsize = new cv.Size(src.cols/cvutils.imageScale,src.rows/cvutils.imageScale);
-    // You can try more different parameters
-    cv.resize(src, src, dsize, 0, 0, cv.INTER_LINEAR);
-    return src
-  }
-  upSize=(src)=> {
-    let dsize = new cv.Size(src.cols*cvutils.imageScale,src.rows*cvutils.imageScale);
-    // You can try more different parameters
-    cv.resize(src, src, dsize, 0, 0, cv.INTER_LINEAR);
-    return src
   }
   animate=()=> {
     if(store.canvasOutput){

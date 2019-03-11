@@ -1,4 +1,4 @@
-import cvutils from './cvutils';
+import store from './store';
 
 function updateBallHistories(contourPositions, colorNum, allPositions){
   // Maximum number of contours that will be interpreted as objects
@@ -23,9 +23,9 @@ function updateBallHistories(contourPositions, colorNum, allPositions){
       }
       ++numContoursOverThreshold
       //Add latest coordinates to history
-      allPositions[colorNum][i]['x'].push(contourPositions[i].x*cvutils.imageScale)
-      allPositions[colorNum][i]['y'].push(contourPositions[i].y*cvutils.imageScale)
-      allPositions[colorNum][i]['r'].push(contourPositions[i].r*cvutils.imageScale)
+      allPositions[colorNum][i]['x'].push(contourPositions[i].x*store.imageScale)
+      allPositions[colorNum][i]['y'].push(contourPositions[i].y*store.imageScale)
+      allPositions[colorNum][i]['r'].push(contourPositions[i].r*store.imageScale)
     }
     allPositions[colorNum]["currentNumContours"] = numContoursOverThreshold
   }

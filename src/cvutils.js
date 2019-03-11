@@ -111,7 +111,7 @@ function findContours(src){
         const contour = contours.get(i)
         const contourArea = cv.contourArea(contour)
         //Check if contour is big enough to be a real object
-        if(contourArea > store.sizeThreshold/imageScale && contourPositions.length < maxNumContours){
+        if(contourArea > store.sizeThreshold/store.imageScale && contourPositions.length < maxNumContours){
           // Use circle to get x,y coordinates and radius
           for (let j = 0;j< contour.rows;j++){
             if(j%2 == 0){
@@ -149,7 +149,7 @@ function getContourImage(src,colorRange){
     const contour = contours.get(i)
     const contourArea = cv.contourArea(contour)
     //Check if contour is big enough to be a real object
-    if(contourArea > store.sizeThreshold/imageScale && contourPositions.length < maxNumContours){
+    if(contourArea > store.sizeThreshold/store.imageScale && contourPositions.length < maxNumContours){
       // Use circle to get x,y coordinates and radius
       let color 
       if(colorRange){
@@ -190,7 +190,7 @@ function findBalls(src){
         const contour = contours.get(i)
         const contourArea = cv.contourArea(contour)
         //Check if contour is big enough to be a real object
-        if(contourArea > store.sizeThreshold/imageScale && contourPositions.length < maxNumContours){
+        if(contourArea > store.sizeThreshold/store.imageScale && contourPositions.length < maxNumContours){
           // Use circle to get x,y coordinates and radius
           const circle = cv.minEnclosingCircle(contour)
           /*const M = cv.moments(contour)
@@ -438,8 +438,24 @@ function hsvToRgb( H,  S,  V) {
             //console.log('val is  '+hexR.substring(0,2))
             return ''+ hexR+''+hexG+''+hexB
         }
-const imageScale = 1
-
+function downSize(src){
+    if(store.imageScale == 1){
+      return src
+    }
+    let dsize = new cv.Size(src.cols/store.imageScale,src.rows/store.imageScale);
+    // You can try more different parameters
+    cv.resize(src, src, dsize, 0, 0, cv.INTER_LINEAR);
+    return src
+  }
+function upSize(src){
+    if(store.imageScale == 1){
+      return src
+    }
+    let dsize = new cv.Size(src.cols*store.imageScale,src.rows*store.imageScale);
+    // You can try more different parameters
+    cv.resize(src, src, dsize, 0, 0, cv.INTER_LINEAR);
+    return src
+  }
 export default {
     RGBtoHSV,
     hsvToRgb,
@@ -455,6 +471,7 @@ export default {
     calculateRelativeCoord,
     getMatFromCanvas,
     getContourImage,
-    prepareImage,
-    imageScale
+    downSize,
+    upSize,
+    prepareImage
 }
