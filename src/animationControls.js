@@ -57,7 +57,7 @@ class AnimationControls extends Component {
 		const trailControls = store.showTrails ? 
 			<div>
 				<div className="slider-label" >Trail Length</div><Slider min={0} max={50} step={1} defaultValue={store.trailLength}  handle={handle} onChange={store.setTrailLength}/>
-				<div className="slider-label" >Trail Thickness</div><Slider min={0} max={2} step={.01} defaultValue={store.trailThickness}  handle={handle} onChange={store.setTrailThickness}/>
+				<div className="slider-label" >Trail Thickness</div><Slider min={0} max={3} step={.01} defaultValue={store.trailThickness}  handle={handle} onChange={store.setTrailThickness}/>
 			</div> : null
 
 		const rainbowControls = store.discoMode ? 

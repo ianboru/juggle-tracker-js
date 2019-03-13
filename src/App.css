@@ -71,7 +71,7 @@ canvas{
 }
 @media screen and (max-width: 992px) {
   .overlay-controls{
-    width : 300px;
+    width : 340px;
   }
   canvas,.video-container{
     width: 640px;

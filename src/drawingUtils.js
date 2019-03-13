@@ -52,9 +52,10 @@ function drawContours(context, contourPositions, color){
     context.stroke();
   }
 }
-function drawCircleTrails(context, contourPositions, color, trailThickness, trailOpacity){
+function drawCircleTrails(context, contourPositions, color){
   //Draw circle and trail
-  if(contourPositions){
+
+  if(contourPositions){    
     for(let i = 0; i < contourPositions.length; ++i){
       //Don't draw if x oordinate is -1
       if(contourPositions[i] && contourPositions[i]['x'] !== -1 ){
@@ -75,9 +76,9 @@ function drawCircleTrails(context, contourPositions, color, trailThickness, trai
             const lastX = xHistory[xHistory.length - 1 - t]
             const lastY = yHistory[yHistory.length - 1 - t]
             const lastR = rHistory[rHistory.length - 1 - t]
-            const lastColor = addOpacityToColor(color, trailOpacity*(1 - t/(currentWindowSize*2)))
+            const opacity = store.opacity*(1 - t/(currentWindowSize*2))
             //drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), lastColor)
-            drawCircle(context,lastX, lastY, trailThickness*lastR*(1-(t/currentWindowSize)), lastColor, trailOpacity)
+            drawCircle(context,lastX, lastY, store.trailThickness*lastR*(1-(t/currentWindowSize)), color, opacity)
           }
         }
       }
@@ -262,12 +263,25 @@ function drawStar(context,x, y, r, color, opacityBySize) {
   context.fill();
   context.restore();
 }
-function drawCircle(context, x,y,r, color, alpha){
+function drawCircle(context, x,y,r, color, opacity){
     context.beginPath();
+    // Radii of the white glow.
+    const innerRadius = r*.2
+    const outerRadius = r*1.1
+    let editColor = color.replace("hsl(","")
+    editColor = editColor.replace(")","")
+    const splitColor = editColor.split(",")
+
+    var gradient = context.createRadialGradient(x, y, innerRadius, x, y, outerRadius);
+    gradient.addColorStop(0, 'hsla('+ splitColor[0] + ',100%,85%,'+opacity+')');
+    gradient.addColorStop(.50, 'hsla('+ splitColor[0] + ',100%,50%,'+opacity*.9+')');
+    gradient.addColorStop(.75, 'hsla('+ splitColor[0] + ',100%,25%,'+opacity*.8+')');
+    gradient.addColorStop(1, 'hsla('+ splitColor[0] + ',100%,15%,'+opacity*.2+')');
+
     context.arc(x, y, r, 0, 2 * Math.PI, false);
-    context.fillStyle = color;
+    context.fillStyle = gradient;
     context.fill();
-    context.strokeStyle = color;
+    context.strokeStyle = 'hsla('+ splitColor[0] + ',100%,5%,'+opacity*.1+')';
     context.stroke();
 }
 function fitVidToCanvas(canvas, imageObj){
