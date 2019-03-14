@@ -195,8 +195,10 @@ function drawStars(context,positions, color){
           newStarsY.push(curY)
           newStarsDx.push(2*(.5-Math.random())) // With a random velocity
           newStarsDy.push(2*(.5-Math.random()))
-          const size = positions[i]['r'].slice(-1).pop()*Math.random()*store.starSize
-          newStarsSize.push(size) // And a random size
+          let size = positions[i]['r'].slice(-1).pop()*Math.random()*store.starSize
+          // Prevent HUGE stars (stars more than 90px in diameter)
+          if (size>45){ size=45}
+          newStarsSize.push(size)
           newStarsColor.push(color)
           drawStar(context,curX,curY,size,color, initialOpacity)
         }
