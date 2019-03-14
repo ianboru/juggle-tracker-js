@@ -324,7 +324,7 @@ class App extends Component {
       !this.state.isFacebookApp ?
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
-          <div style={{marginBottom : '10px', 'fontSize' : '10px'}}>Version 1.1</div>
+          <div style={{marginBottom : '10px', 'fontSize' : '10px'}}>Version 1.2</div>
           <div style={{marginBottom : '10px', 'fontSize' : '10px'}}>Send feedback to @arflowarts on Instagram</div>
           <MdHelp style={{'fontSize':'18pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
           <br/>
