@@ -76,9 +76,10 @@ function drawCircleTrails(context, contourPositions, color){
             const lastX = xHistory[xHistory.length - 1 - t]
             const lastY = yHistory[yHistory.length - 1 - t]
             const lastR = rHistory[rHistory.length - 1 - t]
-            const opacity = store.opacity*(1 - t/(currentWindowSize*2))
+            const opacity = store.opacity*(1 - t/currentWindowSize)
+            const thickness = store.trailThickness*lastR*(1-(t/currentWindowSize))
             //drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), lastColor)
-            drawCircle(context,lastX, lastY, store.trailThickness*lastR*(1-(t/currentWindowSize)), color, opacity)
+            drawCircle(context,lastX, lastY, thickness, color, opacity)
           }
         }
       }
