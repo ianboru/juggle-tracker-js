@@ -112,7 +112,7 @@ class App extends Component {
       color = cvutils.calculateCurrentHSV(colorRange)
     // If white balls are being used, use cvutils.colorWhite
     }else{
-      colorFilteredImage = cvutils.colorWhite(srcMat, tempMat)
+      colorFilteredImage = cvutils.brightnessFilter(srcMat, tempMat)
       color = "hsl(175,0%,100%)"
     }
     if(!store.showContourOutlines){

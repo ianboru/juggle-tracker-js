@@ -318,6 +318,7 @@ function fitVidToCanvas(canvas, imageObj){
   const context = canvas.getContext("2d")
   context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
 };
+
 export default {
     drawCircleTrails,
     drawConnections,

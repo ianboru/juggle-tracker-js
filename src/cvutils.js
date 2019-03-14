@@ -18,7 +18,12 @@ function prepareImage(dst){
         cv.blur(dst, dst, ksize, anchor, cv.BORDER_DEFAULT)
     }
     // Convert the RGB temporary image to HSV
-    cv.cvtColor(dst, dst, cv.COLOR_RGB2HSV)
+    if(store.usingWhite){
+        cv.cvtColor(dst, dst, cv.COLOR_RGBA2GRAY, 0);
+    }else{
+        cv.cvtColor(dst, dst, cv.COLOR_RGB2HSV)    
+    }    
+        
     return dst
 }
 
@@ -43,8 +48,7 @@ function colorFilter(src, dst, colorRange){
     return dst
 }
 
-function colorWhite(src,dst){
-    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+function brightnessFilter(src,dst){
     if(store.blurAmount > 0){
       let ksize = new cv.Size(store.blurAmount,store.blurAmount);
         let anchor = new cv.Point(-1, -1);
@@ -140,7 +144,11 @@ function getContourImage(src,colorRange){
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
     // Find contours - src is a frame filtered for the current color
-    cv.findContours(src, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    if(store.usingWhite){
+        cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
+    }else{
+        cv.findContours(src, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    }
     let contourPositions = []
     // Catalogue the contour locations to draw later
     // Iterate though the largest contours
@@ -465,7 +473,7 @@ export default {
     htmlToOpenCVHSV,
     mean,
     colorFilter,
-    colorWhite,
+    brightnessFilter,
     findBalls,
     getColorFromImage,
     calculateRelativeCoord,
