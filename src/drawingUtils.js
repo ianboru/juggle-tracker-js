@@ -244,16 +244,29 @@ function drawStar(context,x, y, r, color, opacityBySize) {
   context.save();
  
   // draw shape
+  const innerRadius = r*.2
+  const outerRadius = r*1.1
+  let editColor = color.replace("hsl(","")
+  editColor = editColor.replace(")","")
+  const splitColor = editColor.split(",")
+
+  var gradient = context.createRadialGradient(x, y, innerRadius, x, y, outerRadius);
+  gradient.addColorStop(0, 'hsla('+ splitColor[0] + ',100%,90%,'+opacityBySize+')');
+  gradient.addColorStop(.9, 'hsla('+ splitColor[0] + ',100%,75%,'+opacityBySize*.8+')');
+  gradient.addColorStop(1, 'hsla('+ splitColor[0] + ',100%,60%,'+opacityBySize*.8+')');
+
+  context.strokeStyle = 'hsla('+ splitColor[0] + ',100%,50%,'+opacityBySize*.15+')';
+
   const strokeColor = addOpacityToColor(color, .4)
   const fillColor = addOpacityToColor(color, opacityBySize)
   context.beginPath();
   context.lineWidth = r*.2;
-  context.strokeStyle = strokeColor;
-  context.fillStyle = fillColor;
+  //context.strokeStyle = strokeColor;
+  context.fillStyle = gradient;
   context.translate(x, y);
   context.moveTo(0,0-r);
-  context.shadowBlur = r*.2;
-  context.shadowColor = "black";
+  /*context.shadowBlur = r*.2;
+  context.shadowColor = "black";*/
   const inset = .15
   const sides = 6
   for (var i = 0; i < sides; i++) {
@@ -264,6 +277,7 @@ function drawStar(context,x, y, r, color, opacityBySize) {
   }
   context.closePath();
   context.fill();
+  context.stroke();
   context.restore();
 }
 function drawCircle(context, x,y,r, color, opacity){
@@ -276,15 +290,15 @@ function drawCircle(context, x,y,r, color, opacity){
     const splitColor = editColor.split(",")
 
     var gradient = context.createRadialGradient(x, y, innerRadius, x, y, outerRadius);
-    gradient.addColorStop(0, 'hsla('+ splitColor[0] + ',100%,85%,'+opacity+')');
-    gradient.addColorStop(.50, 'hsla('+ splitColor[0] + ',100%,50%,'+opacity*.9+')');
-    gradient.addColorStop(.75, 'hsla('+ splitColor[0] + ',100%,25%,'+opacity*.8+')');
-    gradient.addColorStop(1, 'hsla('+ splitColor[0] + ',100%,15%,'+opacity*.2+')');
+    gradient.addColorStop(0, 'hsla('+ splitColor[0] + ',100%,90%,'+opacity+')');
+    gradient.addColorStop(.50, 'hsla('+ splitColor[0] + ',100%,60%,'+opacity*.9+')');
+    gradient.addColorStop(.9, 'hsla('+ splitColor[0] + ',100%,30%,'+opacity*.7+')');
+    gradient.addColorStop(1, 'hsla('+ splitColor[0] + ',100%,15%,'+opacity*.15+')');
+    context.strokeStyle = 'hsla('+ splitColor[0] + ',100%,5%,'+opacity*.15+')';
 
     context.arc(x, y, r, 0, 2 * Math.PI, false);
     context.fillStyle = gradient;
     context.fill();
-    context.strokeStyle = 'hsla('+ splitColor[0] + ',100%,5%,'+opacity*.1+')';
     context.stroke();
 }
 function fitVidToCanvas(canvas, imageObj){

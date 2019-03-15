@@ -47,7 +47,6 @@ function updateBallHistories(contourPositions, colorNum, allPositions){
 }
 function trimHistories(positions, trailLength){
   // Trim the position history of each object of each color
-  console.log(positions,trailLength)
   let histories = []
   positions.forEach((colorPositions, colorNum)=>{
     histories[colorNum] = []
@@ -80,7 +79,6 @@ function trimHistories(positions, trailLength){
     })
   })
   positions = null
-  console.log("histories", histories)
   return histories
 }
 export default { 

@@ -224,11 +224,11 @@ function findBalls(src){
 }
 
 function calculateCurrentHSVString(ballColorRange){
-    return "hsl(" + mean(ballColorRange['lh'],ballColorRange['hh']) + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
+    return "hsl(" + mean(ballColorRange['lh'],ballColorRange['hh']) + "," + 100 + "%," + 60 +"%)"
 }
 
 function calculateCurrentHSV(ballColorRange){
-    return "hsl(" + mean(ballColorRange['lh'],ballColorRange['hh']) + "," + ballColorRange['hs']*100 + "%," + ballColorRange['hv']*100/2 +"%)"
+    return "hsl(" + mean(ballColorRange['lh'],ballColorRange['hh']) + "," + 100 + "%," + 60 +"%)"
 }
 
 function htmlToOpenCVHSV(htmlHSV){

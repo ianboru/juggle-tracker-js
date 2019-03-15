@@ -147,11 +147,11 @@ class App extends Component {
   }
   drawEffects=(context,colorNum,color)=>{
     if(store.showBrushColor){
-      color = 'rgb(' + cvutils.hsvToRgb(store.brushColor, 100,100) + ')'
+      color = 'hsl(' + store.brushColor + ', 100,100)'
     }
     // If disco mode is on, use the current disco color
     if(store.discoMode){
-      color = 'rgb(' + cvutils.hsvToRgb(this.state.discoHue, 100,100) + ')'
+      color = 'hsl(' +this.state.discoHue+', 100,100)'
       // Update the disco hue so that the color changes
       this.state.discoHue = this.state.discoHue + store.discoIncrement
       // When the hue reaches 360, it goes back to zero (HSV colorspace loops)
@@ -161,7 +161,6 @@ class App extends Component {
     }
     //Draw trails
     if(store.showTrails){
-      console.log(this.state.positions[colorNum])
       drawingUtils.drawCircleTrails(context,this.state.positions[colorNum], color)
     }
     if(store.showContourOutlines){
@@ -176,6 +175,7 @@ class App extends Component {
     }
     // Draw Stars
     if(store.showStars){
+      console.log(color)
       // Draw the stars. Get the updated stars' positions.
       drawingUtils.drawStars(context, this.state.positions[colorNum],color)
       // Update the global stars variable
