@@ -161,6 +161,7 @@ class App extends Component {
     }
     //Draw trails
     if(store.showTrails){
+      console.log(this.state.positions[colorNum])
       drawingUtils.drawCircleTrails(context,this.state.positions[colorNum], color)
     }
     if(store.showContourOutlines){
@@ -200,7 +201,7 @@ class App extends Component {
           this.processCurrentColor(colorRange, colorNum, context, srcMat)
         })
       }else{
-        this.processCurrentColor(null, null, context, srcMat)
+        this.processCurrentColor(null, 0, context, srcMat)
       }
       // If the user is clicking and draging to select a color
       const scaleFactor = store.videoWidth/store.hiddenCanvas.width
