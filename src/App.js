@@ -175,7 +175,6 @@ class App extends Component {
     }
     // Draw Stars
     if(store.showStars){
-      console.log(color)
       // Draw the stars. Get the updated stars' positions.
       drawingUtils.drawStars(context, this.state.positions[colorNum],color)
       // Update the global stars variable
