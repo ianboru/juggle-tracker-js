@@ -160,7 +160,7 @@ class App extends Component {
       }
     }
     //Draw trails
-    if(store.showTrails){
+    if(store.showTrails || store.showRings){
       drawingUtils.drawCircleTrails(context,this.state.positions[colorNum], color)
     }
     if(store.showContourOutlines){
@@ -207,6 +207,7 @@ class App extends Component {
       if(store.calibrationRect){
         //Draw color selection rectangle
         context.strokeStyle = "#ffffff"
+        context.lineWidth = 3
         const rect = store.calibrationRect
         context.strokeRect(rect[0]*scaleFactor,rect[1]*scaleFactor,(rect[2]-rect[0])*scaleFactor,(rect[3]-rect[1])*scaleFactor)
       }
@@ -222,7 +223,6 @@ class App extends Component {
       srcMat.delete();srcMat = null
       //Process next frame
       requestAnimationFrame(this.animate);
-
     }
   }
 

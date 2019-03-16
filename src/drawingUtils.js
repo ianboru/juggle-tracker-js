@@ -78,8 +78,13 @@ function drawCircleTrails(context, contourPositions, color){
             const lastR = rHistory[rHistory.length - 1 - t]
             const opacity = store.opacity*(1 - t/currentWindowSize)
             const thickness = store.trailThickness*lastR*(1-(t/currentWindowSize))
-            //drawCircle(context,lastX, lastY, lastR*(1-(t/currentWindowSize)), lastColor)
-            drawCircle(context,lastX, lastY, thickness, color, opacity)
+            if(store.showRings){
+               drawRing(context,lastX, lastY, thickness, color, opacity)
+            }  
+            if(store.showTrails){
+               drawCircle(context,lastX, lastY, thickness, color, opacity)  
+            }
+
           }
         }
       }
@@ -299,6 +304,25 @@ function drawCircle(context, x,y,r, color, opacity){
     context.arc(x, y, r, 0, 2 * Math.PI, false);
     context.fillStyle = gradient;
     context.fill();
+    context.stroke();
+}
+function drawRing(context, x,y,r, color, opacity){
+    context.beginPath();
+    // Radii of the white glow.
+    const innerRadius = r*1
+    const outerRadius = r*1.8
+    let editColor = color.replace("hsl(","")
+    editColor = editColor.replace(")","")
+    const splitColor = editColor.split(",")
+
+    var gradient = context.createRadialGradient(x, y, innerRadius, x, y, outerRadius);
+    gradient.addColorStop(0, 'hsla('+ splitColor[0] + ',100%,90%,'+opacity+')');
+    gradient.addColorStop(.8, 'hsla('+ splitColor[0] + ',100%,30%,'+opacity*.6+')');
+    gradient.addColorStop(.97, 'hsla('+ splitColor[0] + ',100%,75%,'+opacity*.3+')');
+
+    context.arc(x, y, r*1.5, 0, 2 * Math.PI, false);
+    context.strokeStyle = gradient;
+    context.lineWidth = r*.5
     context.stroke();
 }
 function fitVidToCanvas(canvas, imageObj){

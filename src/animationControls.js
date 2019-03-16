@@ -7,6 +7,8 @@ import store from './store'
 import { observer } from 'mobx-react'
 import "./App.css"
 import trailsInactive from "./assets/trails_inactive.png"
+import ringsInactive from "./assets/rings_inactive.png"
+
 import connectSameInactive from "./assets/connect_same_inactive.png"
 import connectAllInactive from "./assets/connect_all_inactive.png"
 import starsInactive from "./assets/stars_inactive.png"
@@ -14,6 +16,7 @@ import rainbowInactive from "./assets/rainbow_inactive.png"
 import brushInactive from "./assets/brush_inactive.png"
 
 import trailsActive from "./assets/trails_active.png"
+import ringsActive from "./assets/rings_active.png"
 import connectSameActive from "./assets/connect_same_active.png"
 import connectAllActive from "./assets/connect_all_active.png"
 import starsActive from "./assets/stars_active.png"
@@ -73,6 +76,7 @@ class AnimationControls extends Component {
 			<div>
 				<div>
 					<img title="trails" onClick={store.toggleShowTrails} src={store.showTrails ? trailsActive : trailsInactive}/>
+					<img title="rings" onClick={store.toggleShowRings} src={store.showRings ? ringsActive : ringsInactive}/>
 					<img title="connect same colors" onClick={store.toggleShowConnections} src={store.showConnections ? connectSameActive : connectSameInactive}/>
 					<img title="connect all colors" onClick={store.toggleShowAllConnections} src={store.showAllConnections ? connectAllActive : connectAllInactive}/>
 					<img title="stars" onClick={store.toggleShowStars} src={store.showStars ? starsActive : starsInactive}/>

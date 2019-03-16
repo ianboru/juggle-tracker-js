@@ -42,7 +42,7 @@ button {
   margin-left: 15px;
 }
 .overlay-controls{
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: rgba(255, 255, 255, 0.3);
     border : 3px solid gray;
     z-index : 50;
     padding : 20px;
@@ -71,7 +71,7 @@ canvas{
 }
 @media screen and (max-width: 992px) {
   .overlay-controls{
-    width : 340px;
+    width : 400px;
   }
   canvas,.video-container{
     width: 640px;

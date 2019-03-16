@@ -28,6 +28,7 @@ class Store {
   @observable showConnections     = false
   @observable showAllConnections  = false
   @observable showTrails          = true
+  @observable showRings           = false
   @observable showStars           = false
   @observable showBrushColor      = false
   @observable discoMode           = false
@@ -139,6 +140,9 @@ class Store {
   }
   @action toggleShowTrails = () => {
     this.showTrails = !this.showTrails
+  }
+  @action toggleShowRings = () => {
+    this.showRings = !this.showRings
   }
   @action toggleShowStars = () => {
     this.showStars = !this.showStars
