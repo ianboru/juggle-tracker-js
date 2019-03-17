@@ -343,7 +343,7 @@ class App extends Component {
               </ul>
           </div>
           
-          <div className="videoContainer">
+          <div className="video-container">
             {colorControls}
             {detectionControls}
             {animationControls}
