@@ -75,13 +75,13 @@ class AnimationControls extends Component {
 		return (
 			<div>
 				<div>
-					<img title="trails" onClick={store.toggleShowTrails} src={store.showTrails ? trailsActive : trailsInactive}/>
-					<img title="rings" onClick={store.toggleShowRings} src={store.showRings ? ringsActive : ringsInactive}/>
-					<img title="connect same colors" onClick={store.toggleShowConnections} src={store.showConnections ? connectSameActive : connectSameInactive}/>
-					<img title="connect all colors" onClick={store.toggleShowAllConnections} src={store.showAllConnections ? connectAllActive : connectAllInactive}/>
-					<img title="stars" onClick={store.toggleShowStars} src={store.showStars ? starsActive : starsInactive}/>
-					<img title="rainbow" onClick={store.toggleDiscoMode} src={store.discoMode ? rainbowActive : rainbowInactive}/>
-					<img title="brush color" onClick={store.toggleShowBrushColor} src={store.showBrushColor ? brushActive : brushInactive}/>
+					<img className="icon" title="trails" onClick={store.toggleShowTrails} src={store.showTrails ? trailsActive : trailsInactive}/>
+					<img className="icon" title="rings" onClick={store.toggleShowRings} src={store.showRings ? ringsActive : ringsInactive}/>
+					<img className="icon" title="connect same colors" onClick={store.toggleShowConnections} src={store.showConnections ? connectSameActive : connectSameInactive}/>
+					<img className="icon" title="connect all colors" onClick={store.toggleShowAllConnections} src={store.showAllConnections ? connectAllActive : connectAllInactive}/>
+					<img className="icon" title="stars" onClick={store.toggleShowStars} src={store.showStars ? starsActive : starsInactive}/>
+					<img className="icon" title="rainbow" onClick={store.toggleDiscoMode} src={store.discoMode ? rainbowActive : rainbowInactive}/>
+					<img className="icon" title="brush color" onClick={store.toggleShowBrushColor} src={store.showBrushColor ? brushActive : brushInactive}/>
 				</div>
 				<div className="slider-label" >Animation Opacity</div><Slider min={0} max={1} step={.01} defaultValue={store.opacity}  handle={handle} onChange={store.setOpacity}/>
 				{brushColorControls}

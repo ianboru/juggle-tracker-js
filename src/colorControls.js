@@ -7,6 +7,7 @@ import store from './store'
 import { observer } from 'mobx-react'
 //TODO: switch to App.css, currently cancels styles for some reason 
 import "./colorControls.css"
+
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -55,9 +56,9 @@ class ColorControls extends Component {
 				</div> 
 					:
 				<div>
-					<div  className="slider-label">Hue</div><Range className="hue-slider" allowCross={false} min={0} max={360} step={1} value={[store.filterHSV.lh,store.filterHSV.hh]} handle={handle} onChange={this.onHChange} />
-					<div  className="slider-label">Saturation</div><Range allowCross={false} min={0} max={1} step={.01} value={[store.filterHSV.ls,store.filterHSV.hs]}  handle={handle} onChange={this.onSChange}/>
-					<div  className="slider-label" >Brightness</div><Range allowCross={false}  min={0} max={1} step={.01} value={[store.filterHSV.lv,store.filterHSV.hv]}  handle={handle} onChange={this.onVChange} />
+					<span  className="slider-label">Hue</span><Range className="hue-slider" allowCross={false} min={0} max={360} step={1} value={[store.filterHSV.lh,store.filterHSV.hh]} handle={handle} onChange={this.onHChange} />
+					<span  className="slider-label">Saturation</span><Range allowCross={false} min={0} max={1} step={.01} value={[store.filterHSV.ls,store.filterHSV.hs]}  handle={handle} onChange={this.onSChange}/>
+					<span  className="slider-label" >Brightness</span><Range allowCross={false}  min={0} max={1} step={.01} value={[store.filterHSV.lv,store.filterHSV.hv]}  handle={handle} onChange={this.onVChange} />
 				</div>
 
 		return (

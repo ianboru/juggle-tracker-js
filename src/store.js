@@ -123,8 +123,12 @@ class Store {
     this.showBrushColor      = false
 
   }
-  @action toggleUsingWhite = () => {
-    this.usingWhite = !this.usingWhite
+
+  @action setBrightnessMode = () => {
+    this.usingWhite = true
+  }
+  @action setColorMode = () => {
+    this.usingWhite = false
   }
   @action toggleShowConnections = () => {
     this.showConnections = !this.showConnections

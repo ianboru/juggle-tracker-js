@@ -8,10 +8,13 @@ import ColorControls from './colorControls'
 import AnimationControls from './animationControls'
 import DetectionControls from './detectionControls'
 import Camera from './camera'
-import { MdHelp } from "react-icons/md"
+import { MdRemovedRedEye } from "react-icons/md"
 import { observer } from "mobx-react"
 import store from "./store"
 import InteractiveCanvas from "./interactiveCanvas"
+import calibrationInactive from "./assets/calibration_inactive.png"
+import calibrationActive from "./assets/calibration_active.png"
+
 const calibrateHelp = `Calibration Process\n
   == Basic Calibration ==
   1: (optional) Click and drag a box over the prop 
@@ -24,7 +27,7 @@ const calibrateHelp = `Calibration Process\n
 
   == Advanced Calibration ==
   1: Click "Advanced Calibaion"
-  2: Click "Calibration View", this shows what is being detected for the current color
+  2: Click "Calibration View Icon (Eye)", this shows what is being detected for the current color
   3: Repeat == Basic Calibration ==
   
   == Tips== 
@@ -298,24 +301,28 @@ class App extends Component {
     const buttonClass = (shown)=>{
       return shown ? "active large-button" : "inactive large-button"
     }
-
+    const tabClass = (shown)=>{
+      return shown ? "active tab" : "inactive tab"
+    }
     const colorControls = store.showColorControls ? 
       <div className="overlay-controls">
-          <h3>Color Controls</h3>
-          <button className={buttonClass(store.calibrationMode)} id="showRaw" onClick={store.toggleCalibrationMode}>Calibration View</button>
-          <button className={buttonClass(store.usingWhite)} id="usingWhite" onClick={store.toggleUsingWhite}>Bright Props</button>
+          <img className="calibrate-icon" title="Calibration View" onClick={store.toggleCalibrationMode} src={store.calibrationMode ? calibrationActive : calibrationInactive}/>
+          <button className={buttonClass(!store.usingWhite)} id="usingColor" onClick={store.setColorMode}>Colored</button>
+          <button className={buttonClass(store.usingWhite)} id="usingWhite" onClick={store.setBrightnessMode}>Bright</button>
           {addButton}
           <ColorControls usingWhite = {store.usingWhite} />
       </div> : null
     const animationControls = store.showAnimationControls ? 
       <div className="overlay-controls">
-          <h3>Animation Controls</h3>
+          <img className="calibrate-icon"  title="Calibration View" onClick={store.toggleCalibrationMode} src={store.calibrationMode ? calibrationActive : calibrationInactive}/>
           <AnimationControls/>
       </div> : null
     const detectionControls = store.showDetectionControls ? 
       <div className="overlay-controls">
-          <h3>Advanced Detection Controls</h3>
-          <DetectionControls/>
+        <div>
+            <img className="calibrate-icon"  title="Calibration View" onClick={store.toggleCalibrationMode} src={store.calibrationMode ? calibrationActive : calibrationInactive}/>
+        </div>
+        <DetectionControls/>
       </div> : null
     
     const app =
@@ -324,13 +331,18 @@ class App extends Component {
       !this.state.isFacebookApp ?
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
-          <div style={{marginBottom : '10px', 'fontSize' : '10px'}}>Version 1.3</div>
-          <div style={{marginBottom : '10px', 'fontSize' : '10px'}}>Send feedback to @arflowarts on Instagram</div>
-          <MdHelp style={{'fontSize':'18pt','marginLeft' : '10px'}} id="helpButton" onClick={this.showCalibrateHelp}/>
+          <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.3</span>
+          <a style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}} href="http://instagram.com/arflowarts">Contact</a>
+          <button style={{'fontSize':'10px','marginLeft' : '10px', 'fontSize' : '12px'}} id="helpButton" onClick={this.showCalibrateHelp}>How to</button>
           <br/>
-          <button onClick={()=>{store.toggleShowControls("color")}} className={buttonClass(store.showColorControls)}>Color Calibration</button>
-          <button onClick={()=>{store.toggleShowControls("animation")}} className={buttonClass(store.showAnimationControls)}>Animations</button>
-          <button onClick={()=>{store.toggleShowControls("detection")}} className={buttonClass(store.showDetectionControls)}>Advanced Calibration</button>
+          <div class="top-tabs">
+              <ul>
+                  <li onClick={()=>{store.toggleShowControls("color")}} className={tabClass(store.showColorControls)}>Calibration</li>
+                  <li onClick={()=>{store.toggleShowControls("animation")}} className={tabClass(store.showAnimationControls)}>Animations</li>
+                  <li onClick={()=>{store.toggleShowControls("detection")}} className={tabClass(store.showDetectionControls)}>Advanced</li>
+              </ul>
+          </div>
+          
           <div className="videoContainer">
             {colorControls}
             {detectionControls}

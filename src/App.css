@@ -35,24 +35,42 @@ button {
 }
 .video-container{
   position : relative;
-  margin: 0 auto;
+  width : 640px;
 }
 .overlay-controls, .canvas{
   position : absolute;
-  margin-left: 15px;
 }
 .overlay-controls{
-    background-color: rgba(255, 255, 255, 0.3);
-    border : 3px solid gray;
-    z-index : 50;
-    padding : 20px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border : 3px solid gray;
+  z-index : 50;
+  width: 95%;
+
 }
+.tab{
+  display : inline-block;
+  padding-right : 10px;
+  padding-left : 10px;
+  border : 1px solid black;
+  text-align: center;
+}
+ul { 
+  padding: 0 ;
+
+ }
+.top-tabs{
+  padding : 0;
+}
+
 h3{
   margin : 0;
   margin-bottom : 10px;
 }
 .active{
   background-color: darkgray;
+}
+.inactive{
+  background-color: white;
 }
 canvas{
   display: block; 
@@ -69,29 +87,38 @@ canvas{
 #canvas{
    touch-action: none;
 }
-@media screen and (max-width: 992px) {
-  .overlay-controls{
-    width : 400px;
-  }
+
+@media screen and (min-width: 992px) {
   canvas,.video-container{
     width: 640px;
     height: auto;
   }
+
+}
+@media screen and (max-width: 992px) {
+  canvas,.video-container{
+    width: 640px;
+    height: auto;
+  }
+
 }
 @media screen and (max-width: 600px) {
-  .overlay-controls{
-    width : 200px;
-  }
   canvas,.video-container{
     display: block; 
     width: 375px;
     height: auto;
   }
+
 }
 .slider-label{
+  vertical-align: middle;
+  padding-top: 5px;
   font-size: 14px;
-  width : 140px;
   display : inline-block;
+  position: absolute;
+  z-index: 100;
+  margin : 0 auto;
+  text-align: center;
 }
 .live-video{
   width: 100%;
@@ -120,11 +147,7 @@ canvas{
   cursor: pointer;
 }
 
-/* Style the active class (and buttons on mouse-over) */
-.active, .btn:hover {
-  background-color: #666;
-  color: white;
-}
+
 .large-button {
   font-size : 14px;
   border-radius: 4px;
@@ -136,4 +159,11 @@ canvas{
 #hiddenCanvas { 
   display : none;
 }
-
+.calibrate-icon { 
+  vertical-align: middle;
+  left : 0;
+  position : absolute;
+}
+.icon{
+  display: inline-block;
+}
