@@ -206,7 +206,7 @@ class App extends Component {
         this.processCurrentColor(null, 0, context, srcMat)
       }
       // If the user is clicking and draging to select a color
-      const scaleFactor = store.videoWidth/store.hiddenCanvas.width
+      const scaleFactor = store.videoWidth/store.canvasOutput.clientWidth
       if(store.calibrationRect){
         //Draw color selection rectangle
         context.strokeStyle = "#ffffff"
