@@ -107,7 +107,7 @@ class Camera extends Component {
 
   handleVideoEnded = ()=>{
     const recordButton = document.querySelector('button#playUploadedButton');
-    recordButton.textContent = 'Play Video';
+    this.uploadedVideo.play()
   }
  toggleRecording=()=>{
     // Change the text on the record button
