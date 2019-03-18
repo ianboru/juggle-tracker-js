@@ -42,27 +42,27 @@ button {
   position : absolute;
 }
 .overlay-controls{
-  background-color: rgba(255, 255, 255, 0.3);
-  border : 3px solid gray;
+  background-color: rgba(255, 255, 255, 0.5);
   z-index : 50;
-  width: 95%;
-
+  width: 100%;
+  text-align: center;
 }
 .tab{
   display : inline-block;
   padding-right : 10px;
   padding-left : 10px;
   border : 1px solid black;
+  border-radius: 2px;
   text-align: center;
 }
-ul { 
-  padding: 0 ;
-
- }
 .top-tabs{
   padding : 0;
 }
+ul { 
+  padding: 0 ;
+  vertical-align: middle;
 
+}
 h3{
   margin : 0;
   margin-bottom : 10px;
@@ -113,13 +113,21 @@ canvas{
 }
 .slider-label{
   vertical-align: middle;
-  padding-top: 5px;
+  padding-top: 4px;
   font-size: 14px;
   display : inline-block;
   position: absolute;
   z-index: 100;
   margin : 0 auto;
-  text-align: center;
+  left: 0;
+  right: 0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
 }
 .live-video{
   width: 100%;
@@ -162,8 +170,8 @@ canvas{
 }
 .calibrate-icon { 
   vertical-align: middle;
-  left : 0;
-  position : absolute;
+  margin-right: 15px;
+
 }
 .icon{
   display: inline-block;

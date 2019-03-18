@@ -306,7 +306,6 @@ class App extends Component {
     }
     const colorControls = store.showColorControls ? 
       <div className="overlay-controls">
-          <img className="calibrate-icon" title="Calibration View" onClick={store.toggleCalibrationMode} src={store.calibrationMode ? calibrationActive : calibrationInactive}/>
           <button className={buttonClass(!store.usingWhite)} id="usingColor" onClick={store.setColorMode}>Colored</button>
           <button className={buttonClass(store.usingWhite)} id="usingWhite" onClick={store.setBrightnessMode}>Bright</button>
           {addButton}
@@ -314,14 +313,10 @@ class App extends Component {
       </div> : null
     const animationControls = store.showAnimationControls ? 
       <div className="overlay-controls">
-          <img className="calibrate-icon"  title="Calibration View" onClick={store.toggleCalibrationMode} src={store.calibrationMode ? calibrationActive : calibrationInactive}/>
           <AnimationControls/>
       </div> : null
     const detectionControls = store.showDetectionControls ? 
       <div className="overlay-controls">
-        <div>
-            <img className="calibrate-icon"  title="Calibration View" onClick={store.toggleCalibrationMode} src={store.calibrationMode ? calibrationActive : calibrationInactive}/>
-        </div>
         <DetectionControls/>
       </div> : null
     
@@ -337,6 +332,9 @@ class App extends Component {
           <br/>
           <div class="top-tabs">
               <ul>
+                  <span className="calibrate-icon">
+                    <img title="Calibration View" onClick={store.toggleCalibrationMode} src={store.calibrationMode ? calibrationActive : calibrationInactive}/>
+                  </span>
                   <li onClick={()=>{store.toggleShowControls("color")}} className={tabClass(store.showColorControls)}>Calibration</li>
                   <li onClick={()=>{store.toggleShowControls("animation")}} className={tabClass(store.showAnimationControls)}>Animations</li>
                   <li onClick={()=>{store.toggleShowControls("detection")}} className={tabClass(store.showDetectionControls)}>Advanced</li>

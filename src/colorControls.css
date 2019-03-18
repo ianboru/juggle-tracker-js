@@ -11,15 +11,20 @@
 .rc-slider-handle{
   height : 23px;
   width : 23px;
+  z-index: 102;
+
 }
 .rc-slider{
-  margin-bottom: 7px;
+  margin-bottom: 10px;
   user-select: none;
   -khtml-user-select: none;
   -o-user-select: none;
   -moz-user-select: -moz-none;
   -webkit-user-select: none;
   vertical-align: middle;
+  width: 90%;
+  margin: 0 auto;
+  margin-bottom: 15px;
 }
 .rc-slider-tooltip{
   opacity : .95;
@@ -40,6 +45,7 @@
   background: -ms-linear-gradient(left,  #ff3232 0%,#fff130 20%,#45ff30 35%,#28fff0 52%,#282cff 71%,#ff28fb 88%,#ff0094 100%); /* IE10+ */
   background: linear-gradient(to right,  #ff3232 0%,#fff130 20%,#45ff30 35%,#28fff0 52%,#282cff 71%,#ff28fb 88%,#ff0094 100%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff3232', endColorstr='#ff0094',GradientType=1 ); 
+
 }
 .hue-slider  .rc-slider-track{
   opacity : 0;
