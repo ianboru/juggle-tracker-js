@@ -298,16 +298,14 @@ class App extends Component {
         </div>
         </div>) :
         null
-    const buttonClass = (shown)=>{
-      return shown ? "active large-button" : "inactive large-button"
-    }
+
     const tabClass = (shown)=>{
       return shown ? "active tab" : "inactive tab"
     }
     const colorControls = store.showColorControls ? 
       <div className="overlay-controls">
-          <button className={buttonClass(!store.usingWhite)} id="usingColor" onClick={store.setColorMode}>Colored</button>
-          <button className={buttonClass(store.usingWhite)} id="usingWhite" onClick={store.setBrightnessMode}>Bright</button>
+          <span className={tabClass(!store.usingWhite) + " left-tab"} id="usingColor" onClick={store.setColorMode}>Colored</span>
+          <span className={tabClass(store.usingWhite) + " right-tab"} id="usingWhite" onClick={store.setBrightnessMode}>Bright</span>
           {addButton}
           <ColorControls usingWhite = {store.usingWhite} />
       </div> : null
@@ -335,9 +333,9 @@ class App extends Component {
                   <span className="calibrate-icon">
                     <img title="Calibration View" onClick={store.toggleCalibrationMode} src={store.calibrationMode ? calibrationActive : calibrationInactive}/>
                   </span>
-                  <li onClick={()=>{store.toggleShowControls("color")}} className={tabClass(store.showColorControls)}>Calibration</li>
+                  <li onClick={()=>{store.toggleShowControls("color")}} className={tabClass(store.showColorControls) + " left-tab" }>Calibration</li>
                   <li onClick={()=>{store.toggleShowControls("animation")}} className={tabClass(store.showAnimationControls)}>Animations</li>
-                  <li onClick={()=>{store.toggleShowControls("detection")}} className={tabClass(store.showDetectionControls)}>Advanced</li>
+                  <li onClick={()=>{store.toggleShowControls("detection")}} className={tabClass(store.showDetectionControls) + " right-tab"}>Advanced</li>
               </ul>
           </div>
           

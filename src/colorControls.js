@@ -52,7 +52,7 @@ class ColorControls extends Component {
 		const sliders = 
 			store.usingWhite ?
 				<div>
-					<div className="slider-label" style={{"width": "180px", "display" :"inline-block", "marginTop" : "15px"}}>Minumum Brightness</div><Slider min={0} max={100} step={1} defaultValue={store.brightnessThreshold} handle={handle} onChange={this.onBrightnessChange} />
+					<div className="slider-label" style={{"width": "180px", "display" :"inline-block"}}>Minimum Brightness</div><Slider min={0} max={100} step={1} defaultValue={store.brightnessThreshold} handle={handle} onChange={this.onBrightnessChange} />
 				</div> 
 					:
 				<div>
