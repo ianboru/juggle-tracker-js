@@ -65,7 +65,13 @@ function drawCircleTrails(context, contourPositions, color){
         const rHistory = contourPositions[i]['r']
 
         //Don't draw a trail longer than the window
-        const maxWindowSize = store.trailLength
+        let maxWindowSize = 1
+        if(store.showRings){
+          maxWindowSize = store.ringLength
+        }
+        else{ 
+          maxWindowSize = store.trailLength
+        }
         let currentWindowSize  = Math.min(xHistory.length, maxWindowSize)
         //Draw circle and trail
         for (let t=0; t < currentWindowSize; ++t){
@@ -77,11 +83,12 @@ function drawCircleTrails(context, contourPositions, color){
             const lastY = yHistory[yHistory.length - 1 - t]
             const lastR = rHistory[rHistory.length - 1 - t]
             const opacity = store.opacity*(1 - t/currentWindowSize)
-            const thickness = store.trailThickness*lastR*(1-(t/currentWindowSize))
             if(store.showRings){
+               const thickness = store.ringThickness*lastR*(1-(t/currentWindowSize))
                drawRing(context,lastX, lastY, thickness, color, opacity)
             }  
             if(store.showTrails){
+               const thickness = store.trailThickness*lastR*(1-(t/currentWindowSize))
                drawCircle(context,lastX, lastY, thickness, color, opacity)  
             }
 

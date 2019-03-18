@@ -41,6 +41,8 @@ class Store {
   @observable starLife            = .5
   @observable starSize            = .5
   @observable trailLength         = 1
+  @observable ringLength          = 1
+  @observable ringThickness       = 1
   @observable opacity             = 1
   @observable trailThickness      = 1
   @observable discoIncrement      = 12
@@ -178,6 +180,16 @@ class Store {
   @action setTrailThickness = (trailThickness) => {
     this.trailThickness = trailThickness
   }
+
+
+  @action setRingLength = (ringLength) => {
+    this.ringLength = ringLength
+  }
+  @action setRingThickness = (ringThickness) => {
+    this.ringThickness = ringThickness
+  }
+
+
   @action setOpacity = (opacity) => {
     this.opacity = opacity
   }
