@@ -14,6 +14,9 @@ import store from "./store"
 import InteractiveCanvas from "./interactiveCanvas"
 import calibrationInactive from "./assets/calibration_inactive.png"
 import calibrationActive from "./assets/calibration_active.png"
+import cannyInactive from "./assets/canny_inactive.png"
+import cannyActive from "./assets/canny_active.png"
+
 
 const calibrateHelp = `Calibration Process\n
   == Basic Calibration ==
@@ -101,6 +104,8 @@ class App extends Component {
     if(store.mouseDown){
       store.setFlippedFrame(srcMat.clone())
     }
+
+
     // Show the srcMat to the user
     cv.imshow('hiddenCanvas',srcMat)
     srcMat = cvutils.downSize(srcMat)
@@ -144,8 +149,15 @@ class App extends Component {
       }
       contourImage.delete()
     }
+
+    // If in canny mode
+    if(store.cannyMode){
+      cv.cvtColor(srcMat, srcMat, cv.COLOR_RGB2GRAY, 0);
+      cv.Canny(srcMat, srcMat, store.cannyMinVal, store.cannyMaxVal);
+      cv.imshow('hiddenCanvas', srcMat)
+    }
+
     // Get the color values for the object being tracked (white if usingWhite)
-    
     this.drawEffects(context,colorNum,color)
   }
   drawEffects=(context,colorNum,color)=>{
@@ -332,6 +344,7 @@ class App extends Component {
               <ul>
                   <span className="calibrate-icon">
                     <img title="Calibration View" onClick={store.toggleCalibrationMode} src={store.calibrationMode ? calibrationActive : calibrationInactive}/>
+                    <img title="Canny View" onClick={store.toggleCannyMode} src={store.cannyMode ? cannyActive : cannyInactive}/>
                   </span>
                   <li onClick={()=>{store.toggleShowControls("color")}} className={tabClass(store.showColorControls) + " left-tab" }>Calibration</li>
                   <li onClick={()=>{store.toggleShowControls("animation")}} className={tabClass(store.showAnimationControls)}>Animations</li>

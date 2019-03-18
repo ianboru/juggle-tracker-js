@@ -74,6 +74,12 @@ class AnimationControls extends Component {
 				<div className="slider-label" >Rainbow Speed</div><Slider min={1} max={24} step={1} defaultValue={store.discoIncrement}  handle={handle} onChange={store.setDiscoIncrement}/>
 			</div> : null 
 
+		const cannyControls = store.cannyMode ?
+			<div>
+				<div className="slider-label">Canny MinVal</div><Slider min={1} max={255} step={1} defaultValue={store.cannyMinVal} handle={handle} onChange={store.setCannyMinVal}/>
+				<div className="slider-label">Canny MaxVal</div><Slider min={1} max={255} step={1} defaultValue={store.cannyMaxVal} handle={handle} onChange={store.setCannyMaxVal}/>
+			</div> : null
+			
 		const brushColorControls = store.showBrushColor ? 
 			<div>
 				<div className="slider-label" >Brush Color</div><Slider className="hue-slider" min={0} max={360} step={1} defaultValue={store.brushColor} handle={handle} onChange={store.setBrushColor} />
@@ -96,6 +102,7 @@ class AnimationControls extends Component {
 				{ringControls}
 				{starControls}
 				{rainbowControls}
+				{cannyControls}
 
 			</div>
 		)

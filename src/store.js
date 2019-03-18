@@ -18,8 +18,9 @@ class Store {
   @observable liveVideo           = null
   @observable uploadedVideo       = null
   @observable videoWidth          = null
-  @observable videoHeight          = null
+  @observable videoHeight         = null
   @observable calibrationMode     = false
+  @observable cannyMode           = false
   @observable calibratRect        = null
   @observable filterHSV           = initialHSV
   @observable allColors           = [initialHSV]
@@ -50,7 +51,10 @@ class Store {
   @observable showAnimationControls = false
   @observable showDetectionControls = false
   @observable showContourOutlines  = false
-  @observable brightnessThreshold  = 55
+  @observable brightnessThreshold  = 55  
+  @observable cannyMinVal          = 100
+  @observable cannyMaxVal          = 55
+  @observable cannyApertureValue   = 3
   @observable closeAmount          = 0
   @observable showSelectColorText  = true
   @observable mouseDown            = false
@@ -123,7 +127,13 @@ class Store {
     }
     this.showStars           = false
     this.showBrushColor      = false
+    this.cannyMode = false
 
+  }
+
+  @action toggleCannyMode = () => {
+    this.cannyMode = !this.cannyMode
+    this.calibrationMode = false
   }
 
   @action setBrightnessMode = () => {
@@ -180,16 +190,12 @@ class Store {
   @action setTrailThickness = (trailThickness) => {
     this.trailThickness = trailThickness
   }
-
-
   @action setRingLength = (ringLength) => {
     this.ringLength = ringLength
   }
   @action setRingThickness = (ringThickness) => {
     this.ringThickness = ringThickness
   }
-
-
   @action setOpacity = (opacity) => {
     this.opacity = opacity
   }
@@ -213,6 +219,12 @@ class Store {
   }
   @action setSizeThreshold = (sizeThreshold) => {
     this.sizeThreshold = sizeThreshold
+  }  
+  @action setCannyMinVal = (cannyMinVal) => {
+    this.cannyMinVal = cannyMinVal
+  }
+  @action setCannyMaxVal = (cannyMaxVal) => {
+    this.cannyMaxVal = cannyMaxVal
   }
   @action setBrushColor = (brushColor) => {
     this.brushColor = brushColor
