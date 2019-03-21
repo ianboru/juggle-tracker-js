@@ -23,7 +23,7 @@ function drawSelectColorText(context, isMobile, usingWhite){
   }
   context.font = "30px Arial"
   context.fillStyle = "#ffffff"
-  context.fillText(text,40, context.canvas.clientHeight - 40)
+  context.fillText(text,40, context.canvas.height - 40)
 }
 
 function drawContours(context, contourPositions, color){
