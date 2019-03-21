@@ -52,48 +52,64 @@ function drawContours(context, contourPositions, color){
     context.stroke();
   }
 }
-function drawCircleTrails(context, contourPositions, color){
-  //Draw circle and trail
-
+function drawCircles(context, contourPositions, color){
+  // Check if tracking data exists
   if(contourPositions){    
+    // Iterate through each color being tracked
     for(let i = 0; i < contourPositions.length; ++i){
-      //Don't draw if x oordinate is -1
+      // Don't draw if x coordinate is -1
+      if(contourPositions[i] && contourPositions[i]['x'] !== -1 ){
+        // Rename for convenience
+        const xHistory = contourPositions[i]['x']
+        const yHistory = contourPositions[i]['y']
+        const rHistory = contourPositions[i]['r']
+
+        // Don't draw a trail longer than the window or the trail length       
+        let currentWindowSize  = Math.min(xHistory.length, store.trailLength)
+        // Draw the trail of circles, 't' represents # of frames in the past
+        for (let t=currentWindowSize; t > -1; --t){
+          // At least draw the ball itself
+          if(xHistory[xHistory.length - 1 - t] > -1 && xHistory[xHistory.length - 1 - t] !== -1 ){
+            // Get parameters for circle
+            const lastX = xHistory[xHistory.length - 1 - t]
+            const lastY = yHistory[yHistory.length - 1 - t]
+            const lastR = rHistory[rHistory.length - 1 - t]
+            const opacity = store.opacity*(1 - t/currentWindowSize)
+            const thickness = store.trailThickness*lastR*(1-(t/currentWindowSize))
+            // Call the draw circle function to paint the canvas
+            drawCircle(context,lastX, lastY, thickness, color, opacity)  
+          }
+        }
+      }
+    }
+  }
+}
+function drawRings(context, contourPositions, color){
+  // Check if tracking data exists
+  if(contourPositions){    
+    // Iterate through each color being tracked
+    for(let i = 0; i < contourPositions.length; ++i){
+      // Don't draw if x coordinate is -1
       if(contourPositions[i] && contourPositions[i]['x'] !== -1 ){
         //Rename for convenience
         const xHistory = contourPositions[i]['x']
         const yHistory = contourPositions[i]['y']
         const rHistory = contourPositions[i]['r']
 
-        //Don't draw a trail longer than the window
-        let maxWindowSize = store.trailLength
-        /*if(store.showRings){
-          maxWindowSize = store.ringLength
-        }
-        else{ 
-          maxWindowSize = store.trailLength
-        }*/
-        let currentWindowSize  = Math.min(xHistory.length, maxWindowSize)
-        //Draw circle and trail
-        for (let t=0; t < currentWindowSize; ++t){
-          //At least draw the ball itself
+        // Don't draw a trail longer than the window or the ring length     
+        let currentWindowSize  = Math.min(xHistory.length, store.ringLength)
+        // Draw the trail of rings, 't' represents # of frames in the past
+        for (let t=currentWindowSize; t > -1; --t){
+          // At least draw the ball itself
           if(xHistory[xHistory.length - 1 - t] > -1 && xHistory[xHistory.length - 1 - t] !== -1 ){
-
-            //Look backwards in history stepping by t
+            // Get parameters for circle
             const lastX = xHistory[xHistory.length - 1 - t]
             const lastY = yHistory[yHistory.length - 1 - t]
             const lastR = rHistory[rHistory.length - 1 - t]
             const opacity = store.opacity*(1 - t/currentWindowSize)
-            const thickness = store.trailThickness*lastR*(1-(t/currentWindowSize))
-
-            if(store.showRings){
-               const thickness = store.ringThickness*lastR*(1-(t/currentWindowSize))
-               drawRing(context,lastX, lastY, thickness, color, opacity)
-            }  
-            if(store.showTrails){
-               const thickness = store.trailThickness*lastR*(1-(t/currentWindowSize))
-               drawCircle(context,lastX, lastY, thickness, color, opacity)  
-            }
-
+            const thickness = store.ringThickness*lastR*(1-(t/currentWindowSize))
+            // Call the draw circle function to paint the canvas
+            drawRing(context,lastX, lastY, thickness, color, opacity)
           }
         }
       }
@@ -372,8 +388,9 @@ function fitVidToCanvas(canvas, imageObj){
 };
 
 export default {
-    drawCircleTrails,
+    drawCircles,
     drawConnections,
+    drawRings,
     drawAllConnections,
     drawStars,
     drawSelectColorText,

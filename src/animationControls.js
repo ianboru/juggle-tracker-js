@@ -59,14 +59,14 @@ class AnimationControls extends Component {
 		
 		const trailControls = store.showTrails ? 
 			<div>
-				<div className="slider-label" >Trail Length</div><Slider min={0} max={50} step={1} defaultValue={store.trailLength}  handle={handle} onChange={store.setTrailLength}/>
+				<div className="slider-label" >Trail Path Length</div><Slider min={1} max={50} step={1} defaultValue={store.trailLength}  handle={handle} onChange={store.setTrailLength}/>
 				<div className="slider-label" >Trail Thickness</div><Slider min={0} max={3} step={.01} defaultValue={store.trailThickness}  handle={handle} onChange={store.setTrailThickness}/>
 			</div> : null
 			
 		const ringControls = store.showRings ?
 			<div>
-				<div className="slider-label" >Ring Length</div><Slider min={0} max={50} step={1} defaultValue={store.ringLength}  handle={handle} onChange={store.setRingLength}/>
-				<div className="slider-label" >Ring Thickness</div><Slider min={0} max={3} step={.01} defaultValue={store.ringThickness}  handle={handle} onChange={store.setRingThickness}/>
+				<div className="slider-label" >Ring Path Length</div><Slider min={1} max={50} step={1} defaultValue={store.ringLength}  handle={handle} onChange={store.setRingLength}/>
+				<div className="slider-label" >Ring Radius</div><Slider min={0} max={3} step={.01} defaultValue={store.ringThickness}  handle={handle} onChange={store.setRingThickness}/>
 			</div> : null
 
 		const rainbowControls = store.discoMode ? 
