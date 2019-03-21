@@ -163,9 +163,13 @@ class App extends Component {
       }
     }
     //Draw trails
-    if(store.showTrails || store.showRings){
-      drawingUtils.drawCircleTrails(context,this.state.positions[colorNum], color)
+    if(store.showTrails){
+      drawingUtils.drawCircles(context,this.state.positions[colorNum], color)
     }
+    // Draw rings
+    if(store.showRings){
+      drawingUtils.drawRings(context,this.state.positions[colorNum], color)
+    }    
     if(store.showContourOutlines){
       drawingUtils.drawContours(context,this.state.contourLocations, color)
     }
@@ -220,8 +224,8 @@ class App extends Component {
       }
       var destCtx = store.canvasOutput.getContext('2d');
       destCtx.drawImage(store.hiddenCanvas, 0,0, store.videoWidth, store.videoHeight)
-      //Trim histories to trail length
-      this.state.positions = trackingUtils.trimHistories(this.state.positions, store.trailLength)
+      //Trim histories to a value that is greater than trail length and ring history length
+      this.state.positions = trackingUtils.trimHistories(this.state.positions, 100)
       //srcMat.delete();srcMat = null;
       srcMat.delete();srcMat = null
       //Process next frame
