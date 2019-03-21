@@ -174,6 +174,7 @@ class App extends Component {
       drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness, store.opacity)
     }
     if(store.showAllConnections){
+      console.log("drawing all connections")
       drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
     }
     // Draw Stars

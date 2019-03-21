@@ -65,13 +65,13 @@ function drawCircleTrails(context, contourPositions, color){
         const rHistory = contourPositions[i]['r']
 
         //Don't draw a trail longer than the window
-        let maxWindowSize = 1
-        if(store.showRings){
+        let maxWindowSize = store.trailLength
+        /*if(store.showRings){
           maxWindowSize = store.ringLength
         }
         else{ 
           maxWindowSize = store.trailLength
-        }
+        }*/
         let currentWindowSize  = Math.min(xHistory.length, maxWindowSize)
         //Draw circle and trail
         for (let t=0; t < currentWindowSize; ++t){
@@ -83,6 +83,8 @@ function drawCircleTrails(context, contourPositions, color){
             const lastY = yHistory[yHistory.length - 1 - t]
             const lastR = rHistory[rHistory.length - 1 - t]
             const opacity = store.opacity*(1 - t/currentWindowSize)
+            const thickness = store.trailThickness*lastR*(1-(t/currentWindowSize))
+
             if(store.showRings){
                const thickness = store.ringThickness*lastR*(1-(t/currentWindowSize))
                drawRing(context,lastX, lastY, thickness, color, opacity)
@@ -159,14 +161,17 @@ function drawAllConnections(context,allPositions, allColors){
   let lastColor = {}
   let curColor
   let curObjectX ; let curObjectY ; let lastObjectX ; let lastObjectY;
-  
+  //console.log("next frame")
   for(let i = 0; i < flattenedPositions.length; ++i){
+    //console.log("next i ", i)
     for(let j = i+1; j < flattenedPositions.length; ++j){
+        //console.log("next j ", j)
         lastObjectX = flattenedPositions[i]['x'].slice(-1).pop()
         lastObjectY = flattenedPositions[i]['y'].slice(-1).pop()
         lastColor = flattenedPositionColors[i] 
         curObjectX = flattenedPositions[j]['x'].slice(-1).pop()
         curObjectY = flattenedPositions[j]['y'].slice(-1).pop() 
+        //console.log(lastObjectX, curObjectX)
         curColor = flattenedPositionColors[j] 
         drawLineGradient(curObjectX,curObjectY,lastObjectX,lastObjectY, curColor, lastColor, context)
     }
