@@ -31,7 +31,7 @@ class InteractiveCanvas extends Component {
     // converted hsv ranges may have maxs and mins swapped
     const hsvRange = {
       'lh' : Math.min(lowerHSV[0],upperHSV[0]),
-      'ls' :  Math.min(lowerHSV[1],upperHSV[1]),
+      'ls' :  .1,
       'lv' :  .2,
       'hh' :  Math.max(lowerHSV[0],upperHSV[0]),
       'hs' :  1,
@@ -95,14 +95,17 @@ class InteractiveCanvas extends Component {
 
   }
   handleCanvasMouseUp = (e)=>{
+    const widthScaleFactor = store.canvasOutput.clientWidth/store.hiddenCanvas.width
+    const heightScaleFactor = store.canvasOutput.clientHeight/store.hiddenCanvas.height
+
     const clickCoord = cvutils.calculateRelativeCoord(e, this.canvasOutput)
     //use flipped frame that has not been drawn on yet
     this.setColorFromSelectedRegion(
       store.flippedFrame,
-      this.state.canvasMouseDownX,
-      this.state.canvasMouseDownY,
-      clickCoord[0],
-      clickCoord[1]
+      Math.round(this.state.canvasMouseDownX/widthScaleFactor),
+      Math.round(this.state.canvasMouseDownY/heightScaleFactor),
+      Math.round(clickCoord[0]/widthScaleFactor),
+      Math.round(clickCoord[1]/heightScaleFactor)
     )
    
     this.setState({
@@ -115,18 +118,21 @@ class InteractiveCanvas extends Component {
     store.setMouseDown(false)
   }
   touchHeld = ()=>{
-    const rectWidth = 35
+    const rectWidth = 40
+    const widthScaleFactor = store.canvasOutput.clientWidth/store.hiddenCanvas.width
+    const heightScaleFactor = store.canvasOutput.clientHeight/store.hiddenCanvas.height
     //use flipped frame that has not been drawn on yet
+
     const rectLeft = this.state.canvasMouseDownX - rectWidth/2
     const rectRight = this.state.canvasMouseDownX + rectWidth/2
     const rectTop = this.state.canvasMouseDownY - rectWidth/2
     const rectBottom = this.state.canvasMouseDownY + rectWidth/2
     this.setColorFromSelectedRegion(
       store.flippedFrame,
-      rectLeft,
-      rectTop,
-      rectRight,
-      rectBottom
+      rectLeft/widthScaleFactor,
+      rectTop/heightScaleFactor,
+      rectRight/widthScaleFactor,
+      rectBottom/heightScaleFactor
     )
     
     this.setState({
