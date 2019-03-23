@@ -1,5 +1,7 @@
 import cv from 'opencv.js';
 import store from "./store"
+import {toJS} from "mobx"
+
 function getMatFromCanvas(context, width, height){
     // Create a new blank mat (or canvas) to draw on
     let srcMat = new cv.Mat(height, width, cv.CV_8UC4);
@@ -161,19 +163,23 @@ function getContourImage(src,colorRange){
       // Use circle to get x,y coordinates and radius
       let color 
       if(colorRange){
+        //console.log(toJS(colorRange))
         const colorString = hsvToRgb(
-            mean(colorRange['lh'],colorRange['hh']), 100, 70
+            mean(colorRange['lh'],colorRange['hh']), 100, 60
         )
-        const rgbArray = colorString.split(',')
+        let rgbArray = colorString.split(',')
+   
+        //console.log(rgbArray)
         color = new cv.Scalar(
             parseInt(rgbArray[0]),
             parseInt(rgbArray[1]),
             parseInt(rgbArray[2])
         )
       }else{
-        color = new cv.Scalar(255,255,255);
+        //color = new cv.Scalar(255,255,255);
       } 
-      cv.drawContours(dst, contours, i, color, store.contourThickness, cv.LINE_8, hierarchy, 100);
+      //console.log(color)
+      cv.drawContours(dst, contours, i, color, store.contourThickness, cv.LINE_4, hierarchy, 100);
     }
     contour.delete(); 
     }

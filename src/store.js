@@ -141,12 +141,14 @@ class Store {
     if(this.showConnections){
       this.showAllConnections = false
     }
+    this.showContours = false
   }
   @action toggleShowAllConnections = () => {
     this.showAllConnections = !this.showAllConnections
     if(this.showAllConnections){
       this.showConnections = false
     }
+    this.showContours = false
   }
   @action toggleShowTrails = () => {
     this.showTrails = !this.showTrails
@@ -164,12 +166,14 @@ class Store {
   }
   @action toggleShowRings = () => {
     this.showRings = !this.showRings
+    this.showContours = false
   }
   @action toggleShowStars = () => {
     this.showStars = !this.showStars
     if(this.showStars && this.showTrails){
       this.showTrails = false
     }
+    this.showContours = false
   }
   @action toggleDiscoMode = () => {
     this.discoMode = !this.discoMode

@@ -198,9 +198,9 @@ class App extends Component {
     // Initialize final canvas with the mask of the colors within the color ranges
     // This setting is used when calibrating the colors
     let dst = new cv.Mat();
-    cv.cvtColor(hsvMat, dst, cv.COLOR_HSV2RGB )
-    cv.cvtColor(dst, dst, cv.COLOR_RGB2RGBA)
-    cv.add(dst, rgbMat, dst)
+    cv.cvtColor(hsvMat, dst, cv.COLOR_RGB2RGBA )
+    //cv.cvtColor(dst, dst, cv.COLOR_RGB2RGBA)
+    cv.add(dst,rgbMat,dst)
     return dst
   }
   animate=()=> {
@@ -365,7 +365,7 @@ class App extends Component {
       !this.state.isFacebookApp ?
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
-          <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.4</span>
+          <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.6</span>
           <a style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}} href="http://instagram.com/arflowarts">Contact</a>
           <button style={{'fontSize':'10px','marginLeft' : '10px', 'fontSize' : '12px'}} id="helpButton" onClick={this.showCalibrateHelp}>How to</button>
           <br/>
