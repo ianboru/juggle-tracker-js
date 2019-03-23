@@ -132,7 +132,7 @@ class App extends Component {
     if(store.calibrationMode && (colorNum === store.colorNum || store.usingWhite)){
       // Initialize final canvas with the mask of the colors within the color ranges
       // This setting is used when calibrating the colors
-      contourImage= cvutils.getContourImage(colorFilteredImage, colorRange)
+      contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
       let upSizedContours 
       if(store.imageScale != 1){
         upSizedContours = cvutils.upSize(contourImage.clone())
@@ -143,7 +143,6 @@ class App extends Component {
       }else{
         cv.imshow('hiddenCanvas',contourImage)
       }
-      contourImage.delete()
     }
     
     if(store.showBrushColor){
