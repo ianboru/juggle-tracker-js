@@ -137,7 +137,9 @@ function findContours(src){
     // Return list of contour positions and sizes
     return contourPositions
 }
-function getContourImage(src,colorRange){
+function getContourImage(src,colorRange, drawColor){
+    const drawColorMatch = drawColor.match(/hsl\((\d.+)\,/)
+    drawColor = parseInt(drawColorMatch[1])
     const dst = cv.Mat.zeros( src.rows,src.cols, cv.CV_8UC3);
 
     // Maximum number of contours to interpret as objects
@@ -162,21 +164,19 @@ function getContourImage(src,colorRange){
     if(contourArea > store.sizeThreshold/store.imageScale && contourPositions.length < maxNumContours){
       // Use circle to get x,y coordinates and radius
       let color 
+      let colorString
       if(colorRange){
-        //console.log(toJS(colorRange))
-        const colorString = hsvToRgb(
-            mean(colorRange['lh'],colorRange['hh']), 100, 60
+        colorString = hsvToRgb(
+            drawColor, 100, 70
         )
         let rgbArray = colorString.split(',')
-   
-        //console.log(rgbArray)
         color = new cv.Scalar(
             parseInt(rgbArray[0]),
             parseInt(rgbArray[1]),
             parseInt(rgbArray[2])
         )
       }else{
-        //color = new cv.Scalar(255,255,255);
+        color = new cv.Scalar(255,255,255);
       } 
       //console.log(color)
       cv.drawContours(dst, contours, i, color, store.contourThickness, cv.LINE_4, hierarchy, 100);

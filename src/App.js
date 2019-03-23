@@ -146,15 +146,6 @@ class App extends Component {
       contourImage.delete()
     }
     
-    // Get the color values for the object being tracked (white if usingWhite)
-    if(store.showContours){
-      contourImage= cvutils.getContourImage(colorFilteredImage, colorRange)
-    }else{
-      this.drawEffects(context,colorNum,color)
-    }
-    return contourImage
-  }
-  drawEffects=(context,colorNum,color)=>{
     if(store.showBrushColor){
       color = 'hsl(' + store.brushColor + ', 100,100)'
     }
@@ -168,6 +159,29 @@ class App extends Component {
         this.state.discoHue = 0
       }
     }
+    if(store.showBrushColor){
+      color = 'hsl(' + store.brushColor + ', 100,100)'
+    }
+    // If disco mode is on, use the current disco color
+    if(store.discoMode){
+      color = 'hsl(' +this.state.discoHue+', 100,100)'
+      // Update the disco hue so that the color changes
+      this.state.discoHue = this.state.discoHue + store.discoIncrement
+      // When the hue reaches 360, it goes back to zero (HSV colorspace loops)
+      if(this.state.discoHue>360){
+        this.state.discoHue = 0
+      }
+    }
+    // Get the color values for the object being tracked (white if usingWhite)
+    if(store.showContours){
+      contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
+    }else{
+      this.drawEffects(context,colorNum,color)
+    }
+    return contourImage
+  }
+  drawEffects=(context,colorNum,color)=>{
+    
     //Draw trails
     if(store.showTrails){
       drawingUtils.drawCircles(context,this.state.positions[colorNum], color)
