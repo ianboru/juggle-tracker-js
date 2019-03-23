@@ -121,9 +121,9 @@ class Store {
     this.showAllConnections  = false
     this.showContours = false
     if(this.calibrationMode){
-      this.showTrails          = false
+      this.showContours          = false
     }else{
-      this.showTrails          = true
+      this.showContours          = true
     }
     this.showStars           = false
     this.showBrushColor      = false

@@ -207,13 +207,13 @@ class App extends Component {
       // Update the global stars variable
     }
   }
-  combineHSVWithRGB=(hsvMat, rgbMat)=>{
+  combineContoursWithSrc=(contourMat, srcMat)=>{
     // Initialize final canvas with the mask of the colors within the color ranges
     // This setting is used when calibrating the colors
     let dst = new cv.Mat();
-    cv.cvtColor(hsvMat, dst, cv.COLOR_RGB2RGBA )
-    //cv.cvtColor(dst, dst, cv.COLOR_RGB2RGBA)
-    cv.add(dst,rgbMat,dst)
+    cv.cvtColor(contourMat, dst, cv.COLOR_RGB2RGBA )
+
+    cv.add(dst,srcMat,dst)
     return dst
   }
   animate=()=> {
@@ -230,6 +230,7 @@ class App extends Component {
       }
       // Iterate through each color being tracked
       let preparedMat = cvutils.prepareImage(srcMat.clone())
+
       let allContourImage = new cv.Mat();
 
       if(!store.usingWhite){
@@ -245,11 +246,12 @@ class App extends Component {
           }
         })
       }else{
-        this.processCurrentColor(null, 0, context, preparedMat)
+        allContourImage.delete()
+        allContourImage = this.processCurrentColor(null, 0, context, preparedMat)
       }
       let srcWithContours
       if(store.showContours && allContourImage){
-        srcWithContours = this.combineHSVWithRGB(allContourImage,srcMat)
+        srcWithContours = this.combineContoursWithSrc(allContourImage,srcMat)
         cv.imshow('hiddenCanvas',srcWithContours)
       }
       // If the user is clicking and draging to select a color
