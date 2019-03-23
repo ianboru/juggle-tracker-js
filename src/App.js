@@ -106,16 +106,17 @@ class App extends Component {
     srcMat = cvutils.downSize(srcMat)
     return srcMat
   }
-  processCurrentColor=(colorRange=null, colorNum=null, context,srcMat)=>{
+  processCurrentColor=(colorRange=null, colorNum=null, context,preparedMat, srcMat)=>{
     let colorFilteredImage
     let color
+    let contourImage
     // If colored balls are being used, use cvutils.colorfilter
     if(!store.usingWhite){
-      colorFilteredImage = cvutils.colorFilter(srcMat, tempMat, colorRange)
+      colorFilteredImage = cvutils.colorFilter(preparedMat, tempMat, colorRange)
       color = cvutils.calculateCurrentHSV(colorRange)
     // If white balls are being used, use cvutils.colorWhite
     }else{
-      colorFilteredImage = cvutils.brightnessFilter(srcMat, tempMat)
+      colorFilteredImage = cvutils.brightnessFilter(preparedMat, tempMat)
       color = "hsl(175,0%,100%)"
     }
     if(!store.showContourOutlines){
@@ -131,7 +132,7 @@ class App extends Component {
     if(store.calibrationMode && (colorNum === store.colorNum || store.usingWhite)){
       // Initialize final canvas with the mask of the colors within the color ranges
       // This setting is used when calibrating the colors
-      let contourImage= cvutils.getContourImage(colorFilteredImage, colorRange)
+      contourImage= cvutils.getContourImage(colorFilteredImage, colorRange)
       let upSizedContours 
       if(store.imageScale != 1){
         upSizedContours = cvutils.upSize(contourImage.clone())
@@ -144,9 +145,14 @@ class App extends Component {
       }
       contourImage.delete()
     }
-    // Get the color values for the object being tracked (white if usingWhite)
     
-    this.drawEffects(context,colorNum,color)
+    // Get the color values for the object being tracked (white if usingWhite)
+    if(store.showContours){
+      contourImage= cvutils.getContourImage(colorFilteredImage, colorRange)
+    }else{
+      this.drawEffects(context,colorNum,color)
+    }
+    return contourImage
   }
   drawEffects=(context,colorNum,color)=>{
     if(store.showBrushColor){
@@ -188,6 +194,15 @@ class App extends Component {
       // Update the global stars variable
     }
   }
+  combineHSVWithRGB=(hsvMat, rgbMat)=>{
+    // Initialize final canvas with the mask of the colors within the color ranges
+    // This setting is used when calibrating the colors
+    let dst = new cv.Mat();
+    cv.cvtColor(hsvMat, dst, cv.COLOR_HSV2RGB )
+    cv.cvtColor(dst, dst, cv.COLOR_RGB2RGBA)
+    cv.add(dst, rgbMat, dst)
+    return dst
+  }
   animate=()=> {
     if(store.canvasOutput){
       if(store.videoWidth === 0 || store.videoWidth == null && !store.uploadedVideo){
@@ -201,14 +216,28 @@ class App extends Component {
         return
       }
       // Iterate through each color being tracked
-      srcMat = cvutils.prepareImage(srcMat)
+      let preparedMat = cvutils.prepareImage(srcMat.clone())
+      let allContourImage = new cv.Mat();
 
       if(!store.usingWhite){
         store.allColors.forEach((colorRange,colorNum)=>{
-          this.processCurrentColor(colorRange, colorNum, context, srcMat)
+          const contourImage = this.processCurrentColor(colorRange, colorNum, context, preparedMat)
+          if(contourImage){  
+            if(allContourImage.cols > 0){
+              cv.add(contourImage, allContourImage, allContourImage )
+            }else{
+              allContourImage = contourImage.clone()
+            }
+            contourImage.delete()
+          }
         })
       }else{
-        this.processCurrentColor(null, 0, context, srcMat)
+        this.processCurrentColor(null, 0, context, preparedMat)
+      }
+      let srcWithContours
+      if(store.showContours && allContourImage){
+        srcWithContours = this.combineHSVWithRGB(allContourImage,srcMat)
+        cv.imshow('hiddenCanvas',srcWithContours)
       }
       // If the user is clicking and draging to select a color
       const scaleFactor = store.videoWidth/store.canvasOutput.clientWidth
@@ -227,8 +256,15 @@ class App extends Component {
       destCtx.drawImage(store.hiddenCanvas, 0,0, store.videoWidth, store.videoHeight)
       //Trim histories to a value that is greater than trail length and ring history length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, 100)
-      //srcMat.delete();srcMat = null;
+      //preparedMat.delete();preparedMat = null;
+      preparedMat.delete();preparedMat = null
       srcMat.delete();srcMat = null
+      if(srcWithContours){
+        srcWithContours.delete()
+      }
+      if(allContourImage){
+        allContourImage.delete()
+      }
       //Process next frame
       requestAnimationFrame(this.animate);
     }

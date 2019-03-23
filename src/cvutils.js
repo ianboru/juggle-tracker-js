@@ -162,7 +162,7 @@ function getContourImage(src,colorRange){
       let color 
       if(colorRange){
         const colorString = hsvToRgb(
-            mean(colorRange['lh'],colorRange['hh']), 100, 100
+            mean(colorRange['lh'],colorRange['hh']), 100, 70
         )
         const rgbArray = colorString.split(',')
         color = new cv.Scalar(
@@ -173,7 +173,7 @@ function getContourImage(src,colorRange){
       }else{
         color = new cv.Scalar(255,255,255);
       } 
-      cv.drawContours(dst, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
+      cv.drawContours(dst, contours, i, color, store.contourThickness, cv.LINE_8, hierarchy, 100);
     }
     contour.delete(); 
     }

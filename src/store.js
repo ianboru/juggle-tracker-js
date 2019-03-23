@@ -27,7 +27,7 @@ class Store {
   @observable usingWhite          = false
   @observable showConnections     = false
   @observable showAllConnections  = false
-  @observable showTrails          = true
+  @observable showTrails          = false
   @observable showRings           = false
   @observable showStars           = false
   @observable showBrushColor      = false
@@ -59,6 +59,9 @@ class Store {
   @observable starPoint           = .5
   @observable hiddenCanvas        = null
   @observable imageScale          = 1
+  @observable showContours         = true
+  @observable contourThickness     = 1
+
 
   //
   // ACTIONS
@@ -116,6 +119,7 @@ class Store {
     this.calibrationMode = !this.calibrationMode
     this.showConnections     = false
     this.showAllConnections  = false
+    this.showContours = false
     if(this.calibrationMode){
       this.showTrails          = false
     }else{
@@ -123,7 +127,7 @@ class Store {
     }
     this.showStars           = false
     this.showBrushColor      = false
-
+    this.showRings           = false
   }
 
   @action setBrightnessMode = () => {
@@ -146,6 +150,17 @@ class Store {
   }
   @action toggleShowTrails = () => {
     this.showTrails = !this.showTrails
+    this.showContours = false
+  }
+  @action toggleShowContours = () => {
+    this.showContours = !this.showContours
+    this.showConnections     = false
+    this.showAllConnections  = false
+    this.showTrails          = false
+    this.showStars           = false
+    this.showBrushColor      = false
+    this.showRings           = false
+
   }
   @action toggleShowRings = () => {
     this.showRings = !this.showRings
@@ -177,10 +192,12 @@ class Store {
   @action setTrailLength = (trailLength) => {
     this.trailLength = trailLength
   }
+  @action setContourThickness = (contourThickness) => {
+    this.contourThickness = contourThickness
+  }
   @action setTrailThickness = (trailThickness) => {
     this.trailThickness = trailThickness
   }
-
 
   @action setRingLength = (ringLength) => {
     this.ringLength = ringLength

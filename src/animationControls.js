@@ -8,7 +8,7 @@ import { observer } from 'mobx-react'
 import "./App.css"
 import trailsInactive from "./assets/trails_inactive.png"
 import ringsInactive from "./assets/rings_inactive.png"
-
+import contoursInactive from "./assets/contours_inactive.png"
 import connectSameInactive from "./assets/connect_same_inactive.png"
 import connectAllInactive from "./assets/connect_all_inactive.png"
 import starsInactive from "./assets/stars_inactive.png"
@@ -17,6 +17,8 @@ import brushInactive from "./assets/brush_inactive.png"
 
 import trailsActive from "./assets/trails_active.png"
 import ringsActive from "./assets/rings_active.png"
+import contoursActive from "./assets/contours_active.png"
+
 import connectSameActive from "./assets/connect_same_active.png"
 import connectAllActive from "./assets/connect_all_active.png"
 import starsActive from "./assets/stars_active.png"
@@ -78,9 +80,15 @@ class AnimationControls extends Component {
 			<div>
 				<div className="slider-label" >Brush Color</div><Slider className="hue-slider" min={0} max={360} step={1} defaultValue={store.brushColor} handle={handle} onChange={store.setBrushColor} />
 			</div> : null 
+
+		const contourControls = store.showContours ? 
+			<div>
+				<div className="slider-label" >Contour Thickness</div><Slider min={1} max={24} step={1} defaultValue={store.contourThickness}  handle={handle} onChange={store.setContourThickness}/>
+			</div> : null 
 		return (
 			<div>
 				<div>
+					<img className="icon" title="trails" onClick={store.toggleShowContours} src={store.showContours ? contoursActive : contoursInactive}/>
 					<img className="icon" title="trails" onClick={store.toggleShowTrails} src={store.showTrails ? trailsActive : trailsInactive}/>
 					<img className="icon" title="rings" onClick={store.toggleShowRings} src={store.showRings ? ringsActive : ringsInactive}/>
 					<img className="icon" title="connect same colors" onClick={store.toggleShowConnections} src={store.showConnections ? connectSameActive : connectSameInactive}/>
@@ -96,7 +104,7 @@ class AnimationControls extends Component {
 				{ringControls}
 				{starControls}
 				{rainbowControls}
-
+				{contourControls}
 			</div>
 		)
 	}
