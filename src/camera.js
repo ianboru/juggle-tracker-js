@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { observer } from "mobx-react"
 import store from "./store"
 import Recorder from './recorder'
+
 const iOSDevice = !!navigator.platform.match(/iPhone|iPod|iPad/);
 
 @observer

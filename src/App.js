@@ -196,7 +196,7 @@ class App extends Component {
     if(store.showConnections){
       drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness, store.opacity)
     }
-    if(store.showAllConnections){
+    if(store.showAllConnections && colorNum == store.allColors.length-1){
       console.log("drawing all connections")
       drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
     }
