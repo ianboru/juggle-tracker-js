@@ -180,7 +180,10 @@ class App extends Component {
     return contourImage
   }
   drawEffects=(context,colorNum,color)=>{
-    
+    // Draw connections
+    if(store.showConnections){
+      drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness, store.opacity)
+    }
     //Draw trails
     if(store.showTrails){
       drawingUtils.drawCircles(context,this.state.positions[colorNum], color)
@@ -192,10 +195,7 @@ class App extends Component {
     if(store.showContourOutlines){
       drawingUtils.drawContours(context,this.state.contourLocations, color)
     }
-    // Draw connections
-    if(store.showConnections){
-      drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness, store.opacity)
-    }
+    
     if(store.showAllConnections && colorNum == store.allColors.length-1){
       console.log("drawing all connections")
       drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
