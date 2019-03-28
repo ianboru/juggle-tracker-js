@@ -184,7 +184,10 @@ class App extends Component {
   drawEffects=(context,colorNum,color)=>{
     // Draw connections
     if(store.showConnections){
-      drawingUtils.drawConnections(context, this.state.positions[colorNum], color, store.connectionThickness, store.opacity)
+      drawingUtils.drawConnections(context, this.state.positions[colorNum])
+    }
+    if(store.showAllConnections && colorNum == store.allColors.length-1){
+      drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
     }
     //Draw trails
     if(store.showTrails){
@@ -196,10 +199,6 @@ class App extends Component {
     }    
     if(store.showContourOutlines){
       drawingUtils.drawContours(context,this.state.contourLocations, color)
-    }
-    
-    if(store.showAllConnections && colorNum == store.allColors.length-1){
-      drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
     }
     // Draw Stars
     if(store.showStars){

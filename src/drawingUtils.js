@@ -116,7 +116,7 @@ function drawRings(context, contourPositions, color){
     }
   }
 }
-function drawConnections(context,positions, color, thickness, opacity){
+function drawConnections(context,positions, color){
   if(!positions){
     return
   }
@@ -135,13 +135,13 @@ function drawConnections(context,positions, color, thickness, opacity){
           const nextBallX = positions[j]['x'].slice(-1).pop()
           const nextBallY = positions[j]['y'].slice(-1).pop()
 
-          const lastColor = addOpacityToColor(color, opacity)
+          const lastColor = addOpacityToColor(color, store.opacity)
           
           context.beginPath();
           context.moveTo(curBallX, curBallY)
           context.lineTo(nextBallX, nextBallY)
           context.strokeStyle = lastColor
-          context.lineWidth = thickness;
+          context.lineWidth = store.connectionThickness;
           context.stroke();
         }
       }
@@ -158,7 +158,7 @@ function drawLineGradient(x1,y1,x2,y2,color1,color2,context){
   context.moveTo(x1, y1)
   context.lineTo(x2, y2)
   context.strokeStyle = grad
-  context.lineWidth = thickness;
+  context.lineWidth = store.connectionThickness;
   context.stroke();
 }
 function drawAllConnections(context,allPositions, allColors){
