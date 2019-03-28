@@ -178,7 +178,6 @@ function getContourImage(src,colorRange, drawColor){
       }else{
         color = new cv.Scalar(255,255,255);
       } 
-      //console.log(color)
       cv.drawContours(dst, contours, i, color, store.contourThickness, cv.LINE_4, hierarchy, 100);
     }
     contour.delete(); 
@@ -449,7 +448,6 @@ function hsvToRgb( H,  S,  V) {
             hexG = hexG.substring(0,2)
             hexB = hexB.substring(0,2)
             //return ''+ R.toString(16)+''+G.toString(16)+''+B.toString(16)
-            //console.log('val is  '+hexR.substring(0,2))
             return ''+ hexR+''+hexG+''+hexB
         }
 function downSize(src){

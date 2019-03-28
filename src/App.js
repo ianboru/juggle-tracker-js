@@ -260,7 +260,7 @@ class App extends Component {
         context.strokeStyle = "#ffffff"
         context.lineWidth = 3
         const rect = store.calibrationRect
-        context.strokeRect(rect[0]*scaleFactor,rect[1]*scaleFactor,(rect[2]-rect[0])*scaleFactor,(rect[3]-rect[1])*scaleFactor)
+        context.strokeRect(rect[0],rect[1],(rect[2]-rect[0]),(rect[3]-rect[1]))
       }
       // Shows text to instruct user
       if(store.showSelectColorText){
@@ -382,7 +382,7 @@ class App extends Component {
           <a style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}} href="http://instagram.com/arflowarts">Contact</a>
           <button style={{'fontSize':'10px','marginLeft' : '10px', 'fontSize' : '12px'}} id="helpButton" onClick={this.showCalibrateHelp}>How to</button>
           <br/>
-          <div class="top-tabs">
+          <div className="top-tabs">
               <ul>
                   <span className="calibrate-icon">
                     <img title="Calibration View" onClick={store.toggleCalibrationMode} src={store.calibrationMode ? calibrationActive : calibrationInactive}/>
@@ -393,7 +393,7 @@ class App extends Component {
               </ul>
           </div>
           
-          <div className="video-container">
+          <div className="video-container" id="videoContainer">
             {colorControls}
             {detectionControls}
             {animationControls}

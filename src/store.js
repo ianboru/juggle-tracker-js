@@ -82,16 +82,28 @@ class Store {
       return false
     }
   }
+  @computed get canvasDimensions(){
+    let width
+    if(window.innerWidth > 640){
+        width = 640
+    }else{
+        width = 375
+    }
+    return {
+      height : window.innerHeight*.9,
+      width : width
+    }
+  }
   @action setCanvasOutput(canvas){
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
+
+    canvas.width = this.canvasDimensions.width
+    canvas.height = this.canvasDimensions.height
     this.canvasOutput = canvas
-    console.log("set couput" ,canvas.width)
 
   }
   @action setHiddenCanvas(canvas){
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
+    canvas.width = this.canvasDimensions.width
+    canvas.height = this.canvasDimensions.height
     this.hiddenCanvas = canvas
     console.log("set hidden" ,canvas.width)
   }

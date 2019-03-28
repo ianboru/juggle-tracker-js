@@ -176,17 +176,13 @@ function drawAllConnections(context,allPositions, allColors){
   let lastColor = {}
   let curColor
   let curObjectX ; let curObjectY ; let lastObjectX ; let lastObjectY;
-  //console.log("next frame")
   for(let i = 0; i < flattenedPositions.length; ++i){
-    //console.log("next i ", i)
     for(let j = i+1; j < flattenedPositions.length; ++j){
-        //console.log("next j ", j)
         lastObjectX = flattenedPositions[i]['x'].slice(-1).pop()
         lastObjectY = flattenedPositions[i]['y'].slice(-1).pop()
         lastColor = flattenedPositionColors[i] 
         curObjectX = flattenedPositions[j]['x'].slice(-1).pop()
         curObjectY = flattenedPositions[j]['y'].slice(-1).pop() 
-        //console.log(lastObjectX, curObjectX)
         curColor = flattenedPositionColors[j] 
         drawLineGradient(curObjectX,curObjectY,lastObjectX,lastObjectY, curColor, lastColor, context)
     }
@@ -353,7 +349,6 @@ function drawRing(context, x,y,r, color, opacity){
     context.stroke();
 }
 function fitVidToCanvas(canvas, imageObj){
-  console.log("fiti" ,canvas.width, imageObj.videoWidth)
   let imageWidth
   let imageHeight
   if(imageObj.videoWidth){
