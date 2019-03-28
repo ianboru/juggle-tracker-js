@@ -170,7 +170,6 @@ function drawAllConnections(context,allPositions, allColors){
         flattenedPositions.push(allPositions[i][j])
         const color = addOpacityToColor(cvutils.calculateCurrentHSV(allColors[i]), store.opacity)
         flattenedPositionColors.push(color)
-
       }
     }
   }
@@ -354,7 +353,17 @@ function drawRing(context, x,y,r, color, opacity){
     context.stroke();
 }
 function fitVidToCanvas(canvas, imageObj){
-  var imageAspectRatio = imageObj.videoWidth / imageObj.videoHeight;
+  console.log("fiti" ,canvas.width, imageObj.videoWidth)
+  let imageWidth
+  let imageHeight
+  if(imageObj.videoWidth){
+    imageWidth = imageObj.videoWidth
+    imageHeight = imageObj.videoHeight
+  }else{
+    imageWidth = imageObj.width
+    imageHeight = imageObj.height
+  }
+  var imageAspectRatio = imageWidth/ imageHeight;
   var canvasAspectRatio = canvas.width / canvas.height;
   var renderableHeight, renderableWidth, xStart, yStart;
 
@@ -362,7 +371,7 @@ function fitVidToCanvas(canvas, imageObj){
   // and place the image centrally along width
   if(imageAspectRatio < canvasAspectRatio) {
     renderableHeight = canvas.height;
-    renderableWidth = imageObj.videoWidth * (renderableHeight / imageObj.videoHeight);
+    renderableWidth = imageWidth* (renderableHeight / imageHeight);
     xStart = (canvas.width - renderableWidth) / 2;
     yStart = 0;
   }
@@ -371,7 +380,7 @@ function fitVidToCanvas(canvas, imageObj){
   // and place the image centrally along height
   else if(imageAspectRatio > canvasAspectRatio) {
     renderableWidth = canvas.width
-    renderableHeight = imageObj.videoHeight * (renderableWidth / imageObj.videoWidth);
+    renderableHeight = imageHeight * (renderableWidth / imageWidth);
     xStart = 0;
     yStart = (canvas.height - renderableHeight) / 2;
   }

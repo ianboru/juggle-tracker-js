@@ -83,12 +83,25 @@ class Store {
     }
   }
   @action setCanvasOutput(canvas){
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
     this.canvasOutput = canvas
+    console.log("set couput" ,canvas.width)
+
   }
   @action setHiddenCanvas(canvas){
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
     this.hiddenCanvas = canvas
+    console.log("set hidden" ,canvas.width)
   }
-
+  @action resizeCanvas(width,height){
+    this.hiddenCanvas.width = width
+    this.hiddenCanvas.height = height
+    this.canvasOutput.width = width
+    this.canvasOutput.height = height
+    console.log(width, height)
+  }
   @action setCalibrationRect(rect){
     this.calibrationRect = rect
     this.showSelectColorText = false
@@ -111,8 +124,6 @@ class Store {
   @action setVideoDimensions=(width,height)=>{
     this.videoWidth = width
     this.videoHeight = height
-    this.canvasOutput.width = width
-    this.canvasOutput.height = height
   }
   
   @action toggleCalibrationMode = () => {

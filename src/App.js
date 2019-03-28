@@ -75,10 +75,12 @@ class App extends Component {
     requestAnimationFrame(this.animate);
   }
   handleVideoData=(canvas)=>{
+    const scaleFactor = (store.canvasOutput.width/store.videoWidth)*store.videoHeight
+
     const context = canvas.getContext("2d")
     const outputContext = store.canvasOutput.getContext("2d")
-    context.clearRect( 0, 0, store.videoWidth, store.videoHeight)
-    outputContext.clearRect( 0, 0, store.videoWidth, store.videoHeight)
+    context.clearRect( 0, 0, canvas.width, canvas.height)
+    outputContext.clearRect( 0, 0, store.canvasOutput.width, store.canvasOutput.height)
 
     if(store.uploadedVideo){
       // Use the uploaded file
@@ -88,11 +90,11 @@ class App extends Component {
       if(!store.liveVideo){
         return null
       }
-      context.drawImage(store.liveVideo, 0, 0, store.videoWidth, store.videoHeight);
+      drawingUtils.fitVidToCanvas(canvas, store.liveVideo)
     }
 
     // Get the srcMat from the canvas
-    let srcMat = cvutils.getMatFromCanvas(context, store.videoWidth, store.videoHeight)
+    let srcMat = cvutils.getMatFromCanvas(context, store.hiddenCanvas.width, store.hiddenCanvas.height)
     // Flip horizontally because camera feed is pre-flipped
     if(!store.uploadedVideo){
       cv.flip(srcMat, srcMat,1)
@@ -197,7 +199,6 @@ class App extends Component {
     }
     
     if(store.showAllConnections && colorNum == store.allColors.length-1){
-      console.log("drawing all connections")
       drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
     }
     // Draw Stars
@@ -218,6 +219,7 @@ class App extends Component {
   }
   animate=()=> {
     if(store.canvasOutput){
+      const scaleFactor = (store.canvasOutput.width/store.videoWidth)*store.videoHeight
       if(store.videoWidth === 0 || store.videoWidth == null && !store.uploadedVideo){
         requestAnimationFrame(this.animate);
         return
@@ -230,9 +232,7 @@ class App extends Component {
       }
       // Iterate through each color being tracked
       let preparedMat = cvutils.prepareImage(srcMat.clone())
-
       let allContourImage = new cv.Mat();
-
       if(!store.usingWhite){
         store.allColors.forEach((colorRange,colorNum)=>{
           const contourImage = this.processCurrentColor(colorRange, colorNum, context, preparedMat)
@@ -255,7 +255,6 @@ class App extends Component {
         cv.imshow('hiddenCanvas',srcWithContours)
       }
       // If the user is clicking and draging to select a color
-      const scaleFactor = store.videoWidth/store.canvasOutput.clientWidth
       if(store.calibrationRect){
         //Draw color selection rectangle
         context.strokeStyle = "#ffffff"
@@ -267,8 +266,7 @@ class App extends Component {
       if(store.showSelectColorText){
         drawingUtils.drawSelectColorText(context, store.isMobile, store.usingWhite)
       }
-      var destCtx = store.canvasOutput.getContext('2d');
-      destCtx.drawImage(store.hiddenCanvas, 0,0, store.videoWidth, store.videoHeight)
+      drawingUtils.fitVidToCanvas(store.canvasOutput, store.hiddenCanvas)
       //Trim histories to a value that is greater than trail length and ring history length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, 100)
       //preparedMat.delete();preparedMat = null;
@@ -380,7 +378,7 @@ class App extends Component {
       !this.state.isFacebookApp ?
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
-          <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.6</span>
+          <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.7</span>
           <a style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}} href="http://instagram.com/arflowarts">Contact</a>
           <button style={{'fontSize':'10px','marginLeft' : '10px', 'fontSize' : '12px'}} id="helpButton" onClick={this.showCalibrateHelp}>How to</button>
           <br/>

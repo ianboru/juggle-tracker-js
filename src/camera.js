@@ -145,7 +145,6 @@ class Camera extends Component {
           <input className='invisible' type="file" accept="video/*" ref={ref => this.input = ref} onChange={this.handleFile}/>
           {uploadFileButton}
           {playUploadedButton}
-          {recordingButton}
         </div>
       </div>
 
@@ -153,8 +152,7 @@ class Camera extends Component {
       <span>
         <video hidden={true} muted playsInline autoPlay className="invisible live-video" ref={ref => this.video = ref}></video>
         <video hidden={true} muted playsInline autoPlay onEnded={this.handleVideoEnded}   className="invisible live-video" ref={ref => this.uploadedVideo = ref}></video>
-        <Recorder recording={this.state.recording} canvasStream={this.state.canvasStream}/>
-        <div style={{'color' : 'red'}} >{screenRecordText}</div>
+        <div style={{'color' : 'red'}} >Use Screen Recording to Record Video</div>
         {videoControls}
       </span>
     )

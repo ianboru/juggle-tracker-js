@@ -36,7 +36,6 @@ button {
 .video-container{
   position : relative;
   margin: 0 auto;
-  width : 640px;
 }
 .overlay-controls, .canvas{
   position : absolute;
@@ -102,21 +101,21 @@ canvas{
 }
 
 @media screen and (min-width: 992px) {
-  canvas,.video-container{
+  .video-container{
     width: 640px;
     height: auto;
   }
 
 }
 @media screen and (max-width: 992px) {
-  canvas,.video-container{
+  .video-container{
     width: 640px;
     height: auto;
   }
 
 }
 @media screen and (max-width: 600px) {
-  canvas,.video-container{
+  .video-container{
     display: block; 
     width: 375px;
     height: auto;
@@ -142,10 +141,7 @@ canvas{
   user-select: none;
   margin-top : 0;
 }
-.live-video{
-  width: 100%;
-  height: auto;
-}
+
 .App-link {
   color: #61dafb;
 }
