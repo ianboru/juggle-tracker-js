@@ -21,9 +21,14 @@ function drawSelectColorText(context, isMobile, usingWhite){
   }else{
     text = "Adjust brightness threshold to find prop"
   }
-  context.font = "30px Arial"
+  context.font = "22px Arial"
   context.fillStyle = "#ffffff"
-  context.fillText(text,40, context.canvas.height - 40)
+  context.textAlign = "center"; 
+  context.fillText(
+    text,
+    context.canvas.width*.5, 
+    context.canvas.height*.95
+  )
 }
 
 function drawContours(context, contourPositions, color){
