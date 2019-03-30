@@ -13,8 +13,7 @@ class Camera extends Component {
     videoHeight : null,
     videoWidth : null,
     fileUploaded : true,
-        recording : null,
-        mounted : true
+    mounted : true
 
   }
   componentDidMount(){
@@ -54,8 +53,7 @@ class Camera extends Component {
             that.video.setAttribute("height", videoHeight);
             that.state.streaming = true 
             store.setVideoDimensions(that.video.videoWidth, that.video.videoHeight)
-            that.state.videoWidth = videoWidth
-            that.state.videoHeight = videoHeight
+
           }
           that.props.startVideoProcessing();
         }, false);
@@ -67,7 +65,7 @@ class Camera extends Component {
   }
   stopCamera=()=> {
     if (!this.state.streaming) return;
-    store.canvasOutput.getContext("2d").clearRect(0, 0, this.state.videoWidth, this.state.videoHeight);
+    store.canvasOutput.getContext("2d").clearRect(0, 0, store.videoWidth, store.videoHeight);
     this.video.srcObject=null;
     this.state.stream.getVideoTracks()[0].stop();
     this.state.streaming = false
@@ -105,29 +103,9 @@ class Camera extends Component {
       recordButton.textContent = 'Pause Video';
     }
   }
-
-  handleVideoEnded = ()=>{
+handleVideoEnded = ()=>{
     const recordButton = document.querySelector('button#playUploadedButton');
     this.uploadedVideo.play()
-  }
- toggleRecording=()=>{
-    // Change the text on the record button
-    // User wants to record
-    console.log(this.state.recording)
-    if (!this.state.recording) {
-      // Capture the video stream, and set recording to true
-      this.setState({
-        canvasStream : store.canvasOutput.captureStream(),
-        recording : true
-      })
-    } else {
-      // Stop recording
-      this.setState({
-        canvasStream : null,
-        recording : false
-      })
-      // Stop the camera
-    }
   }
   render(){
     const uploadFileButton = this.state.mounted && this.input ? <button style={{'margin-bottom':'10px','fontSize':'12pt'}} onClick={this.handleInputClick}>Upload Video</button> : null
@@ -137,8 +115,6 @@ class Camera extends Component {
     }
 
     const screenRecordText = iOSDevice ? "Record with iOS screen recording " : null
-    const recordingText = this.state.recording ? "Stop Recording" : "Start Recording"
-    const recordingButton = iOSDevice ? null : <button style={{'margin-bottom':'10px','fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>{recordingText}</button>
     const videoControls =
       <div>
         <div style={{'marginBottom' :'10px'}}>
@@ -150,8 +126,8 @@ class Camera extends Component {
 
     return(
       <span>
-        <video hidden={true} muted playsInline autoPlay className="invisible live-video" ref={ref => this.video = ref}></video>
-        <video hidden={true} muted playsInline autoPlay onEnded={this.handleVideoEnded}   className="invisible live-video" ref={ref => this.uploadedVideo = ref}></video>
+        <video muted playsInline autoPlay className="live-video" ref={ref => this.video = ref}></video>
+        <video muted playsInline autoPlay onEnded={this.handleVideoEnded}   className="live-video" ref={ref => this.uploadedVideo = ref}></video>
         <div style={{'color' : 'red'}} >Use Screen Recording to Record Video</div>
         {videoControls}
       </span>

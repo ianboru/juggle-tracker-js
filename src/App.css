@@ -33,19 +33,11 @@ button {
   font-size: 16px;
   color : #787878;
 }
-.video-container{
-  position : relative;
-  margin: 0 auto;
-  text-align: center;
-}
-canvas{
-  margin : 0 auto;
-}
+
+
 .overlay-controls{
   position : absolute;
   margin : 0 auto;
-}
-.overlay-controls{
   background-color: rgba(255, 255, 255, 0.5);
   z-index : 50;
   width: 100%;
@@ -90,7 +82,6 @@ h3{
   background-color: white;
 }
 canvas{
-  display: block; 
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -99,11 +90,19 @@ canvas{
   -ms-user-select: none;
   -o-user-select: none;
   user-select: none;
+  position : absolute;
+  z-index : 49;
+}
+.live-video{
+  position: absolute;
 }
 #canvas{
    touch-action: none;
 }
-
+.video-container{
+  position : relative;
+  margin: 0 auto;
+}
 @media screen and (min-width: 992px) {
   .video-container{
     width: 640px;
@@ -120,12 +119,12 @@ canvas{
 }
 @media screen and (max-width: 600px) {
   .video-container{
-    display: block; 
     width: 375px;
     height: auto;
   }
 
 }
+
 .slider-label{
   padding-top: 4px;
   font-size: 14px;

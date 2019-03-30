@@ -19,6 +19,8 @@ class Store {
   @observable uploadedVideo       = null
   @observable videoWidth          = null
   @observable videoHeight          = null
+  @observable uploadedVideoWidth          = null
+  @observable uploadedVideoHeight          = null
   @observable calibrationMode     = false
   @observable calibratRect        = null
   @observable filterHSV           = initialHSV
@@ -131,13 +133,33 @@ class Store {
     this.liveVideo = video
   }
   @action setUploadedVideo= (video) => {
+    console.log("set uploaded 1")
     this.uploadedVideo = video
+
   }
   @action setVideoDimensions=(width,height)=>{
-    this.videoWidth = width
-    this.videoHeight = height
+    const scaleFactor = 640/width
+    this.videoWidth = 640
+    this.videoHeight = height*scaleFactor
   }
-  
+  @action setUploadedVideoDimensions=()=>{
+    if(this.uploadedVideo.videoWidth == 0){ return }
+    console.log("SET UPLOADED")
+    console.log(this.uploadedVideo.videoWidth)
+    const scaleFactor = 375/this.uploadedVideo.videoWidth
+    const scaledHeight = this.uploadedVideo.videoHeight*scaleFactor
+    this.uploadedVideo.width = 375
+    this.uploadedVideo.height  = scaledHeight
+    this.hiddenCanvas.width = 375
+    this.hiddenCanvas.height = scaledHeight
+    this.canvasOutput.width = 375
+    this.canvasOutput.height = scaledHeight
+    this.uploadedVideoWidth = 375
+    this.uploadedVideoHeight = 375
+  }
+  @action addUploadedVideoTime =(time)=>{
+    this.uploadedVideo.currentTime = this.uploadedVideo.currentTime + time
+  }
   @action toggleCalibrationMode = () => {
     this.calibrationMode = !this.calibrationMode
     this.showConnections     = false
