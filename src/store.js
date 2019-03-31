@@ -61,6 +61,7 @@ class Store {
   @observable imageScale          = 1
   @observable showContours         = true
   @observable contourThickness     = 1
+  @observable uploadedDimensionsExist  = false
 
 
   //
@@ -84,15 +85,43 @@ class Store {
   }
   @computed get canvasDimensions(){
     let width
+    let height
     if(window.innerWidth > 640){
         width = 640
+        height = 480
     }else{
         width = 375
+        height = 375
     }
     return {
-      height : window.innerHeight*.9,
+      height : height,
       width : width
     }
+  }
+  @action setUploadedVideoDimensions=()=>{
+    if(this.uploadedVideo.videoWidth == 0){ return }
+    var scale = window.devicePixelRatio
+    console.log("scale", scale)
+    console.log("exit", this.uploadedDimensionsExist)
+    const hiddenContext = this.hiddenCanvas.getContext("2d")
+    const outputContext = this.canvasOutput.getContext("2d")
+    this.uploadedDimensionsExist = true
+    this.hiddenCanvas.width = this.uploadedVideo.videoWidth/2
+    this.hiddenCanvas.height = this.uploadedVideo.videoHeight/2
+    /*this.hiddenCanvas.width = scale * this.uploadedVideo.videoWidth/2
+    this.hiddenCanvas.height = scale * this.uploadedVideo.videoHeight/2
+    this.hiddenCanvas.style.width = this.uploadedVideo.videoWidth/2 + "px"
+    this.hiddenCanvas.style.height = this.uploadedVideo.videoHeight/2 + "px"
+    const scaleFactor = this.canvasDimensions.width/this.hiddenCanvas.width*/
+    this.canvasOutput.width = this.canvasDimensions.width
+    this.canvasOutput.height = this.canvasDimensions.height// this.hiddenCanvas.height*scaleFactor
+    //this.canvasOutput.style.width = this.canvasDimensions.width + "px"
+    //this.canvasOutput.style.height = this.hiddenCanvas.height*scaleFactor + "px"
+
+    // Normalize coordinate system to use css pixels.
+    hiddenContext.scale(scale, scale);
+    //outputContext.scale(scale, scale);
+
   }
   @action setCanvasOutput(canvas){
 
@@ -102,17 +131,10 @@ class Store {
 
   }
   @action setHiddenCanvas(canvas){
-    canvas.width = this.canvasDimensions.width
-    canvas.height = this.canvasDimensions.height
+    canvas.width = 640
+    canvas.height = 980
     this.hiddenCanvas = canvas
     console.log("set hidden" ,canvas.width)
-  }
-  @action resizeCanvas(width,height){
-    this.hiddenCanvas.width = width
-    this.hiddenCanvas.height = height
-    this.canvasOutput.width = width
-    this.canvasOutput.height = height
-    console.log(width, height)
   }
   @action setCalibrationRect(rect){
     this.calibrationRect = rect
