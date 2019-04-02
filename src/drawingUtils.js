@@ -363,6 +363,7 @@ function fitVidToCanvas(canvas, imageObj){
     imageWidth = imageObj.width
     imageHeight = imageObj.height
   }
+
   var imageAspectRatio = imageWidth/ imageHeight;
   var canvasAspectRatio = canvas.width / canvas.height;
   var renderableHeight, renderableWidth, xStart, yStart;
@@ -393,6 +394,7 @@ function fitVidToCanvas(canvas, imageObj){
     yStart = 0;
   }
   const context = canvas.getContext("2d")
+  //ontext.imageSmoothingQuality = "medium"
   context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
 };
 

@@ -34,6 +34,11 @@ button {
   color : #787878;
 }
 
+.video-container{
+  position : relative;
+  margin: 0 auto;
+  text-align: center;
+}
 
 .overlay-controls{
   position : absolute;
@@ -43,6 +48,7 @@ button {
   width: 100%;
   text-align: center;
   padding-top: 15px;
+  touch-action: none;
 }
 .tab{
   display : inline-block;
@@ -82,6 +88,9 @@ h3{
   background-color: white;
 }
 canvas{
+
+  display: block; 
+  margin : 0 auto;
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -95,6 +104,8 @@ canvas{
 }
 .live-video{
   position: absolute;
+  image-rendering: optimizeSpeed;               
+  -ms-interpolation-mode: nearest-neighbor;  
 }
 #canvas{
    touch-action: none;

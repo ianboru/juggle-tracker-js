@@ -1,5 +1,5 @@
 import { action, configure, computed, observable} from "mobx"
-
+import iosHeight from 'ios-inner-height'
 const initialHSV = {
       lh : 180,
       ls : .2,
@@ -63,6 +63,7 @@ class Store {
   @observable imageScale          = 1
   @observable showContours         = true
   @observable contourThickness     = 1
+  @observable uploadedDimensionsExist = false
 
 
   //
@@ -86,36 +87,69 @@ class Store {
   }
   @computed get canvasDimensions(){
     let width
+    let height
     if(window.innerWidth > 640){
         width = 640
+        height = 480
     }else{
-        width = 375
+      const iOSDevice = !!navigator.platform.match(/iPhone|iPod|iPad/);
+        width = window.innerWidth
+        height = iOSDevice ? iosHeight() : window.innerHeight
     }
     return {
-      height : window.innerHeight*.9,
+      height : height,
       width : width
     }
   }
-  @action setCanvasOutput(canvas){
+  @action setUploadedVideoDimensions=()=>{
+    if(this.uploadedVideo.videoWidth == 0){ return }
+    var scale = window.devicePixelRatio
+    console.log("scale", scale)
+    console.log("exit", this.uploadedDimensionsExist)
+    const hiddenContext = this.hiddenCanvas.getContext("2d")
+    const outputContext = this.canvasOutput.getContext("2d")
+    this.uploadedDimensionsExist = true
+    this.hiddenCanvas.width = this.uploadedVideo.videoWidth/2
+    this.hiddenCanvas.height = this.uploadedVideo.videoHeight/2
+    /*this.hiddenCanvas.width = scale * this.uploadedVideo.videoWidth/2
+    this.hiddenCanvas.height = scale * this.uploadedVideo.videoHeight/2
+    this.hiddenCanvas.style.width = this.uploadedVideo.videoWidth/2 + "px"
+    this.hiddenCanvas.style.height = this.uploadedVideo.videoHeight/2 + "px"
+    const scaleFactor = this.canvasDimensions.width/this.hiddenCanvas.width*/
+    this.canvasOutput.width = this.canvasDimensions.width
+    this.canvasOutput.height = this.canvasDimensions.height// this.hiddenCanvas.height*scaleFactor
+    //this.canvasOutput.style.width = this.canvasDimensions.width + "px"
+    //this.canvasOutput.style.height = this.hiddenCanvas.height*scaleFactor + "px"
 
+    // Normalize coordinate system to use css pixels.
+    hiddenContext.scale(scale, scale);
+    //outputContext.scale(scale, scale);
+
+  }
+  @action setCanvasOutput(canvas){
     canvas.width = this.canvasDimensions.width
     canvas.height = this.canvasDimensions.height
     this.canvasOutput = canvas
-
   }
   @action setHiddenCanvas(canvas){
-    canvas.width = this.canvasDimensions.width
-    canvas.height = this.canvasDimensions.height
+    canvas.width = 640
+    canvas.height = 980
     this.hiddenCanvas = canvas
-    console.log("set hidden" ,canvas.width)
   }
-  @action resizeCanvas(width,height){
-    this.hiddenCanvas.width = width
-    this.hiddenCanvas.height = height
-    this.canvasOutput.width = width
-    this.canvasOutput.height = height
-    console.log(width, height)
-  }
+  /*@action setUploadedVideoDimensions=()=>{
+    if(this.uploadedVideo.videoWidth == 0){ return }
+    
+    this.uploadedDimensionsExist = true
+    let scaleFactor = 1
+    if(this.uploadedVideo.videoHeight/this.canvasDimensions.height > 1.5){
+      scaleFactor = (.4 * (this.uploadedVideo.videoHeight-this.canvasDimensions.height) + this.canvasDimensions.height)/this.canvasDimensions.height
+    }
+    this.hiddenCanvas.width = Math.round(this.canvasDimensions.width * scaleFactor)
+    this.hiddenCanvas.height = Math.round(this.canvasDimensions.height * scaleFactor)
+    console.log("SET UPLOADED")
+    console.log(this.uploadedVideo.videoHeight, this.hiddenCanvas.height)
+  }*/
+
   @action setCalibrationRect(rect){
     this.calibrationRect = rect
     this.showSelectColorText = false
@@ -135,7 +169,7 @@ class Store {
   @action setUploadedVideo= (video) => {
     console.log("set uploaded 1")
     this.uploadedVideo = video
-
+    this.uploadedDimensionsExist = false
   }
   @action setVideoDimensions=(width,height)=>{
     const scaleFactor = 640/width

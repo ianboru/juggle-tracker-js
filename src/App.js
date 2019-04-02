@@ -194,7 +194,7 @@ class App extends Component {
   drawEffects=(context,colorNum,color)=>{
     // Draw connections
     if(store.showConnections){
-      drawingUtils.drawConnections(context, this.state.positions[colorNum])
+      drawingUtils.drawConnections(context, this.state.positions[colorNum], color)
     }
     if(store.showAllConnections && colorNum == store.allColors.length-1){
       drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
@@ -238,11 +238,16 @@ class App extends Component {
         return
       }
       const context = store.hiddenCanvas.getContext("2d")
+
+      /*if(store.uploadedVideo && !store.uploadedDimensionsExist){
+        store.setUploadedVideoDimensions()
+      }*/
       let srcMat = this.handleVideoData(store.hiddenCanvas);
       if(!srcMat){
         requestAnimationFrame(this.animate);
         return
       }
+
       // Iterate through each color being tracked
       let preparedMat = cvutils.prepareImage(srcMat.clone())
       let allContourImage = new cv.Mat();
@@ -493,7 +498,7 @@ handleVideoEnded = ()=>{
       !this.state.isFacebookApp ?
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
-          <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.7</span>
+          <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.8</span>
           <a style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}} href="http://instagram.com/arflowarts">Contact</a>
           <button style={{'fontSize':'10px','marginLeft' : '10px', 'fontSize' : '12px'}} id="helpButton" onClick={this.showCalibrateHelp}>How to</button>
           {videoControls}
