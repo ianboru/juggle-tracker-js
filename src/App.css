@@ -38,19 +38,16 @@ button {
   margin: 0 auto;
   text-align: center;
 }
-canvas{
-  margin : 0 auto;
-}
+
 .overlay-controls{
   position : absolute;
   margin : 0 auto;
-}
-.overlay-controls{
   background-color: rgba(255, 255, 255, 0.5);
   z-index : 50;
   width: 100%;
   text-align: center;
   padding-top: 15px;
+  touch-action: none;
 }
 .tab{
   display : inline-block;
@@ -91,6 +88,7 @@ h3{
 }
 canvas{
   display: block; 
+  margin : 0 auto;
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -99,6 +97,8 @@ canvas{
   -ms-user-select: none;
   -o-user-select: none;
   user-select: none;
+  image-rendering: optimizeSpeed;               
+  -ms-interpolation-mode: nearest-neighbor;  
 }
 #canvas{
    touch-action: none;
