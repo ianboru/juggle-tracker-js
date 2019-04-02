@@ -184,7 +184,7 @@ class App extends Component {
   drawEffects=(context,colorNum,color)=>{
     // Draw connections
     if(store.showConnections){
-      drawingUtils.drawConnections(context, this.state.positions[colorNum])
+      drawingUtils.drawConnections(context, this.state.positions[colorNum], color)
     }
     if(store.showAllConnections && colorNum == store.allColors.length-1){
       drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
@@ -224,11 +224,15 @@ class App extends Component {
         return
       }
       const context = store.hiddenCanvas.getContext("2d")
+      /*if(store.uploadedVideo && !store.uploadedDimensionsExist){
+        store.setUploadedVideoDimensions()
+      }*/
       let srcMat = this.handleVideoData(store.hiddenCanvas);
       if(!srcMat){
         requestAnimationFrame(this.animate);
         return
       }
+
       // Iterate through each color being tracked
       let preparedMat = cvutils.prepareImage(srcMat.clone())
       let allContourImage = new cv.Mat();

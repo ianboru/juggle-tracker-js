@@ -1,5 +1,5 @@
 import { action, configure, computed, observable} from "mobx"
-
+import iosHeight from 'ios-inner-height'
 const initialHSV = {
       lh : 180,
       ls : .2,
@@ -61,6 +61,7 @@ class Store {
   @observable imageScale          = 1
   @observable showContours         = true
   @observable contourThickness     = 1
+  @observable uploadedDimensionsExist = false
 
 
   //
@@ -84,35 +85,49 @@ class Store {
   }
   @computed get canvasDimensions(){
     let width
+    let height
     if(window.innerWidth > 640){
         width = 640
+        height = 480
     }else{
-        width = 375
+      const iOSDevice = !!navigator.platform.match(/iPhone|iPod|iPad/);
+        width = window.innerWidth
+        height = iOSDevice ? iosHeight() : window.innerHeight
     }
     return {
-      height : window.innerHeight*.9,
+      height : height,
       width : width
     }
   }
   @action setCanvasOutput(canvas){
-
     canvas.width = this.canvasDimensions.width
     canvas.height = this.canvasDimensions.height
     this.canvasOutput = canvas
-
   }
   @action setHiddenCanvas(canvas){
     canvas.width = this.canvasDimensions.width
     canvas.height = this.canvasDimensions.height
     this.hiddenCanvas = canvas
-    console.log("set hidden" ,canvas.width)
   }
+
+  /*@action setUploadedVideoDimensions=()=>{
+    if(this.uploadedVideo.videoWidth == 0){ return }
+    
+    this.uploadedDimensionsExist = true
+    let scaleFactor = 1
+    if(this.uploadedVideo.videoHeight/this.canvasDimensions.height > 1.5){
+      scaleFactor = (.4 * (this.uploadedVideo.videoHeight-this.canvasDimensions.height) + this.canvasDimensions.height)/this.canvasDimensions.height
+    }
+    this.hiddenCanvas.width = Math.round(this.canvasDimensions.width * scaleFactor)
+    this.hiddenCanvas.height = Math.round(this.canvasDimensions.height * scaleFactor)
+    console.log("SET UPLOADED")
+    console.log(this.uploadedVideo.videoHeight, this.hiddenCanvas.height)
+  }*/
   @action resizeCanvas(width,height){
     this.hiddenCanvas.width = width
     this.hiddenCanvas.height = height
     this.canvasOutput.width = width
     this.canvasOutput.height = height
-    console.log(width, height)
   }
   @action setCalibrationRect(rect){
     this.calibrationRect = rect
@@ -132,6 +147,7 @@ class Store {
   }
   @action setUploadedVideo= (video) => {
     this.uploadedVideo = video
+    this.uploadedDimensionsExist = false
   }
   @action setVideoDimensions=(width,height)=>{
     this.videoWidth = width
