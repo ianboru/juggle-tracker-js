@@ -2,9 +2,9 @@ import React, { Component } from 'react';
 import { observer } from "mobx-react"
 import store from "./store"
 import Recorder from './recorder'
-
+import axois, { post } from 'axios'
 const iOSDevice = !!navigator.platform.match(/iPhone|iPod|iPad/);
-
+const webtaskUrl = "https://wt-b5a67af96f44fb6828d5a07d6bb70476-0.sandbox.auth0-extend.com/arflowarts"
 @observer
 class Camera extends Component {
   state={
@@ -79,12 +79,30 @@ class Camera extends Component {
     }
     this.input.click()
   }
+  postVideo = (video)=>{
+    console.log("posting video")
+    const formData = new FormData()
+    const config = {
+        headers: {
+            'content-type': 'multipart/form-data'
+        }
+    }
+    formData.append('file',video)
+    return post(webtaskUrl + "/upload", formData, config).then(response => {
+      console.log(response)
+    }) 
+  }
   handleFile = ()=>{
     
     let URL = window.URL || window.webkitURL
 
     let file = this.input.files[0]
+    console.log("file",file)
     if(!file){return}
+      console.log("file uploarded")
+    this.postVideo(file).then((response)=>{
+      console.log("video posted", response)
+    })
     let fileURL = URL.createObjectURL(file)
     this.uploadedVideo.src = fileURL
     store.setUploadedVideo(this.uploadedVideo)
@@ -93,7 +111,9 @@ class Camera extends Component {
     },()=>{
       this.stopCamera()
     })
+
   }
+
 
   handlePlayUploaded = ()=>{
     const recordButton = document.querySelector('button#playUploadedButton');
