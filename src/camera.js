@@ -18,7 +18,9 @@ class Camera extends Component {
 
   }
   componentDidMount(){
-    this.startCamera()
+    if(!this.props.isFaceBookApp){
+      this.startCamera()
+    }
     this.setState({
       mounted : true
     })

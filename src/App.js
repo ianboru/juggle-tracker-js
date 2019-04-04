@@ -243,6 +243,8 @@ class App extends Component {
               allContourImage = contourImage.clone()
             }
             contourImage.delete()
+          }else if(contourImage && store.calibrationMode){
+            contourImage.delete()
           }
         })
       }else{

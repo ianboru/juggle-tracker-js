@@ -143,13 +143,6 @@ class Store {
   
   @action toggleCalibrationMode = () => {
     this.calibrationMode = !this.calibrationMode
-
-    if(this.calibrationMode){
-      this.showContours          = false
-    }else{
-      this.showContours          = true
-    }
-
   }
 
   @action setBrightnessMode = () => {

@@ -78,7 +78,7 @@ class AnimationControls extends Component {
 
 		const brushColorControls = store.showBrushColor ? 
 			<div>
-				<div className="slider-label" >Brush Color</div><Slider className="hue-slider" min={0} max={360} step={1} defaultValue={store.brushColor} handle={handle} onChange={store.setBrushColor} />
+				<div className="slider-label" >Brush Color</div><Slider className="hue-slider gradient-slider" min={0} max={360} step={1} defaultValue={store.brushColor} handle={handle} onChange={store.setBrushColor} />
 			</div> : null 
 
 		const contourControls = store.showContours ? 
