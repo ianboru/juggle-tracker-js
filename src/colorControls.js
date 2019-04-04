@@ -49,21 +49,19 @@ class ColorControls extends Component {
 		}
 	}
 	setSGradient=(node,currentH)=>{
-		node.style.backgroundImage = "-o-linear-gradient(hsl("+currentH +",0%,70%),hsl("+currentH +",100%,70%))";
-		node.style.backgroundImage = "-ms-linear-gradient(hsl("+currentH +",0%,70%),hsl("+currentH +",100%,70%))";
-		node.style.backgroundImage = "-moz-linear-gradient(hsl("+currentH +",0%,70%),hsl("+currentH +",100%,70%))";
-		node.style.backgroundImage = "-webkit-linear-gradient(hsl("+currentH +",0%,70%),hsl("+currentH +",100%,70%))";
-		node.style.backgroundImage = "linear-gradient(to right,hsl("+currentH +",0%,70%),hsl("+currentH +",100%,70%))";
+		node.style.backgroundImage = "-o-linear-gradient(hsl("+currentH +",0%,80%),hsl("+currentH +",100%,80%))";
+		node.style.backgroundImage = "-ms-linear-gradient(hsl("+currentH +",0%,80%),hsl("+currentH +",100%,80%))";
+		node.style.backgroundImage = "-moz-linear-gradient(hsl("+currentH +",0%,80%),hsl("+currentH +",100%,80%))";
+		node.style.backgroundImage = "-webkit-linear-gradient(hsl("+currentH +",0%,80%),hsl("+currentH +",100%,80%))";
+		node.style.backgroundImage = "linear-gradient(to right,hsl("+currentH +",0%,80%),hsl("+currentH +",100%,80%))";
 	}
 	setVGradient=(node,currentH, currentS)=>{
 		currentS = Math.round(currentS*100)
-		console.log(currentH, currentS,"linear-gradient(to right,hsl("+currentH +","+currentS+"%,0%),hsl("+currentH +","+currentS+"%,100%))")
-
-		node.style.backgroundImage = "-o-linear-gradient(hsl("+currentH +","+currentS+"%,15%),hsl("+currentH +","+currentS+"%,85%))";
-		node.style.backgroundImage = "-ms-linear-gradient(hsl("+currentH +","+currentS+"%,15%),hsl("+currentH +","+currentS+"%,85%))";
-		node.style.backgroundImage = "-moz-linear-gradient(hsl("+currentH +","+currentS+"%,15%),hsl("+currentH +","+currentS+"%,85%))";
-		node.style.backgroundImage = "-webkit-linear-gradient(hsl("+currentH +","+currentS+"%,15%),hsl("+currentH +","+currentS+"%,85%))";
-		node.style.backgroundImage = "linear-gradient(to right,hsl("+currentH +","+currentS+"%,15%),hsl("+currentH +","+currentS+"%,85%))";
+		node.style.backgroundImage = "-o-linear-gradient(hsl("+currentH +","+currentS+"%,15%),hsl("+currentH +","+currentS+"%,90%))";
+		node.style.backgroundImage = "-ms-linear-gradient(hsl("+currentH +","+currentS+"%,15%),hsl("+currentH +","+currentS+"%,90%))";
+		node.style.backgroundImage = "-moz-linear-gradient(hsl("+currentH +","+currentS+"%,15%),hsl("+currentH +","+currentS+"%,90%))";
+		node.style.backgroundImage = "-webkit-linear-gradient(hsl("+currentH +","+currentS+"%,15%),hsl("+currentH +","+currentS+"%,90%))";
+		node.style.backgroundImage = "linear-gradient(to right,hsl("+currentH +","+currentS+"%,15%),hsl("+currentH +","+currentS+"%,90%))";
 	}
 	onHChange = (values) =>{
 		store.setHSVValue('lh', values[0])

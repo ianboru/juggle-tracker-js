@@ -344,8 +344,8 @@ class App extends Component {
             style={{
               'fontSize':'11px',
               'margin' : '0 auto',
-              'border' : '1px solid gray',
-              'width' : '25px',
+              'border' : '2px solid black',
+              'width' : '30px',
               'height' : '22px',
               'padding-top' : '6px',
               'display' : 'inline-block',
