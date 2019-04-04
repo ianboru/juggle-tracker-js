@@ -174,7 +174,7 @@ class App extends Component {
       }
     }
     // Get the color values for the object being tracked (white if usingWhite)
-    if(store.showContours){
+    if(store.showContours && !store.calibrationMode){
       contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
     }else{
       this.drawEffects(context,colorNum,color)
@@ -236,7 +236,7 @@ class App extends Component {
       if(!store.usingWhite){
         store.allColors.forEach((colorRange,colorNum)=>{
           const contourImage = this.processCurrentColor(colorRange, colorNum, context, preparedMat)
-          if(contourImage){  
+          if(contourImage && !store.calibrationMode){  
             if(allContourImage.cols > 0){
               cv.add(contourImage, allContourImage, allContourImage )
             }else{
@@ -250,7 +250,7 @@ class App extends Component {
         allContourImage = this.processCurrentColor(null, 0, context, preparedMat)
       }
       let srcWithContours
-      if(store.showContours && allContourImage){
+      if(store.showContours && allContourImage && !store.calibrationMode){
         srcWithContours = this.combineContoursWithSrc(allContourImage,srcMat)
         cv.imshow('hiddenCanvas',srcWithContours)
       }
@@ -373,7 +373,6 @@ class App extends Component {
     const app =
       //Don't show app if in-app browser
       //Because getUserMedia doesn't work
-      !this.state.isFacebookApp ?
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
           <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.8</span>
@@ -407,12 +406,11 @@ class App extends Component {
             startVideoProcessing={this.startVideoProcessing}
           />          
 
-      </div> : null
+      </div> 
     // TOP LAYER
     return (
       <div>
         {app}
-        {openInBrowser}
      </div>
     );
   }

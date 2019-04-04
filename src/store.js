@@ -184,7 +184,6 @@ class Store {
     this.showStars           = false
     this.showBrushColor      = false
     this.showRings           = false
-
   }
   @action toggleShowRings = () => {
     this.showRings = !this.showRings
