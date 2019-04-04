@@ -21,8 +21,8 @@ const calibrateHelp = `Calibration Process\n
   2: Adjust Hue sliders to capture the range of colors on your prop
   3: Raise Saturation minimum to cut out less colored background objects
      Lower Saturation minimum to include less colored parts of prop
-  4: Raise Value minimum to cut out darker background objects
-  4: Lower Value minimum to include darker parts of the props
+  4: Raise Brightness minimum to cut out darker background objects
+  4: Lower Brightness minimum to include darker parts of the props
   5: Add another color and repeat if your props are multiple colors 
 
   == Advanced Calibration ==

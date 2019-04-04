@@ -1,10 +1,11 @@
 import { action, configure, computed, observable} from "mobx"
 import iosHeight from 'ios-inner-height'
+import cvutils from "./cvutils"
 const initialHSV = {
-      lh : 180,
+      lh : 200,
       ls : .2,
       lv : .2,
-      hh : 230,
+      hh : 250,
       hs : 1,
       hv : 1,
     }
@@ -69,6 +70,12 @@ class Store {
   //
   @computed get isMobile(){
     return true ?  /Mobi|Android/i.test(navigator.userAgent) : false
+  }
+  @computed get currentH(){
+    return cvutils.mean(this.filterHSV.lh,this.filterHSV.hh,)
+  }
+  @computed get currentS(){
+    return this.filterHSV.hs
   }
   @computed get calibrationModeText(){
     return this.calibrationMode ? "Show Raw" : "Calibration View"
