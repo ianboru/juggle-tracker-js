@@ -1,10 +1,11 @@
 import { action, configure, computed, observable} from "mobx"
 import iosHeight from 'ios-inner-height'
+import cvutils from "./cvutils"
 const initialHSV = {
-      lh : 180,
+      lh : 200,
       ls : .2,
       lv : .2,
-      hh : 230,
+      hh : 250,
       hs : 1,
       hv : 1,
     }
@@ -72,6 +73,12 @@ class Store {
   @computed get isMobile(){
     return true ?  /Mobi|Android/i.test(navigator.userAgent) : false
   }
+  @computed get currentH(){
+    return cvutils.mean(this.filterHSV.lh,this.filterHSV.hh,)
+  }
+  @computed get currentS(){
+    return this.filterHSV.hs
+  }
   @computed get calibrationModeText(){
     return this.calibrationMode ? "Show Raw" : "Calibration View"
   } 
@@ -101,54 +108,16 @@ class Store {
       width : width
     }
   }
-  @action setUploadedVideoDimensions=()=>{
-    if(this.uploadedVideo.videoWidth == 0){ return }
-    var scale = window.devicePixelRatio
-    console.log("scale", scale)
-    console.log("exit", this.uploadedDimensionsExist)
-    const hiddenContext = this.hiddenCanvas.getContext("2d")
-    const outputContext = this.canvasOutput.getContext("2d")
-    this.uploadedDimensionsExist = true
-    this.hiddenCanvas.width = this.uploadedVideo.videoWidth/2
-    this.hiddenCanvas.height = this.uploadedVideo.videoHeight/2
-    /*this.hiddenCanvas.width = scale * this.uploadedVideo.videoWidth/2
-    this.hiddenCanvas.height = scale * this.uploadedVideo.videoHeight/2
-    this.hiddenCanvas.style.width = this.uploadedVideo.videoWidth/2 + "px"
-    this.hiddenCanvas.style.height = this.uploadedVideo.videoHeight/2 + "px"
-    const scaleFactor = this.canvasDimensions.width/this.hiddenCanvas.width*/
-    this.canvasOutput.width = this.canvasDimensions.width
-    this.canvasOutput.height = this.canvasDimensions.height// this.hiddenCanvas.height*scaleFactor
-    //this.canvasOutput.style.width = this.canvasDimensions.width + "px"
-    //this.canvasOutput.style.height = this.hiddenCanvas.height*scaleFactor + "px"
-
-    // Normalize coordinate system to use css pixels.
-    hiddenContext.scale(scale, scale);
-    //outputContext.scale(scale, scale);
-
-  }
   @action setCanvasOutput(canvas){
     canvas.width = this.canvasDimensions.width
     canvas.height = this.canvasDimensions.height
     this.canvasOutput = canvas
   }
   @action setHiddenCanvas(canvas){
-    canvas.width = 640
-    canvas.height = 980
+    canvas.width = this.canvasDimensions.width
+    canvas.height = this.canvasDimensions.height
     this.hiddenCanvas = canvas
   }
-  /*@action setUploadedVideoDimensions=()=>{
-    if(this.uploadedVideo.videoWidth == 0){ return }
-    
-    this.uploadedDimensionsExist = true
-    let scaleFactor = 1
-    if(this.uploadedVideo.videoHeight/this.canvasDimensions.height > 1.5){
-      scaleFactor = (.4 * (this.uploadedVideo.videoHeight-this.canvasDimensions.height) + this.canvasDimensions.height)/this.canvasDimensions.height
-    }
-    this.hiddenCanvas.width = Math.round(this.canvasDimensions.width * scaleFactor)
-    this.hiddenCanvas.height = Math.round(this.canvasDimensions.height * scaleFactor)
-    console.log("SET UPLOADED")
-    console.log(this.uploadedVideo.videoHeight, this.hiddenCanvas.height)
-  }*/
 
   @action setCalibrationRect(rect){
     this.calibrationRect = rect
