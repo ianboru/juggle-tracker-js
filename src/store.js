@@ -99,6 +99,7 @@ class Store {
         width = window.innerWidth
         height = window.innerHeight
     }
+    console.log("dimensions", width,height)
     return {
       height : height,
       width : width
