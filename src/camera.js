@@ -79,30 +79,11 @@ class Camera extends Component {
     }
     this.input.click()
   }
-  postVideo = (video)=>{
-    console.log("posting video")
-    const formData = new FormData()
-    const config = {
-        headers: {
-            'content-type': 'multipart/form-data'
-        }
-    }
-    formData.append('file',video)
-    return post(webtaskUrl + "/upload", formData, config).then(response => {
-      console.log(response)
-    }) 
-  }
-  handleFile = ()=>{
-    
-    let URL = window.URL || window.webkitURL
 
+  handleFile = ()=>{
+    let URL = window.URL || window.webkitURL
     let file = this.input.files[0]
-    console.log("file",file)
     if(!file){return}
-      console.log("file uploarded")
-    this.postVideo(file).then((response)=>{
-      console.log("video posted", response)
-    })
     let fileURL = URL.createObjectURL(file)
     this.uploadedVideo.src = fileURL
     store.setUploadedVideo(this.uploadedVideo)
@@ -111,7 +92,6 @@ class Camera extends Component {
     },()=>{
       this.stopCamera()
     })
-
   }
 
 
@@ -155,7 +135,6 @@ class Camera extends Component {
     if(store.uploadedVideo){
       playUploadedButton = this.state.fileUploaded ? <button style={{'margin-bottom':'10px','fontSize':'12pt'}} id="playUploadedButton" onClick={this.handlePlayUploaded}>Play Video</button> : null
     }
-
     const screenRecordText = iOSDevice ? "Record with iOS screen recording " : null
     const recordingText = this.state.recording ? "Stop Recording" : "Start Recording"
     const recordingButton = iOSDevice ? null : <button style={{'margin-bottom':'10px','fontSize':'12pt'}} id="record" onClick={this.toggleRecording}>{recordingText}</button>

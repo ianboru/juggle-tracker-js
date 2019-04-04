@@ -1,5 +1,4 @@
 import { action, configure, computed, observable} from "mobx"
-import iosHeight from 'ios-inner-height'
 import cvutils from "./cvutils"
 const initialHSV = {
       lh : 200,
@@ -97,9 +96,8 @@ class Store {
         width = 640
         height = 480
     }else{
-      const iOSDevice = !!navigator.platform.match(/iPhone|iPod|iPad/);
         width = window.innerWidth
-        height = iOSDevice ? iosHeight() : window.innerHeight
+        height = window.innerHeight
     }
     return {
       height : height,
@@ -144,17 +142,13 @@ class Store {
   
   @action toggleCalibrationMode = () => {
     this.calibrationMode = !this.calibrationMode
-    this.showConnections     = false
-    this.showAllConnections  = false
-    this.showContours = false
+
     if(this.calibrationMode){
       this.showContours          = false
     }else{
       this.showContours          = true
     }
-    this.showStars           = false
-    this.showBrushColor      = false
-    this.showRings           = false
+
   }
 
   @action setBrightnessMode = () => {

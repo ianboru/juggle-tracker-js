@@ -224,10 +224,6 @@ class App extends Component {
         return
       }
       const context = store.hiddenCanvas.getContext("2d")
-
-      /*if(store.uploadedVideo && !store.uploadedDimensionsExist){
-        store.setUploadedVideoDimensions()
-      }*/
       let srcMat = this.handleVideoData(store.hiddenCanvas);
       if(!srcMat){
         requestAnimationFrame(this.animate);
@@ -273,7 +269,6 @@ class App extends Component {
       drawingUtils.fitVidToCanvas(store.canvasOutput, store.hiddenCanvas)
       //Trim histories to a value that is greater than trail length and ring history length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, 100)
-      //preparedMat.delete();preparedMat = null;
       preparedMat.delete();preparedMat = null
       srcMat.delete();srcMat = null
       if(srcWithContours){
@@ -294,7 +289,6 @@ class App extends Component {
   showCalibrateHelp = (asdf) =>{
     alert(calibrateHelp)
   }
-
   render() {
     const colorSwatches = store.allColors.map((colorRange,index)=>{
         const borderString = index === store.colorNum ? '3px solid black' : 'none'
