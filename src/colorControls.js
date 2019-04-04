@@ -101,9 +101,9 @@ class ColorControls extends Component {
 				</div> 
 					:
 				<div>
-					<span  className="slider-label">Hue</span><Range className="hue-slider" allowCross={false} min={0} max={360} step={1} value={[store.filterHSV.lh,store.filterHSV.hh]} handle={handle} onChange={this.onHChange} />
-					<span  className="slider-label">Saturation</span><Range ref={ref => this.satSlider = ref}  id="sat-slider" allowCross={false} min={0} max={1} step={.01} value={[store.filterHSV.ls,store.filterHSV.hs]}  handle={handle} onChange={this.onSChange}/>
-					<span  className="slider-label" >Brightness</span><Range ref={ref => this.valSlider = ref} allowCross={false}  min={0} max={1} step={.01} value={[store.filterHSV.lv,store.filterHSV.hv]}  handle={handle} onChange={this.onVChange} />
+					<span  className="slider-label">Hue</span><Range className="hue-slider gradient-slider" allowCross={false} min={0} max={360} step={1} value={[store.filterHSV.lh,store.filterHSV.hh]} handle={handle} onChange={this.onHChange} />
+					<span  className="slider-label">Saturation</span><Range className="hue-slider gradient-slider" ref={ref => this.satSlider = ref}  id="sat-slider" allowCross={false} min={0} max={1} step={.01} value={[store.filterHSV.ls,store.filterHSV.hs]}  handle={handle} onChange={this.onSChange}/>
+					<span  className="slider-label" >Brightness</span><Range className="hue-slider gradient-slider" ref={ref => this.valSlider = ref} allowCross={false}  min={0} max={1} step={.01} value={[store.filterHSV.lv,store.filterHSV.hv]}  handle={handle} onChange={this.onVChange} />
 				</div>
 
 		return (

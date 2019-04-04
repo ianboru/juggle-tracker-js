@@ -7,13 +7,13 @@ import trackingUtils from './trackingUtils'
 import ColorControls from './colorControls'
 import AnimationControls from './animationControls'
 import DetectionControls from './detectionControls'
+import Camera from './camera'
 import { MdRemovedRedEye } from "react-icons/md"
 import { observer } from "mobx-react"
 import store from "./store"
 import InteractiveCanvas from "./interactiveCanvas"
 import calibrationInactive from "./assets/calibration_inactive.png"
 import calibrationActive from "./assets/calibration_active.png"
-const iOSDevice = !!navigator.platform.match(/iPhone|iPod|iPad/);
 
 const calibrateHelp = `Calibration Process\n
   == Basic Calibration ==
@@ -48,15 +48,9 @@ class App extends Component {
     isFacebookApp : false,
     discoHue : 0,
     startTime : null,
-    contourLocations : [],
-    stream : null,
-    streaming : false,
-    videoHeight : null,
-    videoWidth : null,
-    fileUploaded : true,
-    mounted : true
-
+    contourLocations : []
   }
+   
   componentDidMount=()=>{
     const isFacebookApp = this.isFacebookApp()
     this.setState({
@@ -64,13 +58,9 @@ class App extends Component {
     })
     document.title = "AR Flow Arts"
     store.setHiddenCanvas(this.hiddenCanvas)
-    ///
-    console.log("starting camera")
-        this.startCamera()
-      this.setState({
-        mounted : true
-      })
+
   }
+
   isFacebookApp=()=>{
     let ua = navigator.userAgent || navigator.vendor || window.opera;
     return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1);;
@@ -85,6 +75,8 @@ class App extends Component {
     requestAnimationFrame(this.animate);
   }
   handleVideoData=(canvas)=>{
+    const scaleFactor = (store.canvasOutput.width/store.videoWidth)*store.videoHeight
+
     const context = canvas.getContext("2d")
     const outputContext = store.canvasOutput.getContext("2d")
     context.clearRect( 0, 0, canvas.width, canvas.height)
@@ -92,7 +84,6 @@ class App extends Component {
 
     if(store.uploadedVideo){
       // Use the uploaded file
-
       drawingUtils.fitVidToCanvas(canvas, store.uploadedVideo)
     }else{
       // Use the webcam image
@@ -149,10 +140,10 @@ class App extends Component {
         upSizedContours = cvutils.upSize(contourImage.clone())
       }
       if(upSizedContours){
-        cv.imshow('canvasOutput',upSizedContours)
+        cv.imshow('hiddenCanvas',upSizedContours)
         upSizedContours.delete()
       }else{
-        cv.imshow('canvasOutput',contourImage)
+        cv.imshow('hiddenCanvas',contourImage)
       }
     }
     
@@ -186,8 +177,7 @@ class App extends Component {
     if(store.showContours){
       contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
     }else{
-      const outputContext = store.canvasOutput.getContext("2d")
-      this.drawEffects(outputContext,colorNum,color)
+      this.drawEffects(context,colorNum,color)
     }
     return contourImage
   }
@@ -228,11 +218,7 @@ class App extends Component {
   }
   animate=()=> {
     if(store.canvasOutput){
-      if(store.uploadedVideo && !store.uploadedVideoWidth){
-        store.setUploadedVideoDimensions()
-        requestAnimationFrame(this.animate)
-        return
-      }
+      const scaleFactor = (store.canvasOutput.width/store.videoWidth)*store.videoHeight
       if(store.videoWidth === 0 || store.videoWidth == null && !store.uploadedVideo){
         requestAnimationFrame(this.animate);
         return
@@ -284,10 +270,10 @@ class App extends Component {
       if(store.showSelectColorText){
         drawingUtils.drawSelectColorText(context, store.isMobile, store.usingWhite)
       }
+      drawingUtils.fitVidToCanvas(store.canvasOutput, store.hiddenCanvas)
       //Trim histories to a value that is greater than trail length and ring history length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, 100)
       //preparedMat.delete();preparedMat = null;
-
       preparedMat.delete();preparedMat = null
       srcMat.delete();srcMat = null
       if(srcWithContours){
@@ -301,10 +287,6 @@ class App extends Component {
     }
   }
 
-  handleVideoEnded = ()=>{
-    const recordButton = document.querySelector('button#playUploadedButton');
-    this.uploadedVideo.play()
-  }
   selectColor=(i)=>{
     store.selectColor(i)
   }
@@ -312,91 +294,8 @@ class App extends Component {
   showCalibrateHelp = (asdf) =>{
     alert(calibrateHelp)
   }
-startCamera=()=>{
-      let that = this
-      // Break if the camera is already streaming
-      if (this.state.streaming) return;
-      // Get video
-      try{
-        navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user'}, audio: false})
-        .then(function(s) {
-          console.log("got user media")
-          //Set stream to stop later
-          that.state.stream = s
-          //Set stream to video tag
-          that.video.srcObject = s;
-          that.video.play();
-          store.setLiveVideo(that.video)
-        })
-        .catch(function(err) {
-          console.log("An error occured! " + err);
-          store.setVideoDimensions(640, 480)
-          that.startVideoProcessing();
-        });
-        this.video.addEventListener("canplay", function(ev){
-          if (!store.streaming) {
-            let videoWidth = that.video.videoWidth;
-            let videoHeight = that.video.videoHeight;
-            that.video.setAttribute("width", videoWidth);
-            that.video.setAttribute("height", videoHeight);
-            that.state.streaming = true 
-            store.setVideoDimensions(that.video.videoWidth, that.video.videoHeight)
 
-          }
-          that.startVideoProcessing();
-        }, false);
-      }catch(error){
-        console.log("error 2", error)
-        store.setVideoDimensions(640, 480)
-        that.startVideoProcessing();
-      }
-  }
-  stopCamera=()=> {
-    if (!this.state.streaming) return;
-    store.canvasOutput.getContext("2d").clearRect(0, 0, store.videoWidth, store.videoHeight);
-    this.video.srcObject=null;
-    this.state.stream.getVideoTracks()[0].stop();
-    this.state.streaming = false
-    console.log("stopping camera")
-  }
-  handleInputClick = ()=>{
-    if(iOSDevice){
-      alert("Video recorded by iOS must be landscape or square.")
-    }
-    this.input.click()
-  }
-  handleFile = ()=>{
-    
-    let URL = window.URL || window.webkitURL
-
-    let file = this.input.files[0]
-    if(!file){return}
-    let fileURL = URL.createObjectURL(file)
-    this.uploadedVideo.src = fileURL
-    store.setUploadedVideo(this.uploadedVideo)
-    this.setState({
-      fileUploaded : true
-    },()=>{
-      this.stopCamera()
-    })
-  }
-
-  handlePlayUploaded = ()=>{
-    const recordButton = document.querySelector('button#playUploadedButton');
-    if(this.uploadedVideo.currentTime > 0 && !this.uploadedVideo.paused && !this.uploadedVideo.ended){
-      this.uploadedVideo.pause()
-      recordButton.textContent = 'Play Video';
-    }else{
-      this.uploadedVideo.play()
-      recordButton.textContent = 'Pause Video';
-    }
-  }
-handleVideoEnded = ()=>{
-    const recordButton = document.querySelector('button#playUploadedButton');
-    this.uploadedVideo.play()
-  }
   render() {
-
     const colorSwatches = store.allColors.map((colorRange,index)=>{
         const borderString = index === store.colorNum ? '3px solid black' : 'none'
 
@@ -476,22 +375,7 @@ handleVideoEnded = ()=>{
       <div className="overlay-controls">
         <DetectionControls/>
       </div> : null
-    const uploadFileButton = this.state.mounted && this.input ? <button style={{'marginBottom':'10px','fontSize':'12pt'}} onClick={this.handleInputClick}>Upload Video</button> : null
-    let playUploadedButton
-    if(store.uploadedVideo){
-      playUploadedButton = this.state.fileUploaded ? <button style={{'marginBottom':'10px','fontSize':'12pt', 'zIndex':'80'}} id="playUploadedButton" onClick={this.handlePlayUploaded}>Play Video</button> : null
-    }
-
-    const screenRecordText = iOSDevice ? "Record with iOS screen recording " : null
-    const videoControls =
-      <div>
-        <div style={{'marginBottom' :'10px'}}>
-          <input className='invisible' type="file" accept="video/*" ref={ref => this.input = ref} onChange={this.handleFile}/>
-          {uploadFileButton}
-          {playUploadedButton}
-        </div>
-      </div>
-
+    
     const app =
       //Don't show app if in-app browser
       //Because getUserMedia doesn't work
@@ -501,8 +385,6 @@ handleVideoEnded = ()=>{
           <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.8</span>
           <a style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}} href="http://instagram.com/arflowarts">Contact</a>
           <button style={{'fontSize':'10px','marginLeft' : '10px', 'fontSize' : '12px'}} id="helpButton" onClick={this.showCalibrateHelp}>How to</button>
-          {videoControls}
-
           <br/>
           <div className="top-tabs">
               <ul>
@@ -519,22 +401,19 @@ handleVideoEnded = ()=>{
             {colorControls}
             {detectionControls}
             {animationControls}
-            <InteractiveCanvas className="canvas"/>
+            <InteractiveCanvas className="center-block canvas"/>
             <canvas 
               ref={ref => this.hiddenCanvas = ref}
               id="hiddenCanvas"
               className="canvas"
             ></canvas>
-            <video hidden={true} muted playsInline autoPlay className="live-video" ref={ref => this.video = ref}></video>
-            <video muted playsInline className="live-video" onEnded={this.handleVideoEnded}   ref={ref => this.uploadedVideo = ref}></video>
-            <div>
-              <div style={{'color' : 'red'}} >Use Screen Recording to Record Video</div>
-            </div>
           </div>
-               
+          <Camera 
+            isFacebookApp={this.state.isFacebookApp}
+            startVideoProcessing={this.startVideoProcessing}
+          />          
 
       </div> : null
-
     // TOP LAYER
     return (
       <div>
