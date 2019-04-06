@@ -31,7 +31,7 @@ class InteractiveCanvas extends Component {
     // converted hsv ranges may have maxs and mins swapped
     const hsvRange = {
       'lh' : Math.min(lowerHSV[0],upperHSV[0]),
-      'ls' :  .1,
+      'ls' :  .15,
       'lv' :  .2,
       'hh' :  Math.max(lowerHSV[0],upperHSV[0]),
       'hs' :  1,

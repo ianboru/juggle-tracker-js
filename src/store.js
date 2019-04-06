@@ -1,5 +1,7 @@
 import { action, configure, computed, observable} from "mobx"
 import cvutils from "./cvutils"
+import generalUtils from "./generalUtils"
+
 const initialHSV = {
       lh : 200,
       ls : .2,
@@ -46,7 +48,7 @@ class Store {
   @observable opacity             = 1
   @observable trailThickness      = 1
   @observable discoIncrement      = 12
-  @observable showColorControls   = true
+  @observable showColorControls   = false
   @observable showAnimationControls = false
   @observable showDetectionControls = false
   @observable showContourOutlines  = false
@@ -62,11 +64,14 @@ class Store {
   @observable showContours         = true
   @observable contourThickness     = 1
   @observable uploadedDimensionsExist = false
-
+  @observable videoUploaded = false
 
   //
   // ACTIONS
   //
+  @computed get showBigUploadButton(){
+    return (generalUtils.isFacebookApp() || !this.liveVideo) && !this.uploadedDimensionsExist 
+  }
   @computed get isMobile(){
     return true ?  /Mobi|Android/i.test(navigator.userAgent) : false
   }
@@ -105,6 +110,9 @@ class Store {
       width : width
     }
   }
+  @action setVideoUploaded(){
+    this.videoUploaded = true
+  }
   @action setCanvasOutput(canvas){
     canvas.width = this.canvasDimensions.width
     canvas.height = this.canvasDimensions.height
@@ -131,10 +139,16 @@ class Store {
   }
   @action setLiveVideo= (video) => {
     this.liveVideo = video
+    this.showColorControls = true
   }
   @action setUploadedVideo= (video) => {
     this.uploadedVideo = video
     this.uploadedDimensionsExist = false
+  }
+  @action setUploadedVideoDimensions= () => {
+    console.log("uploaded set")
+    this.uploadedDimensionsExist = true
+    this.showColorControls = true
   }
   @action setVideoDimensions=(width,height)=>{
     this.videoWidth = width

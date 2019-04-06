@@ -88,7 +88,7 @@ class AnimationControls extends Component {
 		return (
 			<div>
 				<div>
-					<img className="icon" title="trails" onClick={store.toggleShowContours} src={store.showContours ? contoursActive : contoursInactive}/>
+					<img className="icon" title="contours" onClick={store.toggleShowContours} src={store.showContours ? contoursActive : contoursInactive}/>
 					<img className="icon" title="trails" onClick={store.toggleShowTrails} src={store.showTrails ? trailsActive : trailsInactive}/>
 					<img className="icon" title="rings" onClick={store.toggleShowRings} src={store.showRings ? ringsActive : ringsInactive}/>
 					<img className="icon" title="connect same colors" onClick={store.toggleShowConnections} src={store.showConnections ? connectSameActive : connectSameInactive}/>

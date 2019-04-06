@@ -18,7 +18,9 @@ button {
   font-size: 17.5px;
   color : #181818;
  }
-
+.upload-only{
+  position : absolute;
+}
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
@@ -51,6 +53,11 @@ button {
   text-align: center;
   padding-top: 15px;
   touch-action: none;
+}
+.big-upload-button{
+  position:absolute; 
+  bottom: 50%; 
+  left:36%;
 }
 .tab{
   display : inline-block;

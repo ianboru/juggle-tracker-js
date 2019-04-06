@@ -14,7 +14,8 @@ import store from "./store"
 import InteractiveCanvas from "./interactiveCanvas"
 import calibrationInactive from "./assets/calibration_inactive.png"
 import calibrationActive from "./assets/calibration_active.png"
-
+import UploadControls from './uploadControls'
+import BigUploadButton from './bigUploadButton'
 const calibrateHelp = `Calibration Process\n
   == Basic Calibration ==
   1: (optional) Click and drag a box over the prop 
@@ -54,7 +55,7 @@ class App extends Component {
   componentDidMount=()=>{
     const isFacebookApp = this.isFacebookApp()
     this.setState({
-      isFacebookApp
+      isFacebookApp : true
     })
     document.title = "AR Flow Arts"
     store.setHiddenCanvas(this.hiddenCanvas)
@@ -67,6 +68,7 @@ class App extends Component {
   }
 
   startVideoProcessing=()=> {
+    console.log("started video processiong")
     //Fix for firefox to have context available
     const context = store.canvasOutput.getContext("2d")
     const hiddenContext = store.hiddenCanvas.getContext("2d")
@@ -82,7 +84,7 @@ class App extends Component {
     context.clearRect( 0, 0, canvas.width, canvas.height)
     outputContext.clearRect( 0, 0, store.canvasOutput.width, store.canvasOutput.height)
 
-    if(store.uploadedVideo){
+    if(store.videoUploaded){
       // Use the uploaded file
       drawingUtils.fitVidToCanvas(canvas, store.uploadedVideo)
     }else{
@@ -96,7 +98,7 @@ class App extends Component {
     // Get the srcMat from the canvas
     let srcMat = cvutils.getMatFromCanvas(context, store.hiddenCanvas.width, store.hiddenCanvas.height)
     // Flip horizontally because camera feed is pre-flipped
-    if(!store.uploadedVideo){
+    if(!store.videoUploaded){
       cv.flip(srcMat, srcMat,1)
     }
     // If the mouse is down, clone the srcMat and save it as flippedFrame
@@ -219,7 +221,7 @@ class App extends Component {
   animate=()=> {
     if(store.canvasOutput){
       const scaleFactor = (store.canvasOutput.width/store.videoWidth)*store.videoHeight
-      if(store.videoWidth === 0 || store.videoWidth == null && !store.uploadedVideo){
+      if(store.videoWidth === 0 || store.videoWidth == null && store.videoUploaded){
         requestAnimationFrame(this.animate);
         return
       }
@@ -229,7 +231,9 @@ class App extends Component {
         requestAnimationFrame(this.animate);
         return
       }
-
+      if(store.videoUploaded && !store.uploadedDimensionsExist){
+        store.setUploadedVideoDimensions()  
+      }
       // Iterate through each color being tracked
       let preparedMat = cvutils.prepareImage(srcMat.clone())
       let allContourImage = new cv.Mat();
@@ -371,7 +375,9 @@ class App extends Component {
       <div className="overlay-controls">
         <DetectionControls/>
       </div> : null
-    
+    const uploadControls = store.showBigUploadButton ? 
+    <BigUploadButton startVideoProcessing={this.startVideoProcessing}/> : 
+    <UploadControls startVideoProcessing={this.startVideoProcessing}/>
     const app =
       //Don't show app if in-app browser
       //Because getUserMedia doesn't work
@@ -397,6 +403,7 @@ class App extends Component {
             {detectionControls}
             {animationControls}
             <InteractiveCanvas className="center-block canvas"/>
+            {uploadControls}
             <canvas 
               ref={ref => this.hiddenCanvas = ref}
               id="hiddenCanvas"
