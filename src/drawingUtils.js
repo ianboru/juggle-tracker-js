@@ -14,7 +14,7 @@ function addOpacityToColor(color,opacity){
 }
 function drawSelectColorText(context, isMobile, usingWhite){
   let text
-  context.font = "22px Arial"
+  context.font = "25px Arial"
   context.fillStyle = "#ffffff"
   context.textAlign = "center"; 
   const x = context.canvas.width*.5

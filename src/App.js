@@ -16,6 +16,7 @@ import calibrationInactive from "./assets/calibration_inactive.png"
 import calibrationActive from "./assets/calibration_active.png"
 import UploadControls from './uploadControls'
 import BigUploadButton from './bigUploadButton'
+import generalUtils from './generalUtils'
 const calibrateHelp = `Calibration Process\n
   == Basic Calibration ==
   1: (optional) Click and drag a box over the prop 
@@ -53,12 +54,13 @@ class App extends Component {
   }
    
   componentDidMount=()=>{
-    const isFacebookApp = this.isFacebookApp()
+    const isFacebookApp = generalUtils.isFacebookApp()
     this.setState({
       isFacebookApp : true
     })
     document.title = "AR Flow Arts"
     store.setHiddenCanvas(this.hiddenCanvas)
+    console.log("mounted", isFacebookApp)
     if(isFacebookApp){
       alert("Visit website outside of instagram/facebook to use live video")
     }
