@@ -65,7 +65,7 @@ class Store {
   @observable contourThickness     = 1
   @observable uploadedDimensionsExist = false
   @observable videoUploaded = false
-
+  @observable recordMessageShown = false
   //
   // ACTIONS
   //
@@ -111,6 +111,7 @@ class Store {
     }
   }
   @action setVideoUploaded(){
+    console.log("video officially uploaded")
     this.videoUploaded = true
   }
   @action setCanvasOutput(canvas){
@@ -282,6 +283,9 @@ class Store {
     this.mouseDown = state
   }
   @action toggleShowControls =(type)=>{
+    if(!this.videoUploaded && !this.liveVideo){
+      return
+    }
     if(type === "color"){
       this.showColorControls = !this.showColorControls
       if(this.showColorControls){
@@ -299,6 +303,10 @@ class Store {
       if(this.showAnimationControls){
         this.showDetectionControls = false
         this.showColorControls = false
+        if(!this.recordMessageShown){
+          alert("Record using your device's screen recording")
+          this.recordMessageShown = true
+        }
       }
     }
   }

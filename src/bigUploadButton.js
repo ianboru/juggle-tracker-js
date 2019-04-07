@@ -45,7 +45,7 @@ class BigUploadButton extends Component {
   }
 
   render(){
-    const uploadFileButton = this.state.mounted && this.input ? <button style={{'margin-bottom':'10px','fontSize':'20pt'}} onClick={this.handleInputClick}>Upload Video</button> : null
+    const uploadFileButton = this.state.mounted && this.input ? <button style={{'margin-bottom':'10px','fontSize':'20pt', 'background-color': 'lightblue'}} onClick={this.handleInputClick}>Upload Video</button> : null
         
 
     return(

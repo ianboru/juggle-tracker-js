@@ -59,7 +59,9 @@ class App extends Component {
     })
     document.title = "AR Flow Arts"
     store.setHiddenCanvas(this.hiddenCanvas)
-
+    if(isFacebookApp){
+      alert("Visit website outside of instagram/facebook to use live video")
+    }
   }
 
   isFacebookApp=()=>{
@@ -221,7 +223,7 @@ class App extends Component {
   animate=()=> {
     if(store.canvasOutput){
       const scaleFactor = (store.canvasOutput.width/store.videoWidth)*store.videoHeight
-      if(store.videoWidth === 0 || store.videoWidth == null && store.videoUploaded){
+      if(store.videoWidth === 0 || store.videoWidth == null && !store.videoUploaded){
         requestAnimationFrame(this.animate);
         return
       }

@@ -14,21 +14,29 @@ function addOpacityToColor(color,opacity){
 }
 function drawSelectColorText(context, isMobile, usingWhite){
   let text
-  if(isMobile && !usingWhite){
-    text = "Hold finger on prop to set color"
-  }else if(!isMobile && !usingWhite){
-    text = "Click and drag box over prop to set color"
-  }else{
-    text = "Adjust brightness threshold to find prop"
-  }
   context.font = "22px Arial"
   context.fillStyle = "#ffffff"
   context.textAlign = "center"; 
-  context.fillText(
+  const x = context.canvas.width*.5
+  const y = context.canvas.height*.92
+  if(isMobile && !usingWhite){
+    text = "Hold finger on prop to set color"
+  }else if(!isMobile && !usingWhite){
+    text = "Click and drag box over prop\n or use sliders to set color"
+    context.textBaseline="bottom";
+    context.fillText("Click and drag box over prop or", x, y);
+    context.textBaseline="top";
+    context.fillText("use sliders to set prop color", x, y);
+  }else{
+    text = "Adjust brightness threshold to find prop"
+    context.fillText(
     text,
-    context.canvas.width*.5, 
-    context.canvas.height*.95
+    x, 
+    y
   )
+  }
+  
+  
 }
 
 function drawContours(context, contourPositions, color){
