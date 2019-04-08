@@ -47,6 +47,7 @@ class ColorControls extends Component {
 			const valRCSliders = valNode.getElementsByClassName('rc-slider-rail')
 			this.setVGradient(valRCSliders[0],store.currentH, store.currentS)
 		}
+		return true
 	}
 	setSGradient=(node,currentH)=>{
 		node.style.backgroundImage = "-o-linear-gradient(hsl("+currentH +",0%,70%),hsl("+currentH +",100%,70%))";
@@ -94,6 +95,7 @@ class ColorControls extends Component {
 
 	render() {
 		store.usingWhite
+		store.filterHSV
 		const sliders = 
 			store.usingWhite ?
 				<div>

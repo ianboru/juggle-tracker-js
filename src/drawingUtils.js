@@ -361,7 +361,7 @@ function drawRing(context, x,y,r, color, opacity){
     context.lineWidth = r*.5
     context.stroke();
 }
-function fitVidToCanvas(canvas, imageObj){
+function fitVidToCanvas(canvas, imageObj, opacity){
   let imageWidth
   let imageHeight
   if(imageObj.videoWidth){
@@ -403,7 +403,9 @@ function fitVidToCanvas(canvas, imageObj){
   }
   const context = canvas.getContext("2d")
   //ontext.imageSmoothingQuality = "medium"
+  context.globalAlpha = opacity
   context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
+  context.globalAlpha = 1
 };
 
 export default {

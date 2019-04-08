@@ -111,7 +111,9 @@ class App extends Component {
     }
     // Show the srcMat to the user
     cv.imshow('hiddenCanvas',srcMat)
-    srcMat = cvutils.downSize(srcMat)
+    if(!store.calibrationMode){
+      srcMat = cvutils.downSize(srcMat)
+    }
     return srcMat
   }
   processCurrentColor=(colorRange=null, colorNum=null, context,preparedMat, srcMat)=>{
@@ -137,7 +139,7 @@ class App extends Component {
     }
     
     // If in calibration mode
-    if(store.calibrationMode && (colorNum === store.colorNum || store.usingWhite)){
+    if(store.calibrationMode){
       // Initialize final canvas with the mask of the colors within the color ranges
       // This setting is used when calibrating the colors
       contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
@@ -148,8 +150,6 @@ class App extends Component {
       if(upSizedContours){
         cv.imshow('hiddenCanvas',upSizedContours)
         upSizedContours.delete()
-      }else{
-        cv.imshow('hiddenCanvas',contourImage)
       }
     }
     
@@ -182,8 +182,6 @@ class App extends Component {
     // Get the color values for the object being tracked (white if usingWhite)
     if(store.showContours && !store.calibrationMode){
       contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
-    }else{
-      this.drawEffects(context,colorNum,color)
     }
     return contourImage
   }
@@ -244,7 +242,7 @@ class App extends Component {
       if(!store.usingWhite){
         store.allColors.forEach((colorRange,colorNum)=>{
           const contourImage = this.processCurrentColor(colorRange, colorNum, context, preparedMat)
-          if(contourImage && !store.calibrationMode){  
+          if(contourImage){  
             if(allContourImage.cols > 0){
               cv.add(contourImage, allContourImage, allContourImage )
             }else{
@@ -259,11 +257,24 @@ class App extends Component {
         allContourImage.delete()
         allContourImage = this.processCurrentColor(null, 0, context, preparedMat)
       }
+      if(allContourImage && allContourImage.cols > 0 && store.calibrationMode){
+        console.log("contour exists")
+        cv.imshow('hiddenCanvas',allContourImage)
+      }
       let srcWithContours
       if(store.showContours && allContourImage && !store.calibrationMode){
         srcWithContours = this.combineContoursWithSrc(allContourImage,srcMat)
         cv.imshow('hiddenCanvas',srcWithContours)
       }
+      store.allColors.forEach((colorRange,colorNum)=>{
+        let color
+        if(!store.usingWhite){
+          color = cvutils.calculateCurrentHSV(colorRange)
+        }else{
+          color = "hsl(175,0%,100%)"
+        }
+        this.drawEffects(context,colorNum,color)
+      })
       // If the user is clicking and draging to select a color
       if(store.calibrationRect){
         //Draw color selection rectangle

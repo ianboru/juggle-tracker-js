@@ -1,4 +1,4 @@
-import { action, configure, computed, observable} from "mobx"
+import { action, configure, computed, observable, toJS} from "mobx"
 import cvutils from "./cvutils"
 import generalUtils from "./generalUtils"
 
@@ -66,6 +66,7 @@ class Store {
   @observable uploadedDimensionsExist = false
   @observable videoUploaded = false
   @observable recordMessageShown = false
+  @observable rawOpacity = 1
   //
   // ACTIONS
   //
@@ -130,6 +131,7 @@ class Store {
     this.showSelectColorText = false
   }
   @action setHSVValue(sliderName, value){
+    console.log("HSV", sliderName, value)
     this.filterHSV[sliderName] = value
     this.setCurrentColorRange(this.filterHSV)
     this.showSelectColorText = false
@@ -158,8 +160,15 @@ class Store {
   
   @action toggleCalibrationMode = () => {
     this.calibrationMode = !this.calibrationMode
+    if(this.calibrationMode){
+      this.setRawOpacity(0)
+    }else{
+      this.setRawOpacity(1)
+    }
   }
-
+  @action setRawOpacity = (opacity) => {
+    this.rawOpacity = opacity
+  }
   @action setBrightnessMode = () => {
     this.usingWhite = true
   }
@@ -171,38 +180,27 @@ class Store {
     if(this.showConnections){
       this.showAllConnections = false
     }
-    this.showContours = false
   }
   @action toggleShowAllConnections = () => {
     this.showAllConnections = !this.showAllConnections
     if(this.showAllConnections){
       this.showConnections = false
     }
-    this.showContours = false
   }
   @action toggleShowTrails = () => {
     this.showTrails = !this.showTrails
-    this.showContours = false
   }
   @action toggleShowContours = () => {
     this.showContours = !this.showContours
-    this.showConnections     = false
-    this.showAllConnections  = false
-    this.showTrails          = false
-    this.showStars           = false
-    this.showBrushColor      = false
-    this.showRings           = false
   }
   @action toggleShowRings = () => {
     this.showRings = !this.showRings
-    this.showContours = false
   }
   @action toggleShowStars = () => {
     this.showStars = !this.showStars
     if(this.showStars && this.showTrails){
       this.showTrails = false
     }
-    this.showContours = false
   }
   @action toggleDiscoMode = () => {
     this.discoMode = !this.discoMode
@@ -211,6 +209,7 @@ class Store {
     this.showBrushColor = !this.showBrushColor
   }
   @action setCurrentColorRange = (colorRange)=>{
+    console.log("set current", this.colorNum, toJS(colorRange))
     this.allColors[this.colorNum] = colorRange
   }
   @action setBlurAmount = (blurAmount) => {
@@ -268,6 +267,7 @@ class Store {
     this.brushColor = brushColor
   }
   @action setFilterHSV = (colorRange)=>{
+    console.log("setting filter", toJS(colorRange))
     this.filterHSV = colorRange
   }
   @action addColor = ()=>{
@@ -276,6 +276,7 @@ class Store {
     this.filterHSV = initialHSV
   }
   @action selectColor = (colorNum)=>{
+    console.log("filters", colorNum, toJS(this.allColors[colorNum]))
     this.colorNum = colorNum
     this.filterHSV = this.allColors[colorNum]
   }
