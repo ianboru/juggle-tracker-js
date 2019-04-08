@@ -166,19 +166,6 @@ class App extends Component {
         this.state.discoHue = 0
       }
     }
-    if(store.showBrushColor){
-      color = 'hsl(' + store.brushColor + ', 100,100)'
-    }
-    // If disco mode is on, use the current disco color
-    if(store.discoMode){
-      color = 'hsl(' +this.state.discoHue+', 100,100)'
-      // Update the disco hue so that the color changes
-      this.state.discoHue = this.state.discoHue + store.discoIncrement
-      // When the hue reaches 360, it goes back to zero (HSV colorspace loops)
-      if(this.state.discoHue>360){
-        this.state.discoHue = 0
-      }
-    }
     // Get the color values for the object being tracked (white if usingWhite)
     if(store.showContours && !store.calibrationMode){
       contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
@@ -187,6 +174,19 @@ class App extends Component {
   }
   drawEffects=(context,colorNum,color)=>{
     // Draw connections
+    if(store.showBrushColor){
+      color = 'hsl(' + store.brushColor + ', 100%,65%)'
+    }
+    // If disco mode is on, use the current disco color
+    if(store.discoMode){
+      color = 'hsl(' +this.state.discoHue+', 100%,65%)'
+      // Update the disco hue so that the color changes
+      this.state.discoHue = this.state.discoHue + store.discoIncrement
+      // When the hue reaches 360, it goes back to zero (HSV colorspace loops)
+      if(this.state.discoHue>360){
+        this.state.discoHue = 0
+      }
+    }
     if(store.showConnections){
       drawingUtils.drawConnections(context, this.state.positions[colorNum], color)
     }
@@ -418,13 +418,13 @@ class App extends Component {
             {detectionControls}
             {animationControls}
             <InteractiveCanvas className="center-block canvas"/>
-            {uploadControls}
             <canvas 
               ref={ref => this.hiddenCanvas = ref}
               id="hiddenCanvas"
               className="canvas"
             ></canvas>
           </div>
+          {uploadControls}
           <Camera 
             isFacebookApp={this.state.isFacebookApp}
             startVideoProcessing={this.startVideoProcessing}

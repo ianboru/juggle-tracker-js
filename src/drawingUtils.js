@@ -149,7 +149,7 @@ function drawConnections(context,positions, color){
           const nextBallY = positions[j]['y'].slice(-1).pop()
 
           const lastColor = addOpacityToColor(color, store.opacity)
-          
+          console.log(lastColor)
           context.beginPath();
           context.moveTo(curBallX, curBallY)
           context.lineTo(nextBallX, nextBallY)
@@ -213,7 +213,7 @@ function drawStars(context,positions, color){
   let newStarsColor = []
   // If data exists for this object, proceed
   let initialOpacity = .75*store.opacity
-
+  const maxSize = 30
   if(positions){
 
     // Iterate though each contour for this color
@@ -239,7 +239,7 @@ function drawStars(context,positions, color){
           newStarsDy.push(2*(.5-Math.random()))
           let size = positions[i]['r'].slice(-1).pop()*Math.random()*store.starSize
           // Prevent HUGE stars (stars more than 90px in diameter)
-          if (size>45){ size=45}
+          if (size>maxSize){ size=maxSize}
           newStarsSize.push(size)
           newStarsColor.push(color)
           drawStar(context,curX,curY,size,color, initialOpacity)
