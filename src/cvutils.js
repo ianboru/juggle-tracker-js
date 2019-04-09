@@ -141,7 +141,9 @@ function getContourImage(src,colorRange, drawColor){
     const drawColorMatch = drawColor.match(/hsl\((\d.+)\,/)
     drawColor = parseInt(drawColorMatch[1])
     const dst = cv.Mat.zeros( src.rows,src.cols, cv.CV_8UC3);
-
+    if(!store.showContours){
+        return dst
+    }
     // Maximum number of contours to interpret as objects
     const maxNumContours = 10
     // Initialize contour finding data

@@ -39,20 +39,18 @@ class UploadControls extends Component {
     })
   }
 
-
   handlePlayUploaded = ()=>{
-    const recordButton = document.querySelector('button#playUploadedButton');
+    const playUploadedButton = document.querySelector('button#playUploadedButton');
     if(store.uploadedVideo.currentTime > 0 && !store.uploadedVideo.paused && !store.uploadedVideo.ended){
       store.uploadedVideo.pause()
-      recordButton.textContent = 'Play Video';
+      playUploadedButton.textContent = 'Play Video';
     }else{
       store.uploadedVideo.play()
-      recordButton.textContent = 'Pause Video';
+      playUploadedButton.textContent = 'Pause Video';
     }
   }
 
   handleVideoEnded = ()=>{
-    const recordButton = document.querySelector('button#playUploadedButton');
     store.uploadedVideo.play()
   }
 

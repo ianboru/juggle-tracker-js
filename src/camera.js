@@ -29,16 +29,7 @@ class Camera extends Component {
       mounted : true
     })
   }
-  handlePlayUploaded = ()=>{
-    const playUploadedButton = document.querySelector('button#playUploadedButton');
-    if(this.uploadedVideo.currentTime > 0 && !this.uploadedVideo.paused && !this.uploadedVideo.ended){
-      this.uploadedVideo.pause()
-      playUploadedButton.textContent = 'Play Video';
-    }else{
-      this.uploadedVideo.play()
-      playUploadedButton.textContent = 'Pause Video';
-    }
-  }
+
   startCamera=()=>{
       let that = this
       // Break if the camera is already streaming
@@ -88,7 +79,6 @@ class Camera extends Component {
     console.log("stopping camera")
   }
   handleVideoEnded = ()=>{
-    const playUploadedButton = document.querySelector('button#playUploadedButton');
     store.uploadedVideo.play()
   }
   render(){
