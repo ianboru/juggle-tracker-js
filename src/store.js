@@ -36,12 +36,12 @@ class Store {
   @observable discoMode           = false
   @observable canvasOutput        = null
   @observable blurAmount          = 0
-  @observable sizeThreshold       = 50
+  @observable sizeThreshold       = 25
   @observable brushColor          = 123
   @observable connectionThickness = 6
-  @observable numStarsPerObject   = 12
-  @observable starLife            = .5
-  @observable starSize            = .5
+  @observable numStarsPerObject   = 14
+  @observable starLife            = .7
+  @observable starSize            = .35
   @observable trailLength         = 1
   @observable ringLength          = 1
   @observable ringThickness       = 1
@@ -67,6 +67,8 @@ class Store {
   @observable videoUploaded = false
   @observable recordMessageShown = false
   @observable rawOpacity = 1
+  @observable showPosePoints = true
+
   //
   // ACTIONS
   //
@@ -111,10 +113,12 @@ class Store {
       width : width
     }
   }
+
   @action setVideoUploaded(){
     console.log("video officially uploaded")
     this.videoUploaded = true
   }
+
   @action setCanvasOutput(canvas){
     canvas.width = this.canvasDimensions.width
     canvas.height = this.canvasDimensions.height

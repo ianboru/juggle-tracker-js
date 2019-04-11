@@ -17,6 +17,10 @@ import calibrationActive from "./assets/calibration_active.png"
 import UploadControls from './uploadControls'
 import BigUploadButton from './bigUploadButton'
 import generalUtils from './generalUtils'
+import * as tf from '@tensorflow/tfjs';
+
+import * as posenet from '@tensorflow-models/posenet';
+
 const calibrateHelp = `Calibration Process\n
   == Basic Calibration ==
   1: (optional) Click and drag a box over the prop 
@@ -44,6 +48,7 @@ class App extends Component {
   state = {
     dst : null,
     // Color blue (initial value for hsv sliders)
+    pose : null,
     net : null,
     positions : [], 
     canvasStream : null,
@@ -54,6 +59,13 @@ class App extends Component {
   }
    
   componentDidMount=()=>{
+    posenet.load().then(model=>{
+      console.log("posenet loaded")
+       this.setState({
+          net : model
+        })
+
+    });
     const isFacebookApp = generalUtils.isFacebookApp()
     this.setState({
       isFacebookApp : true
@@ -65,7 +77,7 @@ class App extends Component {
       alert("Visit website outside of instagram/facebook to use live video")
     }
   }
-
+  
   isFacebookApp=()=>{
     let ua = navigator.userAgent || navigator.vendor || window.opera;
     return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1);;
@@ -220,6 +232,36 @@ class App extends Component {
     cv.add(dst,srcMat,dst)
     return dst
   }
+  drawPose = (context)=>{
+
+    var boxSize = 5
+    context.lineWidth = 4;
+    context.strokeStyle = 'rgba(255,255,255,0.8)'
+    const scoreThreshold = 0.0
+    if(this.state.pose){
+      this.state.pose.keypoints.forEach((keypoint,index)=>{
+        if(keypoint.score > scoreThreshold){
+          console.log("drawing keypoint",keypoint.part, keypoint.position.x,keypoint.position.y )
+
+          context.strokeRect(keypoint.position.x - boxSize/2 , keypoint.position.y - boxSize/2, boxSize, boxSize);
+
+        }
+      })
+    }
+  }
+  detectPose = ()=>{
+    if(this.state.net){
+
+      var imageScaleFactor = 0.5;
+      var outputStride = 16;
+      var flipHorizontal = true;
+      this.state.net.estimateSinglePose(store.liveVideo,imageScaleFactor, flipHorizontal, outputStride).then(pose=>{
+        this.setState({
+          pose
+        })
+      });
+    }
+  }
   animate=()=> {
     if(store.canvasOutput){
       const scaleFactor = (store.canvasOutput.width/store.videoWidth)*store.videoHeight
@@ -229,6 +271,8 @@ class App extends Component {
       }
       const context = store.hiddenCanvas.getContext("2d")
       let srcMat = this.handleVideoData(store.hiddenCanvas);
+      
+
       if(!srcMat){
         requestAnimationFrame(this.animate);
         return
@@ -275,6 +319,7 @@ class App extends Component {
         }
         this.drawEffects(context,colorNum,color)
       })
+      
       // If the user is clicking and draging to select a color
       if(store.calibrationRect){
         //Draw color selection rectangle
@@ -286,6 +331,10 @@ class App extends Component {
       // Shows text to instruct user
       if(store.showSelectColorText){
         drawingUtils.drawSelectColorText(context, store.isMobile, store.usingWhite)
+      }
+      if(store.showPosePoints){
+        this.detectPose(context)
+        this.drawPose(context)
       }
       drawingUtils.fitVidToCanvas(store.canvasOutput, store.hiddenCanvas)
       //Trim histories to a value that is greater than trail length and ring history length
