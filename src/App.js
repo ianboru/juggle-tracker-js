@@ -60,13 +60,22 @@ class App extends Component {
     ballKinematics : []
   }
   trackWristPoints = (pose)=>{
-    const curPoints = {}
+    let curPoints = {}
     pose.keypoints.forEach((keypoint,index)=>{
       if(keypoint.part.includes("Wrist")){
         curPoints[keypoint.part] = keypoint.position
         curPoints[keypoint.part].score = keypoint.score
       }
     })
+    let fixedPoints = {}
+    if(curPoints["leftWrist"].x > curPoints["rightWrist"].x  ){
+      fixedPoints["leftWrist"] = curPoints["rightWrist"]
+      fixedPoints["rightWrist"] = curPoints["leftWrist"]
+    }else{
+      fixedPoints["rightWrist"] = curPoints["rightWrist"]
+      fixedPoints["leftWrist"] = curPoints["leftWrist"]
+    }
+    curPoints = fixedPoints
     this.state.wristPoints.push(curPoints)
     if(this.state.wristPoints.length > 3){
       this.state.wristPoints = this.state.wristPoints.slice(1)
@@ -79,7 +88,7 @@ class App extends Component {
     const gravity = 10
     let x = 0; let y = 0; 
     let vx = 0; let vy = 0;
-    const scoreThreshold = .1
+    const scoreThreshold = .2
     //initialize balls when wrists have 2 frames
     if(balls.length == 0 && wristPoints.length > 2){
       sides.forEach((side, index)=>{
@@ -100,7 +109,7 @@ class App extends Component {
         }
       })
     }else if(balls.length > 0){
-      const detachThreshold = 100
+      const detachThreshold = 50
       balls.forEach((ball, index)=>{
         let attached = ball.attached
         let justDetached = false 
@@ -110,11 +119,16 @@ class App extends Component {
           vx = x - wristPoints[lastIndex-1][ball.attached].x
           vy = y - wristPoints[lastIndex-1][ball.attached].y
           const prevVx = wristPoints[lastIndex-1][ball.attached].x - wristPoints[lastIndex-2][ball.attached].x
-          const prevVy = wristPoints[lastIndex-1][ball.attached].x - wristPoints[lastIndex-2][ball.attached].y
+          let prevVy = wristPoints[lastIndex-1][ball.attached].x - wristPoints[lastIndex-2][ball.attached].y
           const vDiff = Math.abs(vy-prevVy)
-          if(Math.sign(vy) != Math.sign(prevVy) && vDiff > detachThreshold){
+          if(vDiff > 100){
+            prevVy = prevVy *.7
+          }
+          if(Math.sign(vy) != Math.sign(prevVy) && prevVy < 0 && vDiff > detachThreshold){
             attached = false
             justDetached = true
+            vx = prevVx
+            vy = prevVy
           }
         }else{
           x = ball.vx + ball.x
@@ -132,17 +146,18 @@ class App extends Component {
         }
         balls[index] = this.addWallBounce(balls[index]) 
         //console.log(balls[index], wristPoints[lastIndex])
-        balls[index] = this.grabBall(balls[index], wristPoints[lastIndex])      
+        balls[index] = this.grabBall(balls[index], wristPoints[lastIndex],balls[1-index])      
       })
     }
   }
 
-grabBall=(ball, curWristPoints)=>{
+grabBall=(ball, curWristPoints, otherBall)=>{
   const sides = ["leftWrist", "rightWrist"]
   sides.forEach((side)=>{
     const dist = generalUtils.calculateDistance(curWristPoints[side], ball)
     const threshold = 40
-    if(dist < threshold && !ball.justDetached){
+    const otherBallAttached = otherBall ? !(otherBall.attached == side) : false
+    if(dist < threshold && !ball.justDetached && otherBallAttached){
       ball.attached = side
     }
   })
@@ -150,7 +165,7 @@ grabBall=(ball, curWristPoints)=>{
   return ball
 }
 addWallBounce=(ball)=>{
-  const elasticity = .8
+  const elasticity = .4
   const floorOffset = 100
   if(ball.x<=0){
     ball.vx = ball.vx*-1 * elasticity
@@ -164,10 +179,10 @@ addWallBounce=(ball)=>{
     ball.vy = ball.vy*-1 * elasticity
     ball.y = store.canvasDimensions.height - 100
   }
-  if (ball.y<=0){
+  /*if (ball.y<=0){
     ball.vy = ball.vy*-1 * elasticity
     ball.y = 0
-  }
+  }*/
   return ball
 }
 
@@ -398,7 +413,6 @@ addWallBounce=(ball)=>{
         allContourImage = this.processCurrentColor(null, 0, context, preparedMat)
       }
       if(allContourImage && allContourImage.cols > 0 && store.calibrationMode){
-        console.log("contour exists")
         cv.imshow('hiddenCanvas',allContourImage)
       }
       let srcWithContours
