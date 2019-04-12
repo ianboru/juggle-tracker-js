@@ -411,7 +411,7 @@ function drawPose(context, pose){
   var boxSize = 5
   context.lineWidth = 4;
   context.strokeStyle = 'rgba(255,255,255,0.8)'
-  const scoreThreshold = 0.0
+  const scoreThreshold = 0.3
   if(pose){
     pose.keypoints.forEach((keypoint,index)=>{
       const x = keypoint.position.x
@@ -437,7 +437,34 @@ function drawWristBalls(wristBalls, context){
     drawCircle(context, ball.x,ball.y,25, colors[index], 1)
   })
 }
+function drawConsecutiveKeypoints(keypoints, consecutiveKeypointIndices, context){
+  context.strokeStyle = "green"
+  const scoreThreshold = .3
+  for(let i=0; i< consecutiveKeypointIndices.length-1; i++){
+    const curIndex = consecutiveKeypointIndices[i]
+    const nextIndex = consecutiveKeypointIndices[i+1]
+    if(keypoints[curIndex].score > scoreThreshold && keypoints[nextIndex].score > scoreThreshold){
+      context.moveTo(keypoints[curIndex].position.x, keypoints[curIndex].position.y)
+      context.lineTo(keypoints[nextIndex].position.x, keypoints[nextIndex].position.y)
+    }
+  }  
+  context.stroke();
+}
+function drawSkeleton( keypoints,context){
+  let consecutiveKeypointIndices = [3,4,6,8,10]
+  drawConsecutiveKeypoints(keypoints,consecutiveKeypointIndices, context)
+  consecutiveKeypointIndices = [3,5,7,9]
+  drawConsecutiveKeypoints(keypoints,consecutiveKeypointIndices, context)
+  consecutiveKeypointIndices = [5,11,13,15]
+  drawConsecutiveKeypoints(keypoints,consecutiveKeypointIndices, context)
+  consecutiveKeypointIndices = [6,12,14,16]
+  drawConsecutiveKeypoints(keypoints,consecutiveKeypointIndices, context)
+  consecutiveKeypointIndices = [11,12]
+  drawConsecutiveKeypoints(keypoints,consecutiveKeypointIndices, context)
+}
+
 export default {
+  drawSkeleton,
   drawWristBalls,
     drawPose,
     drawWristPoints,

@@ -20,7 +20,13 @@ import generalUtils from './generalUtils'
 import * as tf from '@tensorflow/tfjs';
 
 import * as posenet from '@tensorflow-models/posenet';
-
+/*#canvas-output{
+  -moz-transform: scale(-1, 1);
+-webkit-transform: scale(-1, 1);
+-o-transform: scale(-1, 1);
+transform: scale(-1, 1);
+filter: FlipH;
+}*/
 const calibrateHelp = `Calibration Process\n
   == Basic Calibration ==
   1: (optional) Click and drag a box over the prop 
@@ -88,7 +94,7 @@ class App extends Component {
     const gravity = 10
     let x = 0; let y = 0; 
     let vx = 0; let vy = 0;
-    const scoreThreshold = .2
+    const scoreThreshold = .3
     //initialize balls when wrists have 2 frames
     if(balls.length == 0 && wristPoints.length > 2){
       sides.forEach((side, index)=>{
@@ -109,7 +115,7 @@ class App extends Component {
         }
       })
     }else if(balls.length > 0){
-      const detachThreshold = 50
+      const detachThreshold = 20
       balls.forEach((ball, index)=>{
         let attached = ball.attached
         let justDetached = false 
@@ -124,7 +130,7 @@ class App extends Component {
           if(vDiff > 100){
             prevVy = prevVy *.7
           }
-          if(Math.sign(vy) != Math.sign(prevVy) && prevVy < 0 && vDiff > detachThreshold){
+          if(prevVy < 0 && vDiff > detachThreshold){
             attached = false
             justDetached = true
             vx = prevVx
@@ -449,8 +455,9 @@ addWallBounce=(ball)=>{
           this.trackWristPoints(this.state.pose)
           this.calculateBallPoints(this.state.wristPoints)
           drawingUtils.drawWristBalls(this.state.ballKinematics,context)
+          drawingUtils.drawSkeleton(this.state.pose.keypoints, context)
+          drawingUtils.drawWristPoints(this.state.wristPoints, context, 5)
         }
-        drawingUtils.drawWristPoints(this.state.wristPoints, context, 5)
       }
       drawingUtils.fitVidToCanvas(store.canvasOutput, store.hiddenCanvas)
       //Trim histories to a value that is greater than trail length and ring history length

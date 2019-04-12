@@ -113,13 +113,7 @@ canvas{
 #canvas{
    touch-action: none;
 }
-#canvas-output{
-  -moz-transform: scale(-1, 1);
--webkit-transform: scale(-1, 1);
--o-transform: scale(-1, 1);
-transform: scale(-1, 1);
-filter: FlipH;
-}
+
 @media screen and (min-width: 992px) {
   .video-container{
     width: 640px;
