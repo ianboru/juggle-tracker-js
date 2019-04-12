@@ -417,27 +417,24 @@ function drawPose(context, pose){
       const x = keypoint.position.x
       const y = keypoint.position.y
       if(keypoint.score > scoreThreshold){
-        console.log("drawing keypoint",keypoint.part, keypoint.position.x,keypoint.position.y )
-
         context.strokeRect(x - boxSize/2 , y - boxSize/2, boxSize, boxSize);
-        if(keypoint.part.includes("Wrist"))
-          drawCircle(context, x,y,10, 'hsl(150,100%,100%)', 1)
       }
     })
   }
 }
-function drawWristPoints(wristPoints,context){
+function drawWristPoints(wristPoints,context,radius){
   wristPoints.forEach((curPoints)=>{
     Object.keys(curPoints).forEach((side)=>{
       const x = curPoints[side].x
       const y = curPoints[side].y
-      drawCircle(context, x,y,10, 'hsl(150,100%,100%)', 1)
+      drawCircle(context, x,y,radius, 'hsl(0,100%,100%)', .4)
     })
   })
 }
 function drawWristBalls(wristBalls, context){
-  wristBalls.forEach((ball)=>{
-    drawCircle(context, ball.x,ball.y,10, 'hsl(30,100%,100%)', 1)
+  const colors = ['hsl(100,100%,100%)', 'hsl(236,100%,100%)']
+  wristBalls.forEach((ball,index)=>{
+    drawCircle(context, ball.x,ball.y,25, colors[index], 1)
   })
 }
 export default {

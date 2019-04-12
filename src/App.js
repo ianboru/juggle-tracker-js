@@ -64,6 +64,7 @@ class App extends Component {
     pose.keypoints.forEach((keypoint,index)=>{
       if(keypoint.part.includes("Wrist")){
         curPoints[keypoint.part] = keypoint.position
+        curPoints[keypoint.part].score = keypoint.score
       }
     })
     this.state.wristPoints.push(curPoints)
@@ -78,16 +79,20 @@ class App extends Component {
     const gravity = 10
     let x = 0; let y = 0; 
     let vx = 0; let vy = 0;
+    const scoreThreshold = .1
     //initialize balls when wrists have 2 frames
     if(balls.length == 0 && wristPoints.length > 2){
       sides.forEach((side, index)=>{
+        if(wristPoints[lastIndex][side].score < scoreThreshold){
+          return
+        }
          x = wristPoints[lastIndex][side].x
          y = wristPoints[lastIndex][side].y
          vx = x - wristPoints[lastIndex-1][side].x
          vy = y - wristPoints[lastIndex-1][side].y
 
         balls[index] = {
-          'attached': true,
+          'attached': sides[index],
           'x' : x,
           'y' : y,
           'vx' : vx,
@@ -95,18 +100,21 @@ class App extends Component {
         }
       })
     }else if(balls.length > 0){
+      const detachThreshold = 100
       balls.forEach((ball, index)=>{
         let attached = ball.attached
-        if(attached){
-          x = wristPoints[lastIndex][sides[index]].x
-          y = wristPoints[lastIndex][sides[index]].y
-          vx = x - wristPoints[lastIndex-1][sides[index]].x
-          vy = y - wristPoints[lastIndex-1][sides[index]].y
-          const prevVx = wristPoints[lastIndex-1][sides[index]].x - wristPoints[lastIndex-2][sides[index]].x
-          const prevVy = wristPoints[lastIndex-1][sides[index]].x - wristPoints[lastIndex-2][sides[index]].y
+        let justDetached = false 
+        if(attached && wristPoints[lastIndex][attached].score > scoreThreshold){
+          x = wristPoints[lastIndex][ball.attached].x
+          y = wristPoints[lastIndex][ball.attached].y
+          vx = x - wristPoints[lastIndex-1][ball.attached].x
+          vy = y - wristPoints[lastIndex-1][ball.attached].y
+          const prevVx = wristPoints[lastIndex-1][ball.attached].x - wristPoints[lastIndex-2][ball.attached].x
+          const prevVy = wristPoints[lastIndex-1][ball.attached].x - wristPoints[lastIndex-2][ball.attached].y
           const vDiff = Math.abs(vy-prevVy)
-          if(Math.sign(vy) != Math.sign(prevVy) && vDiff > 80){
+          if(Math.sign(vy) != Math.sign(prevVy) && vDiff > detachThreshold){
             attached = false
+            justDetached = true
           }
         }else{
           x = ball.vx + ball.x
@@ -119,25 +127,46 @@ class App extends Component {
           'x' : x,
           'y' : y,
           'vx' : vx,
-          'vy' : vy
+          'vy' : vy,
+          'justDetached' : justDetached
         }
-        balls[index] = this.addWallBounce(balls[index])        
+        balls[index] = this.addWallBounce(balls[index]) 
+        //console.log(balls[index], wristPoints[lastIndex])
+        balls[index] = this.grabBall(balls[index], wristPoints[lastIndex])      
       })
     }
   }
+
+grabBall=(ball, curWristPoints)=>{
+  const sides = ["leftWrist", "rightWrist"]
+  sides.forEach((side)=>{
+    const dist = generalUtils.calculateDistance(curWristPoints[side], ball)
+    const threshold = 40
+    if(dist < threshold && !ball.justDetached){
+      ball.attached = side
+    }
+  })
+  
+  return ball
+}
 addWallBounce=(ball)=>{
   const elasticity = .8
-  if (ball.x<0){
+  const floorOffset = 100
+  if(ball.x<=0){
     ball.vx = ball.vx*-1 * elasticity
     ball.x = 0
   }
-  if (ball.x<0 || ball.x>store.canvasDimensions.width){
+  if(ball.x>=store.canvasDimensions.width){
     ball.vx = ball.vx*-1 * elasticity
     ball.x = store.canvasDimensions.width
   }
-  if (ball.y>store.canvasDimensions.height){
+  if (ball.y>=store.canvasDimensions.height - 100){
     ball.vy = ball.vy*-1 * elasticity
-    ball.y = store.canvasDimensions.height
+    ball.y = store.canvasDimensions.height - 100
+  }
+  if (ball.y<=0){
+    ball.vy = ball.vy*-1 * elasticity
+    ball.y = 0
   }
   return ball
 }
@@ -407,7 +436,7 @@ addWallBounce=(ball)=>{
           this.calculateBallPoints(this.state.wristPoints)
           drawingUtils.drawWristBalls(this.state.ballKinematics,context)
         }
-        drawingUtils.drawWristPoints(this.state.wristPoints, context)
+        drawingUtils.drawWristPoints(this.state.wristPoints, context, 5)
       }
       drawingUtils.fitVidToCanvas(store.canvasOutput, store.hiddenCanvas)
       //Trim histories to a value that is greater than trail length and ring history length

@@ -21,7 +21,7 @@ class Store {
   @observable uploadedVideo       = null
   @observable videoWidth          = null
   @observable videoHeight          = null
-  @observable calibrationMode     = false
+  @observable calibrationMode     = true
   @observable calibratRect        = null
   @observable filterHSV           = initialHSV
   @observable allColors           = [initialHSV]
@@ -61,7 +61,7 @@ class Store {
   @observable starPoint           = .5
   @observable hiddenCanvas        = null
   @observable imageScale          = 1
-  @observable showContours         = true
+  @observable showContours         = false
   @observable contourThickness     = 1
   @observable uploadedDimensionsExist = false
   @observable videoUploaded = false
