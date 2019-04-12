@@ -407,8 +407,43 @@ function fitVidToCanvas(canvas, imageObj, opacity){
   context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
   context.globalAlpha = 1
 };
+function drawPose(context, pose){
+  var boxSize = 5
+  context.lineWidth = 4;
+  context.strokeStyle = 'rgba(255,255,255,0.8)'
+  const scoreThreshold = 0.0
+  if(pose){
+    pose.keypoints.forEach((keypoint,index)=>{
+      const x = keypoint.position.x
+      const y = keypoint.position.y
+      if(keypoint.score > scoreThreshold){
+        console.log("drawing keypoint",keypoint.part, keypoint.position.x,keypoint.position.y )
 
+        context.strokeRect(x - boxSize/2 , y - boxSize/2, boxSize, boxSize);
+        if(keypoint.part.includes("Wrist"))
+          drawCircle(context, x,y,10, 'hsl(150,100%,100%)', 1)
+      }
+    })
+  }
+}
+function drawWristPoints(wristPoints,context){
+  wristPoints.forEach((curPoints)=>{
+    Object.keys(curPoints).forEach((side)=>{
+      const x = curPoints[side].x
+      const y = curPoints[side].y
+      drawCircle(context, x,y,10, 'hsl(150,100%,100%)', 1)
+    })
+  })
+}
+function drawWristBalls(wristBalls, context){
+  wristBalls.forEach((ball)=>{
+    drawCircle(context, ball.x,ball.y,10, 'hsl(30,100%,100%)', 1)
+  })
+}
 export default {
+  drawWristBalls,
+    drawPose,
+    drawWristPoints,
     drawCircles,
     drawConnections,
     drawRings,

@@ -55,16 +55,82 @@ class App extends Component {
     isFacebookApp : false,
     discoHue : 0,
     startTime : null,
-    contourLocations : []
+    contourLocations : [],
+    wristPoints : [],
+    ballKinematics : []
   }
-   
+  trackWristPoints = (pose)=>{
+    const curPoints = {}
+    pose.keypoints.forEach((keypoint,index)=>{
+      if(keypoint.part.includes("Wrist")){
+        curPoints[keypoint.part] = keypoint.position
+      }
+    })
+    this.state.wristPoints.push(curPoints)
+    if(this.state.wristPoints.length > 3){
+      this.state.wristPoints = this.state.wristPoints.slice(1)
+    }
+  }
+  calculateBallPoints = (wristPoints)=>{
+    const balls = this.state.ballKinematics
+    const lastIndex = wristPoints.length-1
+    const sides = ["leftWrist", "rightWrist"]
+    const gravity = 10
+    let x = 0; let y = 0; 
+    let vx = 0; let vy = 0;
+    //initialize balls when wrists have 2 frames
+    if(balls.length == 0 && wristPoints.length > 2){
+      sides.forEach((side, index)=>{
+         x = wristPoints[lastIndex][side].x
+         y = wristPoints[lastIndex][side].y
+         vx = x - wristPoints[lastIndex-1][side].x
+         vy = y - wristPoints[lastIndex-1][side].y
+
+        balls[index] = {
+          'attached': true,
+          'x' : x,
+          'y' : y,
+          'vx' : vx,
+          'vy' : vy
+        }
+      })
+    }else if(balls.length > 0){
+      balls.forEach((ball, index)=>{
+        let attached = ball.attached
+        if(attached){
+          x = wristPoints[lastIndex][sides[index]].x
+          y = wristPoints[lastIndex][sides[index]].y
+          vx = x - wristPoints[lastIndex-1][sides[index]].x
+          vy = y - wristPoints[lastIndex-1][sides[index]].y
+          const prevVx = wristPoints[lastIndex-1][sides[index]].x - wristPoints[lastIndex-2][sides[index]].x
+          const prevVy = wristPoints[lastIndex-1][sides[index]].x - wristPoints[lastIndex-2][sides[index]].y
+          const vDiff = Math.abs(vy-prevVy)
+          console.log("VDif", vDiff)
+          if(Math.sign(vy) != Math.sign(prevVy) && vDiff > 80){
+            attached = false
+          }
+        }else{
+          x = ball.vx + ball.x
+          y = ball.y + ball.vy + .5 * gravity
+          vx = ball.vx 
+          vy = ball.vy + gravity
+        }
+        balls[index] = {
+          'attached': attached,
+          'x' : x,
+          'y' : y,
+          'vx' : vx,
+          'vy' : vy
+        }
+      })
+    }
+  }
   componentDidMount=()=>{
     posenet.load().then(model=>{
       console.log("posenet loaded")
        this.setState({
           net : model
         })
-
     });
     const isFacebookApp = generalUtils.isFacebookApp()
     this.setState({
@@ -232,23 +298,7 @@ class App extends Component {
     cv.add(dst,srcMat,dst)
     return dst
   }
-  drawPose = (context)=>{
-
-    var boxSize = 5
-    context.lineWidth = 4;
-    context.strokeStyle = 'rgba(255,255,255,0.8)'
-    const scoreThreshold = 0.0
-    if(this.state.pose){
-      this.state.pose.keypoints.forEach((keypoint,index)=>{
-        if(keypoint.score > scoreThreshold){
-          console.log("drawing keypoint",keypoint.part, keypoint.position.x,keypoint.position.y )
-
-          context.strokeRect(keypoint.position.x - boxSize/2 , keypoint.position.y - boxSize/2, boxSize, boxSize);
-
-        }
-      })
-    }
-  }
+  
   detectPose = ()=>{
     if(this.state.net){
 
@@ -334,7 +384,13 @@ class App extends Component {
       }
       if(store.showPosePoints){
         this.detectPose(context)
-        this.drawPose(context)
+        //drawingUtils.drawPose(context, this.state.pose)
+        if(this.state.pose){
+          this.trackWristPoints(this.state.pose)
+          this.calculateBallPoints(this.state.wristPoints)
+          drawingUtils.drawWristBalls(this.state.ballKinematics,context)
+        }
+        drawingUtils.drawWristPoints(this.state.wristPoints, context)
       }
       drawingUtils.fitVidToCanvas(store.canvasOutput, store.hiddenCanvas)
       //Trim histories to a value that is greater than trail length and ring history length
