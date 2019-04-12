@@ -105,7 +105,6 @@ class App extends Component {
           const prevVx = wristPoints[lastIndex-1][sides[index]].x - wristPoints[lastIndex-2][sides[index]].x
           const prevVy = wristPoints[lastIndex-1][sides[index]].x - wristPoints[lastIndex-2][sides[index]].y
           const vDiff = Math.abs(vy-prevVy)
-          console.log("VDif", vDiff)
           if(Math.sign(vy) != Math.sign(prevVy) && vDiff > 80){
             attached = false
           }
@@ -122,9 +121,27 @@ class App extends Component {
           'vx' : vx,
           'vy' : vy
         }
+        balls[index] = this.addWallBounce(balls[index])        
       })
     }
   }
+addWallBounce=(ball)=>{
+  const elasticity = .8
+  if (ball.x<0){
+    ball.vx = ball.vx*-1 * elasticity
+    ball.x = 0
+  }
+  if (ball.x<0 || ball.x>store.canvasDimensions.width){
+    ball.vx = ball.vx*-1 * elasticity
+    ball.x = store.canvasDimensions.width
+  }
+  if (ball.y>store.canvasDimensions.height){
+    ball.vy = ball.vy*-1 * elasticity
+    ball.y = store.canvasDimensions.height
+  }
+  return ball
+}
+
   componentDidMount=()=>{
     posenet.load().then(model=>{
       console.log("posenet loaded")
