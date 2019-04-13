@@ -68,7 +68,7 @@ class Store {
   @observable recordMessageShown = false
   @observable rawOpacity = 1
   @observable showPosePoints = true
-
+  @observable poseScore = .4  
   //
   // ACTIONS
   //

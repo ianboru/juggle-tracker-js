@@ -65,40 +65,55 @@ class App extends Component {
     wristPoints : [],
     ballKinematics : []
   }
+  smoothWristPoints = (points)=>{
+    if(points.length > 1){
+      const lastIndex = points.length - 1
+      const prevIndex = points.length - 2
+      points[lastIndex]["leftWrist"].x = (points[prevIndex]["leftWrist"].x  + points[lastIndex]["leftWrist"].x)/2
+      points[lastIndex]["rightWrist"].x = (points[prevIndex]["rightWrist"].x  + points[lastIndex]["rightWrist"].x)/2
+      points[lastIndex]["leftWrist"].y = (points[prevIndex]["leftWrist"].y  + points[lastIndex]["leftWrist"].y)/2
+      points[lastIndex]["rightWrist"].y = (points[prevIndex]["rightWrist"].y  + points[lastIndex]["rightWrist"].y)/2
+    }
+    return points
+  }
   trackWristPoints = (pose)=>{
     let curPoints = {}
     pose.keypoints.forEach((keypoint,index)=>{
       if(keypoint.part.includes("Wrist")){
         curPoints[keypoint.part] = keypoint.position
         curPoints[keypoint.part].score = keypoint.score
+        //console.log("scores" ,keypoint.part, keypoint.score)
       }
     })
     let fixedPoints = {}
     if(curPoints["leftWrist"].x > curPoints["rightWrist"].x  ){
+      //console.log("flipped")
       fixedPoints["leftWrist"] = curPoints["rightWrist"]
       fixedPoints["rightWrist"] = curPoints["leftWrist"]
     }else{
       fixedPoints["rightWrist"] = curPoints["rightWrist"]
       fixedPoints["leftWrist"] = curPoints["leftWrist"]
     }
-    curPoints = fixedPoints
-    this.state.wristPoints.push(curPoints)
+    //console.log(fixedPoints, curPoints)
+    this.state.wristPoints.push(fixedPoints)
+    let wristPoints = this.smoothWristPoints(this.state.wristPoints)
+
     if(this.state.wristPoints.length > 3){
-      this.state.wristPoints = this.state.wristPoints.slice(1)
+      wristPoints = this.state.wristPoints.slice(1)
+      this.state.wristPoints = wristPoints
     }
   }
   calculateBallPoints = (wristPoints)=>{
     const balls = this.state.ballKinematics
     const lastIndex = wristPoints.length-1
     const sides = ["leftWrist", "rightWrist"]
-    const gravity = 10
+    const gravity = 17
     let x = 0; let y = 0; 
     let vx = 0; let vy = 0;
-    const scoreThreshold = .3
     //initialize balls when wrists have 2 frames
     if(balls.length == 0 && wristPoints.length > 2){
       sides.forEach((side, index)=>{
-        if(wristPoints[lastIndex][side].score < scoreThreshold){
+        if(wristPoints[lastIndex][side].score < store.poseScore){
           return
         }
          x = wristPoints[lastIndex][side].x
@@ -111,32 +126,36 @@ class App extends Component {
           'x' : x,
           'y' : y,
           'vx' : vx,
-          'vy' : vy
+          'vy' : vy,
+          'justDetached' : 0
         }
       })
     }else if(balls.length > 0){
-      const detachThreshold = 20
+      const detachThreshold = 3
       balls.forEach((ball, index)=>{
         let attached = ball.attached
-        let justDetached = false 
-        if(attached && wristPoints[lastIndex][attached].score > scoreThreshold){
+        let justDetached = 0
+
+        if(attached && wristPoints[lastIndex][attached].score > store.poseScore){
           x = wristPoints[lastIndex][ball.attached].x
           y = wristPoints[lastIndex][ball.attached].y
           vx = x - wristPoints[lastIndex-1][ball.attached].x
           vy = y - wristPoints[lastIndex-1][ball.attached].y
           const prevVx = wristPoints[lastIndex-1][ball.attached].x - wristPoints[lastIndex-2][ball.attached].x
-          let prevVy = wristPoints[lastIndex-1][ball.attached].x - wristPoints[lastIndex-2][ball.attached].y
-          const vDiff = Math.abs(vy-prevVy)
-          if(vDiff > 100){
-            prevVy = prevVy *.7
-          }
-          if(prevVy < 0 && vDiff > detachThreshold){
+          let prevVy = wristPoints[lastIndex-1][ball.attached].y - wristPoints[lastIndex-2][ball.attached].y
+          let vDiff = Math.abs(vy-prevVy)
+          const fudgeFactor = 1.4
+          vDiff = vDiff * fudgeFactor
+          //console.log(vDiff, prevVy)
+          const minVy = 40
+          const minVx = 10 
+          if(prevVy < -1*minVy){
             attached = false
-            justDetached = true
             vx = prevVx
             vy = prevVy
           }
         }else{
+          justDetached = ball.justDetached + 1
           x = ball.vx + ball.x
           y = ball.y + ball.vy + .5 * gravity
           vx = ball.vx 
@@ -151,7 +170,6 @@ class App extends Component {
           'justDetached' : justDetached
         }
         balls[index] = this.addWallBounce(balls[index]) 
-        //console.log(balls[index], wristPoints[lastIndex])
         balls[index] = this.grabBall(balls[index], wristPoints[lastIndex],balls[1-index])      
       })
     }
@@ -161,18 +179,20 @@ grabBall=(ball, curWristPoints, otherBall)=>{
   const sides = ["leftWrist", "rightWrist"]
   sides.forEach((side)=>{
     const dist = generalUtils.calculateDistance(curWristPoints[side], ball)
-    const threshold = 40
+    const threshold = 55
+    const justDetachedThreshold = 5
     const otherBallAttached = otherBall ? !(otherBall.attached == side) : false
-    if(dist < threshold && !ball.justDetached && otherBallAttached){
+    if(dist < threshold && ball.justDetached > justDetachedThreshold && otherBallAttached){
       ball.attached = side
+      ball.justDetached = 0
     }
   })
   
   return ball
 }
 addWallBounce=(ball)=>{
-  const elasticity = .4
-  const floorOffset = 100
+  const elasticity = .6
+  const floorOffset = 50
   if(ball.x<=0){
     ball.vx = ball.vx*-1 * elasticity
     ball.x = 0
@@ -181,14 +201,10 @@ addWallBounce=(ball)=>{
     ball.vx = ball.vx*-1 * elasticity
     ball.x = store.canvasDimensions.width
   }
-  if (ball.y>=store.canvasDimensions.height - 100){
+  if (ball.y>=store.canvasDimensions.height - floorOffset){
     ball.vy = ball.vy*-1 * elasticity
-    ball.y = store.canvasDimensions.height - 100
+    ball.y = store.canvasDimensions.height - floorOffset
   }
-  /*if (ball.y<=0){
-    ball.vy = ball.vy*-1 * elasticity
-    ball.y = 0
-  }*/
   return ball
 }
 
@@ -368,7 +384,6 @@ addWallBounce=(ball)=>{
   
   detectPose = ()=>{
     if(this.state.net){
-
       var imageScaleFactor = 0.5;
       var outputStride = 16;
       var flipHorizontal = true;

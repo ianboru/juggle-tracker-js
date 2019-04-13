@@ -149,7 +149,6 @@ function drawConnections(context,positions, color){
           const nextBallY = positions[j]['y'].slice(-1).pop()
 
           const lastColor = addOpacityToColor(color, store.opacity)
-          console.log(lastColor)
           context.beginPath();
           context.moveTo(curBallX, curBallY)
           context.lineTo(nextBallX, nextBallY)
@@ -379,6 +378,7 @@ function fitVidToCanvas(canvas, imageObj, opacity){
   // If image's aspect ratio is less than canvas's we fit on height
   // and place the image centrally along width
   if(imageAspectRatio < canvasAspectRatio) {
+    console.log("condition 1")
     renderableHeight = canvas.height;
     renderableWidth = imageWidth* (renderableHeight / imageHeight);
     xStart = (canvas.width - renderableWidth) / 2;
@@ -399,6 +399,7 @@ function fitVidToCanvas(canvas, imageObj, opacity){
     renderableHeight = canvas.height;
     renderableWidth = canvas.width;
     xStart = 0;
+    //just for juggler sim
     yStart = 0;
   }
   const context = canvas.getContext("2d")
@@ -411,23 +412,24 @@ function drawPose(context, pose){
   var boxSize = 5
   context.lineWidth = 4;
   context.strokeStyle = 'rgba(255,255,255,0.8)'
-  const scoreThreshold = 0.3
+
   if(pose){
     pose.keypoints.forEach((keypoint,index)=>{
       const x = keypoint.position.x
       const y = keypoint.position.y
-      if(keypoint.score > scoreThreshold){
+      if(keypoint.score > store.poseScore){
         context.strokeRect(x - boxSize/2 , y - boxSize/2, boxSize, boxSize);
       }
     })
   }
 }
 function drawWristPoints(wristPoints,context,radius){
+  const colors = ['hsl(50,100%,100%)', 'hsl(330,100%,100%)']
   wristPoints.forEach((curPoints)=>{
-    Object.keys(curPoints).forEach((side)=>{
+    Object.keys(curPoints).forEach((side, index)=>{
       const x = curPoints[side].x
       const y = curPoints[side].y
-      drawCircle(context, x,y,radius, 'hsl(0,100%,100%)', .4)
+      drawCircle(context, x,y,radius, colors[index], .4)
     })
   })
 }
@@ -438,17 +440,16 @@ function drawWristBalls(wristBalls, context){
   })
 }
 function drawConsecutiveKeypoints(keypoints, consecutiveKeypointIndices, context){
-  context.strokeStyle = "green"
-  const scoreThreshold = .3
+  context.strokeStyle = "white"
+  context.lineWidth = 5
   for(let i=0; i< consecutiveKeypointIndices.length-1; i++){
     const curIndex = consecutiveKeypointIndices[i]
     const nextIndex = consecutiveKeypointIndices[i+1]
-    if(keypoints[curIndex].score > scoreThreshold && keypoints[nextIndex].score > scoreThreshold){
+    if(keypoints[curIndex].score > store.poseScore && keypoints[nextIndex].score > store.poseScore){
       context.moveTo(keypoints[curIndex].position.x, keypoints[curIndex].position.y)
       context.lineTo(keypoints[nextIndex].position.x, keypoints[nextIndex].position.y)
     }
   }  
-  context.stroke();
 }
 function drawSkeleton( keypoints,context){
   let consecutiveKeypointIndices = [3,4,6,8,10]
@@ -461,6 +462,12 @@ function drawSkeleton( keypoints,context){
   drawConsecutiveKeypoints(keypoints,consecutiveKeypointIndices, context)
   consecutiveKeypointIndices = [11,12]
   drawConsecutiveKeypoints(keypoints,consecutiveKeypointIndices, context)
+  consecutiveKeypointIndices = [5,6]
+  drawConsecutiveKeypoints(keypoints,consecutiveKeypointIndices, context)
+
+  context.closePath();
+  context.fill();
+  context.stroke();
 }
 
 export default {
