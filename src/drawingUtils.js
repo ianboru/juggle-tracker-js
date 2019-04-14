@@ -434,13 +434,14 @@ function drawWristPoints(wristPoints,context,radius){
   })
 }
 function drawWristBalls(wristBalls, context){
-  const colors = ['hsl(100,100%,100%)', 'hsl(236,100%,100%)']
+  const colors = ['hsl(100,100%,100%)', 'hsl(236,100%,100%)', 'hsl(300,100%,100%)']
   wristBalls.forEach((ball,index)=>{
+    context.strokeStyle = colors[index]
     drawCircle(context, ball.x,ball.y,25, colors[index], 1)
   })
 }
 function drawConsecutiveKeypoints(keypoints, consecutiveKeypointIndices, context){
-  context.strokeStyle = "white"
+  context.strokeStyle = "rgba(255,255,255,.5)"
   context.lineWidth = 5
   for(let i=0; i< consecutiveKeypointIndices.length-1; i++){
     const curIndex = consecutiveKeypointIndices[i]
@@ -452,9 +453,11 @@ function drawConsecutiveKeypoints(keypoints, consecutiveKeypointIndices, context
   }  
 }
 function drawSkeleton( keypoints,context){
-  let consecutiveKeypointIndices = [3,4,6,8,10]
+  let consecutiveKeypointIndices = [0, 6,8,10]
   drawConsecutiveKeypoints(keypoints,consecutiveKeypointIndices, context)
-  consecutiveKeypointIndices = [3,5,7,9]
+  consecutiveKeypointIndices = [0,3,1, 2, 4,0]
+  drawConsecutiveKeypoints(keypoints,consecutiveKeypointIndices, context)
+  consecutiveKeypointIndices = [0,5,7,9]
   drawConsecutiveKeypoints(keypoints,consecutiveKeypointIndices, context)
   consecutiveKeypointIndices = [5,11,13,15]
   drawConsecutiveKeypoints(keypoints,consecutiveKeypointIndices, context)

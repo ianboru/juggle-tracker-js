@@ -82,19 +82,16 @@ class App extends Component {
       if(keypoint.part.includes("Wrist")){
         curPoints[keypoint.part] = keypoint.position
         curPoints[keypoint.part].score = keypoint.score
-        //console.log("scores" ,keypoint.part, keypoint.score)
       }
     })
     let fixedPoints = {}
     if(curPoints["leftWrist"].x > curPoints["rightWrist"].x  ){
-      //console.log("flipped")
       fixedPoints["leftWrist"] = curPoints["rightWrist"]
       fixedPoints["rightWrist"] = curPoints["leftWrist"]
     }else{
       fixedPoints["rightWrist"] = curPoints["rightWrist"]
       fixedPoints["leftWrist"] = curPoints["leftWrist"]
     }
-    //console.log(fixedPoints, curPoints)
     this.state.wristPoints.push(fixedPoints)
     let wristPoints = this.smoothWristPoints(this.state.wristPoints)
 
@@ -107,36 +104,30 @@ class App extends Component {
     const balls = this.state.ballKinematics
     const lastIndex = wristPoints.length-1
     const sides = ["leftWrist", "rightWrist"]
-    const gravity = 17
+    const gravity = 22
     let x = 0; let y = 0; 
     let vx = 0; let vy = 0;
+    let numBalls = 3
     //initialize balls when wrists have 2 frames
-    if(balls.length == 0 && wristPoints.length > 2){
-      sides.forEach((side, index)=>{
-        if(wristPoints[lastIndex][side].score < store.poseScore){
-          return
-        }
-         x = wristPoints[lastIndex][side].x
-         y = wristPoints[lastIndex][side].y
-         vx = x - wristPoints[lastIndex-1][side].x
-         vy = y - wristPoints[lastIndex-1][side].y
-
-        balls[index] = {
-          'attached': sides[index],
-          'x' : x,
-          'y' : y,
-          'vx' : vx,
-          'vy' : vy,
+    if(balls.length == 0){
+      for(let i = 0; i < 3 ; i++){
+        balls[i] = {
+          'attached': false,
+          'x' : 100*i,
+          'y' : 200,
+          'vx' : 0,
+          'vy' : 0,
           'justDetached' : 0
         }
-      })
+      }
     }else if(balls.length > 0){
       const detachThreshold = 3
+      let attachedSides = []
       balls.forEach((ball, index)=>{
         let attached = ball.attached
         let justDetached = 0
 
-        if(attached && wristPoints[lastIndex][attached].score > store.poseScore){
+        if(ball.attached && wristPoints[lastIndex][attached].score > store.poseScore){
           x = wristPoints[lastIndex][ball.attached].x
           y = wristPoints[lastIndex][ball.attached].y
           vx = x - wristPoints[lastIndex-1][ball.attached].x
@@ -147,13 +138,15 @@ class App extends Component {
           const fudgeFactor = 1.4
           vDiff = vDiff * fudgeFactor
           //console.log(vDiff, prevVy)
-          const minVy = 40
-          const minVx = 10 
-          if(prevVy < -1*minVy){
-            attached = false
-            vx = prevVx
-            vy = prevVy
+          const minVy = 30
+          if(!attachedSides.includes(attached)){
+            if(prevVy < -1*minVy){
+              attached = false
+              vx = prevVx
+              vy = prevVy
+            }
           }
+          attachedSides.push(ball.attached)
         }else{
           justDetached = ball.justDetached + 1
           x = ball.vx + ball.x
@@ -170,7 +163,7 @@ class App extends Component {
           'justDetached' : justDetached
         }
         balls[index] = this.addWallBounce(balls[index]) 
-        balls[index] = this.grabBall(balls[index], wristPoints[lastIndex],balls[1-index])      
+        balls[index] = this.grabBall(balls[index], wristPoints[lastIndex])      
       })
     }
   }
@@ -181,8 +174,7 @@ grabBall=(ball, curWristPoints, otherBall)=>{
     const dist = generalUtils.calculateDistance(curWristPoints[side], ball)
     const threshold = 55
     const justDetachedThreshold = 5
-    const otherBallAttached = otherBall ? !(otherBall.attached == side) : false
-    if(dist < threshold && ball.justDetached > justDetachedThreshold && otherBallAttached){
+    if(dist < threshold && ball.justDetached > justDetachedThreshold){
       ball.attached = side
       ball.justDetached = 0
     }
@@ -191,8 +183,8 @@ grabBall=(ball, curWristPoints, otherBall)=>{
   return ball
 }
 addWallBounce=(ball)=>{
-  const elasticity = .6
-  const floorOffset = 50
+  const elasticity = .7
+  const floorOffset = 80
   if(ball.x<=0){
     ball.vx = ball.vx*-1 * elasticity
     ball.x = 0
@@ -226,7 +218,7 @@ addWallBounce=(ball)=>{
       alert("Visit website outside of instagram/facebook to use live video")
     }
   }
-  
+
   isFacebookApp=()=>{
     let ua = navigator.userAgent || navigator.vendor || window.opera;
     return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1);;
