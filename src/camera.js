@@ -2,9 +2,8 @@ import React, { Component } from 'react';
 import { observer } from "mobx-react"
 import store from "./store"
 import Recorder from './recorder'
-import axois, { post } from 'axios'
 import generalUtils from "./generalUtils"
-const webtaskUrl = "https://wt-b5a67af96f44fb6828d5a07d6bb70476-0.sandbox.auth0-extend.com/arflowarts"
+
 @observer
 class Camera extends Component {
   state={

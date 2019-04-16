@@ -1,59 +1,38 @@
-from flask import Flask
-from flask_restful import Api, Resource, reqparse
+from flask import Flask, jsonify, render_template, request
+from flask_cors import CORS
+import sys
+from werkzeug.wsgi import LimitedStream
 
+class StreamConsumingMiddleware(object):
+
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        stream = LimitedStream(environ['wsgi.input'],
+                               int(environ['CONTENT_LENGTH'] or 0))
+        environ['wsgi.input'] = stream
+        app_iter = self.app(environ, start_response)
+        try:
+            stream.exhaust()
+            for event in app_iter:
+                yield event
+        finally:
+            if hasattr(app_iter, 'close'):
+                app_iter.close()
 app = Flask(__name__)
-api = Api(app)
+app.wsgi_app = StreamConsumingMiddleware(app.wsgi_app)
+CORS(app)
 
-class Video(Resource):
-    def get(self, name):
-        for user in users:
-            if(name == user["name"]):
-                return user, 200
-        return "User not found", 404
+@app.route('/upload', methods=['POST'])
+def upload():   
+    files = request.files
+    print("video uploaded ", file=sys.stdout)
+    print(files, file=sys.stdout)
 
-    def post(self, name):
-        parser = reqparse.RequestParser()
-        parser.add_argument("age")
-        parser.add_argument("occupation")
-        args = parser.parse_args()
+    return "video uploaded"
 
-        for user in users:
-            if(name == user["name"]):
-                return "User with name {} already exists".format(name), 400
 
-        user = {
-            "name": name,
-            "age": args["age"],
-            "occupation": args["occupation"]
-        }
-        users.append(user)
-        return user, 201
-
-    def put(self, name):
-        parser = reqparse.RequestParser()
-        parser.add_argument("age")
-        parser.add_argument("occupation")
-        args = parser.parse_args()
-
-        for user in users:
-            if(name == user["name"]):
-                user["age"] = args["age"]
-                user["occupation"] = args["occupation"]
-                return user, 200
-        
-        user = {
-            "name": name,
-            "age": args["age"],
-            "occupation": args["occupation"]
-        }
-        users.append(user)
-        return user, 201
-
-    def delete(self, name):
-        global users
-        users = [user for user in users if user["name"] != name]
-        return "{} is deleted.".format(name), 200
-      
-api.add_resource(User, "/user/<string:name>")
-
-app.run(debug=True)
+@app.route('/')
+def index():
+    return "hello world"

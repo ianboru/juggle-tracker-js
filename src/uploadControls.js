@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { observer } from "mobx-react"
 import store from "./store"
 import generalUtils from "./generalUtils"
+import axios, { post } from 'axios'
+const postUrl = "http://localhost:5000"
 @observer
 class UploadControls extends Component {
   state={
@@ -30,6 +32,10 @@ class UploadControls extends Component {
     let URL = window.URL || window.webkitURL
     let file = this.input.files[0]
     if(!file){return}
+    console.log("file uploading")
+    this.postVideo(file).then((response)=>{
+      console.log("video posted", response)
+    })
     let fileURL = URL.createObjectURL(file)
     store.uploadedVideo.src = fileURL
     store.setVideoUploaded()
@@ -38,7 +44,23 @@ class UploadControls extends Component {
       fileUploaded : true
     })
   }
-
+  postVideo = (video)=>{
+    console.log("posting video")
+    const formData = new FormData()
+    const config = {
+        crossdomain: true,
+        timeout: 10000,
+        headers: {
+            'content-type': 'multipart/form-data',
+            //'Access-Control-Allow-Origin' : "*",
+            //'Access-Control-Allow-Headers' : 'Cache-Control, Pragma, Origin, Authorization,Content-Type, X-Requested-With'
+        }
+    }
+    formData.append('file',video)
+    return post(postUrl + "/upload", formData, config).then(response => {
+      console.log("response",response)
+    }) 
+  }
   handlePlayUploaded = ()=>{
     const playUploadedButton = document.querySelector('button#playUploadedButton');
     if(store.uploadedVideo.currentTime > 0 && !store.uploadedVideo.paused && !store.uploadedVideo.ended){
@@ -62,7 +84,7 @@ class UploadControls extends Component {
     }
     const videoControls =
         <div style={{'marginBottom' :'10px'}}>
-          <input className='invisible' type="file" accept="video/*" ref={ref => this.input = ref} onChange={this.handleFile}/>
+          <input className='invisible' name="videoUploader" type="file" accept="video/*" ref={ref => this.input = ref} onChange={this.handleFile}/>
           {uploadFileButton}
           {playUploadedButton}
         </div>
