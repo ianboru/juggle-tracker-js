@@ -63,7 +63,8 @@ class App extends Component {
     startTime : null,
     contourLocations : [],
     wristPoints : [],
-    ballKinematics : []
+    ballKinematics : [],
+    torsoHeight : .43
   }
   smoothWristPoints = (points)=>{
     if(points.length > 1){
@@ -104,7 +105,8 @@ class App extends Component {
     const balls = this.state.ballKinematics
     const lastIndex = wristPoints.length-1
     const sides = ["leftWrist", "rightWrist"]
-    const gravity = 22
+    const pixelsPerMeter = this.state.torsoHeight/.45
+    const gravity = pixelsPerMeter/10
     let x = 0; let y = 0; 
     let vx = 0; let vy = 0;
     let numBalls = 3
@@ -113,11 +115,12 @@ class App extends Component {
       for(let i = 0; i < 3 ; i++){
         balls[i] = {
           'attached': false,
-          'x' : 100*i,
+          'x' : 100*i + 50,
           'y' : 200,
           'vx' : 0,
           'vy' : 0,
-          'justDetached' : 0
+          'justDetached' : 0,
+          'justDetachedSide' : null
         }
       }
     }else if(balls.length > 0){
@@ -132,21 +135,21 @@ class App extends Component {
           y = wristPoints[lastIndex][ball.attached].y
           vx = x - wristPoints[lastIndex-1][ball.attached].x
           vy = y - wristPoints[lastIndex-1][ball.attached].y
-          const prevVx = wristPoints[lastIndex-1][ball.attached].x - wristPoints[lastIndex-2][ball.attached].x
+          let prevVx = wristPoints[lastIndex-1][ball.attached].x - wristPoints[lastIndex-2][ball.attached].x
           let prevVy = wristPoints[lastIndex-1][ball.attached].y - wristPoints[lastIndex-2][ball.attached].y
-          let vDiff = Math.abs(vy-prevVy)
-          const fudgeFactor = 1.4
-          vDiff = vDiff * fudgeFactor
+          let vDiff = vy-prevVy
           //console.log(vDiff, prevVy)
           const minVy = 30
           if(!attachedSides.includes(attached)){
-            if(prevVy < -1*minVy){
+            if(prevVy < -1*minVy && vDiff > 3){
+              const fudgeFactor = 1.8
+              vx = prevVx * fudgeFactor
+              vy = prevVy * fudgeFactor
               attached = false
-              vx = prevVx
-              vy = prevVy
             }
           }
           attachedSides.push(ball.attached)
+
         }else{
           justDetached = ball.justDetached + 1
           x = ball.vx + ball.x
@@ -172,9 +175,9 @@ grabBall=(ball, curWristPoints, otherBall)=>{
   const sides = ["leftWrist", "rightWrist"]
   sides.forEach((side)=>{
     const dist = generalUtils.calculateDistance(curWristPoints[side], ball)
-    const threshold = 55
+    const radius = 60
     const justDetachedThreshold = 5
-    if(dist < threshold && ball.justDetached > justDetachedThreshold){
+    if(dist < radius && ball.justDetached > justDetachedThreshold){
       ball.attached = side
       ball.justDetached = 0
     }
@@ -182,8 +185,17 @@ grabBall=(ball, curWristPoints, otherBall)=>{
   
   return ball
 }
+calculateTorsoHeight=(pose)=>{
+  this.setState({
+    torsoHeight : 
+    -1*cvutils.mean(
+      pose.keypoints[5].position.y -  pose.keypoints[11].position.y,
+      pose.keypoints[6].position.y -  pose.keypoints[12].position.y
+    )
+  })
+}
 addWallBounce=(ball)=>{
-  const elasticity = .7
+  const elasticity = .65
   const floorOffset = 80
   if(ball.x<=0){
     ball.vx = ball.vx*-1 * elasticity
@@ -452,7 +464,7 @@ addWallBounce=(ball)=>{
         context.strokeRect(rect[0],rect[1],(rect[2]-rect[0]),(rect[3]-rect[1]))
       }
       // Shows text to instruct user
-      if(store.showSelectColorText){
+      if(false){
         drawingUtils.drawSelectColorText(context, store.isMobile, store.usingWhite)
       }
       if(store.showPosePoints){
@@ -461,9 +473,10 @@ addWallBounce=(ball)=>{
         if(this.state.pose){
           this.trackWristPoints(this.state.pose)
           this.calculateBallPoints(this.state.wristPoints)
+          this.calculateTorsoHeight(this.state.pose)
           drawingUtils.drawWristBalls(this.state.ballKinematics,context)
           drawingUtils.drawSkeleton(this.state.pose.keypoints, context)
-          drawingUtils.drawWristPoints(this.state.wristPoints, context, 5)
+          drawingUtils.drawWristPoints(this.state.wristPoints[this.state.wristPoints.length-1], context, 60)
         }
       }
       drawingUtils.fitVidToCanvas(store.canvasOutput, store.hiddenCanvas)
@@ -554,7 +567,7 @@ addWallBounce=(ball)=>{
     const tabClass = (shown)=>{
       return shown ? "active tab" : "inactive tab"
     }
-    const colorControls = store.showColorControls ? 
+    const colorControls = false ? 
       <div className="overlay-controls">
           <span className={tabClass(!store.usingWhite) + " left-tab"} id="usingColor" onClick={store.setColorMode}>Colored</span>
           <span className={tabClass(store.usingWhite) + " right-tab"} id="usingWhite" onClick={store.setBrightnessMode}>Bright</span>

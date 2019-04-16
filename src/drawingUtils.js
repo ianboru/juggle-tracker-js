@@ -320,7 +320,7 @@ function drawStar(context,x, y, r, color, opacityBySize) {
   context.stroke();
   context.restore();
 }
-function drawCircle(context, x,y,r, color, opacity){
+function drawCircle(context, x,y,r, color, opacity, filled = true){
     context.beginPath();
     // Radii of the white glow.
     const innerRadius = r*.2
@@ -338,7 +338,11 @@ function drawCircle(context, x,y,r, color, opacity){
 
     context.arc(x, y, r, 0, 2 * Math.PI, false);
     context.fillStyle = gradient;
-    context.fill();
+    if(filled == true){
+      context.fill();
+    }else{
+      context.strokeStyle = 'hsla('+ splitColor[0] + ',100%,90%,'+opacity+')'
+    }
     context.stroke();
 }
 function drawRing(context, x,y,r, color, opacity){
@@ -425,12 +429,11 @@ function drawPose(context, pose){
 }
 function drawWristPoints(wristPoints,context,radius){
   const colors = ['hsl(50,100%,100%)', 'hsl(330,100%,100%)']
-  wristPoints.forEach((curPoints)=>{
-    Object.keys(curPoints).forEach((side, index)=>{
-      const x = curPoints[side].x
-      const y = curPoints[side].y
-      drawCircle(context, x,y,radius, colors[index], .4)
-    })
+  
+  Object.keys(wristPoints).forEach((side, index)=>{
+    const x = wristPoints[side].x
+    const y = wristPoints[side].y
+    drawCircle(context, x,y,radius, colors[index], .4, false)
   })
 }
 function drawWristBalls(wristBalls, context){
