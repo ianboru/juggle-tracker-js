@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import store from "./store"
 import generalUtils from "./generalUtils"
 import axios, { post } from 'axios'
-const postUrl = "http://localhost:5000"
+const postUrl = "http://45.33.81.74:5000"
 @observer
 class UploadControls extends Component {
   state={
@@ -50,6 +50,7 @@ class UploadControls extends Component {
     const config = {
         crossdomain: true,
         timeout: 10000,
+        responseType: 'blob',
         headers: {
             'content-type': 'multipart/form-data',
             //'Access-Control-Allow-Origin' : "*",
@@ -59,6 +60,12 @@ class UploadControls extends Component {
     formData.append('file',video)
     return post(postUrl + "/upload", formData, config).then(response => {
       console.log("response",response)
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+       const link = document.createElement('a');
+       link.href = url;
+       link.setAttribute('download', 'file.mp4'); //or any other extension
+       document.body.appendChild(link);
+       link.click();
     }) 
   }
   handlePlayUploaded = ()=>{
