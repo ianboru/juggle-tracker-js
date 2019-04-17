@@ -4,6 +4,8 @@ import store from "./store"
 import generalUtils from "./generalUtils"
 import axios, { post } from 'axios'
 const postUrl = "http://45.33.81.74:5000"
+//const postUrl = "http://localhost:5000"
+
 @observer
 class UploadControls extends Component {
   state={
@@ -49,7 +51,7 @@ class UploadControls extends Component {
     const formData = new FormData()
     const config = {
         crossdomain: true,
-        timeout: 10000,
+        timeout: 1000000,
         responseType: 'blob',
         headers: {
             'content-type': 'multipart/form-data',

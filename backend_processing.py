@@ -56,12 +56,12 @@ def nothing(arg): pass
 def processVideo(filename): 
     # Capture webcam source
     cap = cv2.VideoCapture(filename)
-    width = int(cap.get(3))  # float
-    height = int(cap.get(4)) # 
+    height = int(cap.get(3))  # float
+    width = int(cap.get(4)) # 
     fps = int(cap.get(5))
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    fourcc = 0X00000021
     output_file = os.path.join(app.config['UPLOAD_FOLDER'], "output.mp4")
-    writer = cv2.VideoWriter(output_file, fourcc, fps,(height,width))
+    #writer = cv2.VideoWriter(output_file, fourcc, fps,(height,width),isColor=True)
 
     trail_paths, max_trail_length = [], 23
     printS("cv read: " + output_file )
@@ -75,6 +75,7 @@ def processVideo(filename):
         if not _:
             status = False
             continue
+        cv2.imwrite('img'+str(numFrames)+'.png',img)
         print(img.shape)
         numFrames += 1
         printS(numFrames/totalFrames)
@@ -99,11 +100,11 @@ def processVideo(filename):
                 for position in path: cv2.circle(img, position, 5, (13,255,123), 5)
             if len(trail_paths)>max_trail_length: trail_paths = trail_paths[-max_trail_length:]
         '''
-        writer.write(img)
         status = _
     printS("done writing")
     cv2.destroyAllWindows()
     cap.release()
+    os.system("ffmpeg -r 60 -i img%d.png -vb 20M -vcodec mpeg4 -y " + output_file )
     return output_file
 
 # Takes img and color, returns parts of img that are that color
