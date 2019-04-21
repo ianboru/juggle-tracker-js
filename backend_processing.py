@@ -33,18 +33,32 @@ s1= 255
 v1= 255
 CORS(app)
 def printS(message):
-    app.logger.info(message)
+    #app.logger.info(message)
+    print(message, file=sys.stdout)
 @app.route('/upload', methods=['POST'])
 def upload():   
     file = request.files["file"]
-    printS("video uploaded ")
-    printS(file)
-    filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    output_filename = os.path.join(app.config['UPLOAD_FOLDER'], "output.mp4")
+    curChunk = request.form.get("curChunk")
+    totalChunks = request.form.get("totalChunks")
+    printS("file " + str(file))
+    filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename) +str(curChunk)
     file.save(filename)
+    printS("saved " + filename)    
+    #os.system("ffmpeg -i "+filename+" framerate 30 -c copy ./output.mp4")
+    process_video(filename)
+    printS("video uploaded ")    
     printS(os.path.dirname(os.path.realpath(__file__)))
-    processedFile = processVideo(filename)
+    printS(filename)
+    printS("chunks " + str(curChunk) + " " + str(totalChunks))
+    #return { "finish" : False}
+    if int(curChunk) == int(totalChunks)-1:
+        os.system("ffmpeg -r 60 -i img%d.png -vb 20M -vcodec mpeg4 -y " + output_filename )
+        return send_file(output_filename)
+    else:
+        return "processed chunk" + str(curChunk)
     
-    return send_file(processedFile)
+    
 
 
 @app.route('/')
@@ -53,28 +67,27 @@ def index():
 
 def nothing(arg): pass
 
-def processVideo(filename): 
+def process_video(filename): 
     # Capture webcam source
     cap = cv2.VideoCapture(filename)
     height = int(cap.get(3))  # float
     width = int(cap.get(4)) # 
     fps = int(cap.get(5))
-    fourcc = 0X00000021
-    output_file = os.path.join(app.config['UPLOAD_FOLDER'], "output.mp4")
     #writer = cv2.VideoWriter(output_file, fourcc, fps,(height,width),isColor=True)
 
     trail_paths, max_trail_length = [], 23
-    printS("cv read: " + output_file )
     printS(str(width) + "," + str(height) + "," + str(fps))
     totalFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     # Iterate though each frame of video
     numFrames = 0
     status = True
+    
     while status:
         _, img = cap.read()
         if not _:
             status = False
             continue
+        
         cv2.imwrite('img'+str(numFrames)+'.png',img)
         print(img.shape)
         numFrames += 1
@@ -104,8 +117,6 @@ def processVideo(filename):
     printS("done writing")
     cv2.destroyAllWindows()
     cap.release()
-    os.system("ffmpeg -r 60 -i img%d.png -vb 20M -vcodec mpeg4 -y " + output_file )
-    return output_file
 
 # Takes img and color, returns parts of img that are that color
 def only_color(frame, hsv_range):

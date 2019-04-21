@@ -3,9 +3,8 @@ import { observer } from "mobx-react"
 import store from "./store"
 import generalUtils from "./generalUtils"
 import axios, { post } from 'axios'
-const postUrl = "http://45.33.81.74:5000"
-//const postUrl = "http://localhost:5000"
-
+//const postUrl = "http://45.33.81.74:5000"
+const postUrl = "http://localhost:5000"
 @observer
 class UploadControls extends Component {
   state={
@@ -35,9 +34,7 @@ class UploadControls extends Component {
     let file = this.input.files[0]
     if(!file){return}
     console.log("file uploading")
-    this.postVideo(file).then((response)=>{
-      console.log("video posted", response)
-    })
+    this.postVideo(file)  
     let fileURL = URL.createObjectURL(file)
     store.uploadedVideo.src = fileURL
     store.setVideoUploaded()
@@ -47,28 +44,43 @@ class UploadControls extends Component {
     })
   }
   postVideo = (video)=>{
+    const maxChunkSize = 2000000
+    const totalChunks = Math.ceil(video.size/maxChunkSize)
+
     console.log("posting video")
-    const formData = new FormData()
     const config = {
         crossdomain: true,
         timeout: 1000000,
         responseType: 'blob',
         headers: {
             'content-type': 'multipart/form-data',
-            //'Access-Control-Allow-Origin' : "*",
-            //'Access-Control-Allow-Headers' : 'Cache-Control, Pragma, Origin, Authorization,Content-Type, X-Requested-With'
+
         }
     }
-    formData.append('file',video)
-    return post(postUrl + "/upload", formData, config).then(response => {
-      console.log("response",response)
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-       const link = document.createElement('a');
-       link.href = url;
-       link.setAttribute('download', 'file.mp4'); //or any other extension
-       document.body.appendChild(link);
-       link.click();
-    }) 
+    console.log("org", video)
+    for(let i=0; i < totalChunks; i++){
+      const formData = new FormData()
+      const chunk = video.slice(maxChunkSize*i,maxChunkSize*(i+1),video.type)
+      console.log(chunk)
+      formData.append('file',video.slice(maxChunkSize*i,maxChunkSize*(i+1)))
+      formData.append('totalChunks', totalChunks)
+      formData.append('curChunk', i)
+      console.log("chunk ",i)
+      post(postUrl + "/upload", formData, config).then(response => {
+        console.log("response",response)
+        if(response.data.type.includes("video")){
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+           const link = document.createElement('a');
+           link.href = url;
+           link.setAttribute('download', 'file.mp4'); //or any other extension
+           document.body.appendChild(link);
+           link.click();
+         }else{
+          console.log(response.data)
+         }
+      }) 
+    }
+    return "done"
   }
   handlePlayUploaded = ()=>{
     const playUploadedButton = document.querySelector('button#playUploadedButton');
