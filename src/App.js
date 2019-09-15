@@ -50,7 +50,7 @@ class App extends Component {
     isFacebookApp : false,
     discoHue : 0,
     startTime : null,
-    contourLocations : []
+    contourTrails : []
   }
    
   componentDidMount=()=>{
@@ -129,14 +129,11 @@ class App extends Component {
       colorFilteredImage = cvutils.brightnessFilter(preparedMat, tempMat)
       color = "hsl(175,0%,100%)"
     }
-    if(!store.showContourOutlines){
-       // Get the ball locations
-      const ballLocations = cvutils.findBalls(colorFilteredImage)
-      // Update the tracking history
-      this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
-    }else{
-      this.state.contourLocations = cvutils.findContours(colorFilteredImage)
-    }
+    // Get the ball locations
+    const ballLocations = cvutils.findBalls(colorFilteredImage)
+    // Update the tracking history
+    this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
+  
     
     // If in calibration mode
     if(store.calibrationMode){
@@ -174,6 +171,7 @@ class App extends Component {
   }
   drawEffects=(context,colorNum,color)=>{
     // Draw connections
+    console.log("start effects")
     if(store.showBrushColor){
       color = 'hsl(' + store.brushColor + ', 100%,65%)'
     }
@@ -187,23 +185,22 @@ class App extends Component {
         this.state.discoHue = 0
       }
     }
+    
+    //Draw Connections
     if(store.showConnections){
       drawingUtils.drawConnections(context, this.state.positions[colorNum], color)
     }
-    if(store.showAllConnections && colorNum == store.allColors.length-1){
-      drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
-    }
+
     //Draw trails
     if(store.showTrails){
       drawingUtils.drawCircles(context,this.state.positions[colorNum], color)
     }
+
     // Draw rings
     if(store.showRings){
       drawingUtils.drawRings(context,this.state.positions[colorNum], color)
     }    
-    if(store.showContourOutlines){
-      drawingUtils.drawContours(context,this.state.contourLocations, color)
-    }
+
     // Draw Stars
     if(store.showStars){
       // Draw the stars. Get the updated stars' positions.
@@ -257,14 +254,28 @@ class App extends Component {
         allContourImage.delete()
         allContourImage = this.processCurrentColor(null, 0, context, preparedMat)
       }
+
       if(allContourImage && allContourImage.cols > 0 && store.calibrationMode){
-        console.log("contour exists")
         cv.imshow('hiddenCanvas',allContourImage)
       }
       let srcWithContours
       if(store.showContours && allContourImage && !store.calibrationMode){
+        if(this.state.contourTrails.length == store.trailLength+1){
+          this.state.contourTrails[this.state.contourTrails.length - 1].delete()
+          this.state.contourTrails.pop()
+        }
+        if(store.trailLength > 1){
+          this.state.contourTrails.unshift(allContourImage.clone())
+        }
+        this.state.contourTrails.forEach((contourImage=>{
+          cv.add(contourImage, allContourImage, allContourImage )
+        }))
+        
         srcWithContours = this.combineContoursWithSrc(allContourImage,srcMat)
         cv.imshow('hiddenCanvas',srcWithContours)
+      }
+      if(store.showAllConnections ){
+        drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
       }
       store.allColors.forEach((colorRange,colorNum)=>{
         let color
@@ -275,6 +286,7 @@ class App extends Component {
         }
         this.drawEffects(context,colorNum,color)
       })
+
       // If the user is clicking and draging to select a color
       if(store.calibrationRect){
         //Draw color selection rectangle

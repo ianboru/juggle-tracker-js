@@ -41,7 +41,7 @@ class Store {
   @observable connectionThickness = 6
   @observable numStarsPerObject   = 12
   @observable starLife            = .5
-  @observable starSize            = .5
+  @observable starSize            = .2
   @observable trailLength         = 1
   @observable ringLength          = 1
   @observable ringThickness       = 1
@@ -51,7 +51,6 @@ class Store {
   @observable showColorControls   = false
   @observable showAnimationControls = false
   @observable showDetectionControls = false
-  @observable showContourOutlines  = false
   @observable brightnessThreshold  = 55
   @observable closeAmount          = 0
   @observable showSelectColorText  = true
