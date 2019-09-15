@@ -4,6 +4,7 @@ import sys
 from werkzeug.wsgi import LimitedStream
 import cv2, numpy as np, random
 import os 
+import glob 
 class StreamConsumingMiddleware(object):
 
     def __init__(self, app):
@@ -25,35 +26,33 @@ UPLOAD_FOLDER = './'
 app = Flask(__name__)
 app.wsgi_app = StreamConsumingMiddleware(app.wsgi_app)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-h= 0
-s= 50
-v= 50
-h1= 255
-s1= 255
-v1= 255
 CORS(app)
 def printS(message):
     #app.logger.info(message)
     print(message, file=sys.stdout)
+
 @app.route('/upload', methods=['POST'])
 def upload():   
     file = request.files["file"]
-    output_filename = os.path.join(app.config['UPLOAD_FOLDER'], "output.mp4")
-    curChunk = request.form.get("curChunk")
-    totalChunks = request.form.get("totalChunks")
-    printS("file " + str(file))
-    filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename) +str(curChunk)
-    file.save(filename)
-    printS("saved " + filename)    
-    #os.system("ffmpeg -i "+filename+" framerate 30 -c copy ./output.mp4")
-    process_video(filename)
-    printS("video uploaded ")    
-    printS(os.path.dirname(os.path.realpath(__file__)))
-    printS(filename)
-    printS("chunks " + str(curChunk) + " " + str(totalChunks))
-    #return { "finish" : False}
-    if int(curChunk) == int(totalChunks)-1:
-        os.system("ffmpeg -r 60 -i img%d.png -vb 20M -vcodec mpeg4 -y " + output_filename )
+    curChunk = int(request.form.get("curChunk"))
+    totalChunks = int(request.form.get("totalChunks"))
+    chunk_filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename + str(curChunk))
+    file.save(chunk_filename)  
+    blobs = glob.glob('./blob*')
+    numBlobs = len(blobs)
+    printS(len(blobs))
+    if numBlobs == totalChunks:
+        with open("finalBlob",'ab') as final_blob:
+            for i in range(0,len(blobs)):
+                with open("./blob"+str(i),'rb') as cur_blob:
+                    contents = cur_blob.read()
+                    final_blob.write(contents)
+        process_video("finalBlob")
+        output_filename = os.path.join(app.config['UPLOAD_FOLDER'], "output.mp4")
+        os.system("ffmpeg -r 30 -i img%d.png -vb 20M -vcodec mpeg4 -y " + output_filename )
+        os.system("rm -f img*")
+        os.system("rm -f blob*")
+
         return send_file(output_filename)
     else:
         return "processed chunk" + str(curChunk)
@@ -80,6 +79,7 @@ def process_video(filename):
     totalFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     # Iterate though each frame of video
     numFrames = 0
+    numWritten = 0
     status = True
     
     while status:
@@ -87,32 +87,28 @@ def process_video(filename):
         if not _:
             status = False
             continue
-        
-        cv2.imwrite('img'+str(numFrames)+'.png',img)
-        print(img.shape)
         numFrames += 1
+        if numFrames%2 == 1:
+            continue
+        
         printS(numFrames/totalFrames)
         # Get trackbar values
         min_size = 20
         max_size = 10000
-        show_trails = True
+        show_trails = 1
         show_lines = False
         show_stars = False
         show_hearts = False
         
         # Read img from the video
-        
-
-        '''Get the locations of the ball in the img    
-        mask, positions = get_ball_locations(img, (h,s,v,h1,s1,v1), max_size, min_size)
+        #Get the locations of the ball in the img    
+        mask, positions = get_ball_locations(img, 100000, 5)
 
         # Show the ball trails
         if show_trails==1:
-            trail_paths.append(positions)
-            for path in trail_paths:
-                for position in path: cv2.circle(img, position, 5, (13,255,123), 5)
-            if len(trail_paths)>max_trail_length: trail_paths = trail_paths[-max_trail_length:]
-        '''
+            for position in positions: cv2.circle(img, position, 5, (13,255,123), 5)
+        cv2.imwrite('img'+str(numWritten)+'.png',img)
+        numWritten += 1
         status = _
     printS("done writing")
     cv2.destroyAllWindows()
@@ -146,7 +142,13 @@ def contour_center(c):
     return center
 
 # Takes img, returns location of ball
-def get_ball_locations(img, hsv_range, max_size, min_size):
+def get_ball_locations(img,  max_size, min_size):
+    h= 0
+    s= 50
+    v= 50
+    h1= 255
+    s1= 255
+    v1= 255
     # Segment the img by color
     img, mask = only_color(img, (h,s,v,h1,s1,v1))
     # Find the contours in the img

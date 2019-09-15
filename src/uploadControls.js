@@ -3,8 +3,8 @@ import { observer } from "mobx-react"
 import store from "./store"
 import generalUtils from "./generalUtils"
 import axios, { post } from 'axios'
-//const postUrl = "http://45.33.81.74:5000"
-const postUrl = "http://localhost:5000"
+const postUrl = "https://arflowarts.com/api"
+//const postUrl = "http://localhost:5000"
 @observer
 class UploadControls extends Component {
   state={
