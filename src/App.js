@@ -122,6 +122,7 @@ class App extends Component {
       const downSizedMat = cvutils.downSize(preparedMat.clone())
       originalSize = preparedMat.size()
       preparedMat = downSizedMat
+      downSizedMat.delete()
     }
     if(!store.usingWhite){
       colorFilteredImage = cvutils.colorFilter(preparedMat, tempMat, colorRange)
