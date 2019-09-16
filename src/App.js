@@ -155,8 +155,7 @@ class App extends Component {
       contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
     }
     if(store.imageScale > 1){
-      return cvutils.upSize(contourImage.clone(), originalSize)
-      contourImage.delete()
+      return cvutils.upSize(contourImage, originalSize)
     }else{
       return contourImage
     }
@@ -296,10 +295,13 @@ class App extends Component {
       srcMat.delete();srcMat = null
       if(srcWithContours){
         srcWithContours.delete()
+        srcWithContours = null
       }
       if(allContourImage){
         allContourImage.delete()
+        allContourImage = null
       }
+
       //Process next frame
       requestAnimationFrame(this.animate);
     }
