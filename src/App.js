@@ -119,10 +119,8 @@ class App extends Component {
     let originalSize
     // If colored balls are being used, use cvutils.colorfilter
     if(store.imageScale > 1){  
-      const downSizedMat = cvutils.downSize(preparedMat.clone())
       originalSize = preparedMat.size()
-      preparedMat = downSizedMat
-      downSizedMat.delete()
+      preparedMat = cvutils.downSize(preparedMat)
     }
     if(!store.usingWhite){
       colorFilteredImage = cvutils.colorFilter(preparedMat, tempMat, colorRange)
@@ -251,16 +249,19 @@ class App extends Component {
       }
       let srcWithContours
       if(store.showContours && allContourImage && !store.calibrationMode){
-        if(this.state.contourTrails.length == store.trailLength+1){
-          this.state.contourTrails[this.state.contourTrails.length - 1].delete()
-          this.state.contourTrails.pop()
-        }
+       
         if(store.trailLength > 1){
           this.state.contourTrails.unshift(allContourImage.clone())
         }
-        this.state.contourTrails.forEach((contourImage=>{
-          cv.add(contourImage, allContourImage, allContourImage )
-        }))
+        this.state.contourTrails.forEach((contourImage,index)=>{
+          if(index < store.trailLength && contourImage){
+              cv.add(contourImage, allContourImage, allContourImage )
+          }else if(index > store.trailLength && contourImage){
+            this.state.contourTrails[index].delete()
+            this.state.contourTrails[index] = null
+          }
+        })
+
         srcWithContours = this.combineContoursWithSrc(allContourImage,srcMat)
         cv.imshow('hiddenCanvas',srcWithContours)
       }

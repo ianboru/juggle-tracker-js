@@ -181,7 +181,7 @@ function getContourImage(src,colorRange, drawColor){
       }else{
         color = new cv.Scalar(255,255,255);
       } 
-      cv.drawContours(dst, contours, i, color, store.contourThickness/2, cv.LINE_4, hierarchy, 100);
+      cv.drawContours(dst, contours, i, color, store.contourThickness/store.imageScale, cv.LINE_4, hierarchy, 100);
     }
     contour.delete(); 
     }
