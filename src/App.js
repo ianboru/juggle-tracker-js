@@ -60,7 +60,6 @@ class App extends Component {
     })
     document.title = "AR Flow Arts"
     store.setHiddenCanvas(this.hiddenCanvas)
-    console.log("mounted", isFacebookApp)
     if(isFacebookApp){
       alert("Visit website outside of instagram/facebook to use live video")
     }
@@ -72,7 +71,6 @@ class App extends Component {
   }
 
   startVideoProcessing=()=> {
-    console.log("started video processiong")
     //Fix for firefox to have context available
     const context = store.canvasOutput.getContext("2d")
     const hiddenContext = store.hiddenCanvas.getContext("2d")
@@ -111,16 +109,20 @@ class App extends Component {
     }
     // Show the srcMat to the user
     cv.imshow('hiddenCanvas',srcMat)
-    if(!store.calibrationMode){
-      srcMat = cvutils.downSize(srcMat)
-    }
+    
     return srcMat
   }
-  processCurrentColor=(colorRange=null, colorNum=null, context,preparedMat, srcMat)=>{
+  processCurrentColor=(colorRange=null, colorNum=null, context,preparedMat)=>{
     let colorFilteredImage
     let color
     let contourImage
+    let originalSize
     // If colored balls are being used, use cvutils.colorfilter
+    if(store.imageScale > 1){  
+      const downSizedMat = cvutils.downSize(preparedMat.clone())
+      originalSize = preparedMat.size()
+      preparedMat = downSizedMat
+    }
     if(!store.usingWhite){
       colorFilteredImage = cvutils.colorFilter(preparedMat, tempMat, colorRange)
       color = cvutils.calculateCurrentHSV(colorRange)
@@ -134,22 +136,7 @@ class App extends Component {
     // Update the tracking history
     this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
   
-    
-    // If in calibration mode
-    if(store.calibrationMode){
-      // Initialize final canvas with the mask of the colors within the color ranges
-      // This setting is used when calibrating the colors
-      contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
-      let upSizedContours 
-      if(store.imageScale != 1){
-        upSizedContours = cvutils.upSize(contourImage.clone())
-      }
-      if(upSizedContours){
-        cv.imshow('hiddenCanvas',upSizedContours)
-        upSizedContours.delete()
-      }
-    }
-    
+
     if(store.showBrushColor){
       color = 'hsl(' + store.brushColor + ', 100,100)'
     }
@@ -167,11 +154,15 @@ class App extends Component {
     if(store.showContours && !store.calibrationMode){
       contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
     }
-    return contourImage
+    if(store.imageScale > 1){
+      return cvutils.upSize(contourImage.clone(), originalSize)
+      contourImage.delete()
+    }else{
+      return contourImage
+    }
   }
   drawEffects=(context,colorNum,color)=>{
     // Draw connections
-    console.log("start effects")
     if(store.showBrushColor){
       color = 'hsl(' + store.brushColor + ', 100%,65%)'
     }
@@ -270,7 +261,6 @@ class App extends Component {
         this.state.contourTrails.forEach((contourImage=>{
           cv.add(contourImage, allContourImage, allContourImage )
         }))
-        
         srcWithContours = this.combineContoursWithSrc(allContourImage,srcMat)
         cv.imshow('hiddenCanvas',srcWithContours)
       }

@@ -18,10 +18,7 @@ class Camera extends Component {
 
   }
   componentDidMount(){
-    console.log(generalUtils)
-    console.log("is facebook app" ,generalUtils.isFacebookApp())
     if(!generalUtils.isFacebookApp()){
-      console.log("started camera")
       this.startCamera()
     }
     store.setUploadedVideo(this.uploadedVideo)
@@ -38,7 +35,6 @@ class Camera extends Component {
       try{
         navigator.mediaDevices.getUserMedia({video: {faceingMode : 'user'}, audio: false})
         .then(function(s) {
-          console.log("got user media")
           //Set stream to stop later
           that.state.stream = s
           //Set stream to video tag
@@ -47,7 +43,6 @@ class Camera extends Component {
           store.setLiveVideo(that.video)
         })
         .catch(function(err) {
-          console.log("An error occured! " + err);
           store.setVideoDimensions(640, 480)
           that.props.startVideoProcessing();
         });
@@ -65,7 +60,6 @@ class Camera extends Component {
           that.props.startVideoProcessing();
         }, false);
       }catch(error){
-        console.log("error 2", error)
         store.setVideoDimensions(640, 480)
         that.props.startVideoProcessing();
       }
@@ -76,7 +70,6 @@ class Camera extends Component {
     this.video.srcObject=null;
     this.state.stream.getVideoTracks()[0].stop();
     this.state.streaming = false
-    console.log("stopping camera")
   }
   handleVideoEnded = ()=>{
     store.uploadedVideo.play()

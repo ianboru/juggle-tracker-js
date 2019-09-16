@@ -150,6 +150,7 @@ function getContourImage(src,colorRange, drawColor){
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
     // Find contours - src is a frame filtered for the current color
+    
     if(store.usingWhite){
         cv.findContours(src, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
     }else{
@@ -456,18 +457,20 @@ function downSize(src){
     if(store.imageScale == 1){
       return src
     }
-    let dsize = new cv.Size(src.cols/store.imageScale,src.rows/store.imageScale);
+    let dsize = new cv.Size(Math.floor(src.cols/store.imageScale),Math.floor(src.rows/store.imageScale));
     // You can try more different parameters
     cv.resize(src, src, dsize, 0, 0, cv.INTER_LINEAR);
+
     return src
   }
-function upSize(src){
+function upSize(src,targetSize){
     if(store.imageScale == 1){
       return src
     }
-    let dsize = new cv.Size(src.cols*store.imageScale,src.rows*store.imageScale);
+    let dsize = new cv.Size(targetSize.width,targetSize.height);
     // You can try more different parameters
     cv.resize(src, src, dsize, 0, 0, cv.INTER_LINEAR);
+
     return src
   }
 export default {

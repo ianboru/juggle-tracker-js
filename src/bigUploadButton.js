@@ -12,8 +12,6 @@ class BigUploadButton extends Component {
     mounted : true
   }
   componentDidMount(){
-    console.log(generalUtils)
-    console.log("is facebook app" ,generalUtils.isFacebookApp())
     this.setState({
       mounted : true
     })
