@@ -222,6 +222,7 @@ class Store {
   }
   @action setTrailLength = (trailLength) => {
     this.trailLength = trailLength
+    
   }
   @action setContourThickness = (contourThickness) => {
     this.contourThickness = contourThickness

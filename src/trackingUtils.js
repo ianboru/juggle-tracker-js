@@ -18,7 +18,7 @@ function updateBallHistories(contourPositions, colorNum, allPositions){
         allPositions[colorNum][i]={
           'x':[],
           'y':[],
-          'r':[]
+          'r':[],
         }
       }
       ++numContoursOverThreshold

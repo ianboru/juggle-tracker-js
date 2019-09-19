@@ -190,7 +190,7 @@ function getContourImage(src,colorRange, drawColor){
     // Return list of contour positions and sizes
     return dst
 }
-function findBalls(src){
+function findBalls(src,drawColor){
     // Maximum number of contours to interpret as objects
     const maxNumContours = 10
     // Initialize contour finding data
@@ -217,6 +217,7 @@ function findBalls(src){
             'x' : circle.center.x,
             'y' : circle.center.y,
             'r' : circle.radius,
+            'color': drawColor
           })
         }
         contour.delete(); 

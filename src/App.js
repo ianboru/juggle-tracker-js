@@ -131,9 +131,9 @@ class App extends Component {
       color = "hsl(175,0%,100%)"
     }
     // Get the ball locations
-    const ballLocations = cvutils.findBalls(colorFilteredImage)
+    const ballLocations = cvutils.findBalls(colorFilteredImage, color)
     // Update the tracking history
-    this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
+    this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions, color)
   
 
     if(store.showBrushColor){
@@ -153,10 +153,12 @@ class App extends Component {
     if(store.showContours && !store.calibrationMode){
       contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
     }
-    if(store.imageScale > 1){
+    if(store.imageScale > 1 && contourImage){
       return cvutils.upSize(contourImage, originalSize)
-    }else{
+    }else if(contourImage){
       return contourImage
+    }else{
+      return null
     }
   }
   drawEffects=(context,colorNum,color)=>{
@@ -250,17 +252,27 @@ class App extends Component {
       let srcWithContours
       if(store.showContours && allContourImage && !store.calibrationMode){
        
-        if(store.trailLength > 1){
+        if(store.trailLength > 1 && store.showContours){
           this.state.contourTrails.unshift(allContourImage.clone())
         }
+        //console.log("new loop",store.trailLength)
         this.state.contourTrails.forEach((contourImage,index)=>{
+          const opacity = .5 - (index/this.state.contourTrails.length)/5
           if(index < store.trailLength && contourImage){
-              cv.add(contourImage, allContourImage, allContourImage )
-          }else if(index > store.trailLength && contourImage){
+            //console.log(opacity,this.state.contourTrails.length)
+              cv.addWeighted(contourImage, opacity , allContourImage, 1-opacity, .8, allContourImage)
+              //cv.add(contourImage, allContourImage, allContourImage)
+              //console.log(index,opacity,this.state.contourTrails.length)
+          }else if(index > store.trailLength-1 && contourImage){
             this.state.contourTrails[index].delete()
             this.state.contourTrails[index] = null
           }
         })
+        //console.log("before", this.state.contourTrails)
+        if(this.state.contourTrails.length > store.trailLength){
+          this.state.contourTrails = this.state.contourTrails.slice(0,store.trailLength-1)
+        }
+        //console.log("after", this.state.contourTrails)
 
         srcWithContours = this.combineContoursWithSrc(allContourImage,srcMat)
         cv.imshow('hiddenCanvas',srcWithContours)
@@ -292,7 +304,7 @@ class App extends Component {
       }
       drawingUtils.fitVidToCanvas(store.canvasOutput, store.hiddenCanvas)
       //Trim histories to a value that is greater than trail length and ring history length
-      this.state.positions = trackingUtils.trimHistories(this.state.positions, 100)
+      this.state.positions = trackingUtils.trimHistories(this.state.positions, store.trailLength)
       preparedMat.delete();preparedMat = null
       srcMat.delete();srcMat = null
       if(srcWithContours){

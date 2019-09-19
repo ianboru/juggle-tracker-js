@@ -36,8 +36,11 @@ function drawSelectColorText(context, isMobile, usingWhite){
     )
   }
 }
-
-function drawCircles(context, contourPositions, color){
+function getHueFromColorString(string){
+  const splitString = string.split(",")
+  return splitString[0].replace("hsl(","")
+}
+function drawCircles(context, contourPositions,color){
   // Check if tracking data exists
   if(contourPositions){    
     // Iterate through each color being tracked
@@ -48,7 +51,6 @@ function drawCircles(context, contourPositions, color){
         const xHistory = contourPositions[i]['x']
         const yHistory = contourPositions[i]['y']
         const rHistory = contourPositions[i]['r']
-
         // Don't draw a trail longer than the window or the trail length       
         let currentWindowSize  = Math.min(xHistory.length, store.trailLength)
         // Draw the trail of circles, 't' represents # of frames in the past
@@ -62,7 +64,13 @@ function drawCircles(context, contourPositions, color){
             const opacity = store.opacity*(1 - t/currentWindowSize)
             const thickness = store.trailThickness*lastR*(1-(t/currentWindowSize))
             // Call the draw circle function to paint the canvas
-            drawCircle(context,lastX, lastY, thickness, color, opacity)  
+            if(store.discoMode){
+              const hue = (getHueFromColorString(color) - t*store.discoIncrement) % 360
+              drawCircle(context,lastX, lastY, thickness, 'hsl(' + hue + ', 100,100)', opacity)  
+            }else{
+              drawCircle(context,lastX, lastY, thickness, color, opacity)  
+
+            }
           }
         }
       }
