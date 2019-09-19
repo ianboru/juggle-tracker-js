@@ -260,8 +260,8 @@ class App extends Component {
           const opacity = .5 - (index/this.state.contourTrails.length)/5
           if(index < store.trailLength && contourImage){
             //console.log(opacity,this.state.contourTrails.length)
-              cv.addWeighted(contourImage, opacity , allContourImage, 1-opacity, .8, allContourImage)
-              //cv.add(contourImage, allContourImage, allContourImage)
+              //cv.addWeighted(contourImage, opacity , allContourImage, 1-opacity, .8, allContourImage)
+              cv.add(contourImage, allContourImage, allContourImage)
               //console.log(index,opacity,this.state.contourTrails.length)
           }else if(index > store.trailLength-1 && contourImage){
             this.state.contourTrails[index].delete()

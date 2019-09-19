@@ -217,7 +217,6 @@ function findBalls(src,drawColor){
             'x' : circle.center.x,
             'y' : circle.center.y,
             'r' : circle.radius,
-            'color': drawColor
           })
         }
         contour.delete(); 

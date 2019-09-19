@@ -59,7 +59,7 @@ class Store {
   @observable starSides           = 6
   @observable starPoint           = .5
   @observable hiddenCanvas        = null
-  @observable imageScale          = 2
+  @observable imageScale          = 1
   @observable showContours         = true
   @observable contourThickness     = 1
   @observable uploadedDimensionsExist = false
