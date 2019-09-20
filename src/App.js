@@ -119,18 +119,18 @@ class App extends Component {
     let colorFilteredImage
     // If colored balls are being used, use cvutils.colorfilter
     if(store.imageScale > 1){  
-      tempMat = cvutils.downSize(preparedMat)
+      preparedMat = cvutils.downSize(preparedMat)
     }
     if(!store.usingWhite){
-      tempMat = cvutils.colorFilter(preparedMat, tempMat, colorRange)
+      colorFilteredImage = cvutils.colorFilter(preparedMat, tempMat, colorRange)
       color = cvutils.calculateCurrentHSV(colorRange)
     // If white balls are being used, use cvutils.colorWhite
     }else{
-      preparedMat = cvutils.brightnessFilter(preparedMat, tempMat)
+      colorFilteredImage = cvutils.brightnessFilter(preparedMat, tempMat)
       color = "hsl(175,0%,100%)"
     }
     // Get the ball locations
-    const ballLocations = cvutils.findBalls(tempMat, color)
+    const ballLocations = cvutils.findBalls(colorFilteredImage, color)
     // Update the tracking history
     this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
   
