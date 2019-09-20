@@ -113,25 +113,23 @@ class App extends Component {
     return srcMat
   }
   processCurrentColor=(colorRange=null, colorNum=null, context,preparedMat)=>{
-    let colorFilteredImage
     let color
     let contourImage
-    let originalSize
+    let originalSize = preparedMat.size()
     // If colored balls are being used, use cvutils.colorfilter
-    if(store.imageScale > 1){  
-      originalSize = preparedMat.size()
+    if(store.imageScale > 1 && !store.showContours){  
       preparedMat = cvutils.downSize(preparedMat)
     }
     if(!store.usingWhite){
-      colorFilteredImage = cvutils.colorFilter(preparedMat, tempMat, colorRange)
+      preparedMat = cvutils.colorFilter(preparedMat, tempMat, colorRange)
       color = cvutils.calculateCurrentHSV(colorRange)
     // If white balls are being used, use cvutils.colorWhite
     }else{
-      colorFilteredImage = cvutils.brightnessFilter(preparedMat, tempMat)
+      preparedMat = cvutils.brightnessFilter(preparedMat, tempMat)
       color = "hsl(175,0%,100%)"
     }
     // Get the ball locations
-    const ballLocations = cvutils.findBalls(colorFilteredImage, color)
+    const ballLocations = cvutils.findBalls(preparedMat, color)
     // Update the tracking history
     this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions, color)
   
@@ -149,13 +147,14 @@ class App extends Component {
         this.state.discoHue = 0
       }
     }
-    // Get the color values for the object being tracked (white if usingWhite)
     if(store.showContours && !store.calibrationMode){
-      contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
+      contourImage= cvutils.getContourImage(preparedMat, colorRange, color)
     }
+
     if(store.imageScale > 1 && contourImage){
-      return cvutils.upSize(contourImage, originalSize)
-    }else if(contourImage){
+      contourImage = cvutils.upSize(contourImage, originalSize)
+    }
+    if(contourImage){
       return contourImage
     }else{
       return null
@@ -208,6 +207,37 @@ class App extends Component {
     cv.add(dst,srcMat,dst)
     return dst
   }
+  addContourTrails=(allContourImage,srcMat)=>{
+    let srcWithContours
+      if(store.showContours && allContourImage && !store.calibrationMode){
+       
+        if(store.trailLength > 1 && store.showContours){
+          this.state.contourTrails.unshift(allContourImage.clone())
+        }
+
+        this.state.contourTrails.forEach((contourImage,index)=>{
+          if(index < store.trailLength && contourImage){
+              cv.add(contourImage, allContourImage, allContourImage)
+          }else if(index > store.trailLength-1 && contourImage){
+            this.state.contourTrails[index].delete()
+            this.state.contourTrails[index] = null
+          }
+        })
+        if(this.state.contourTrails.length > store.trailLength){
+          this.state.contourTrails = this.state.contourTrails.slice(0,store.trailLength-1)
+        }
+
+        srcWithContours = this.combineContoursWithSrc(allContourImage,srcMat)
+        cv.imshow('hiddenCanvas',srcWithContours)
+        if(srcWithContours){
+          srcWithContours.delete()
+          srcWithContours = null
+        }
+        allContourImage.delete();allContourImage=null
+        srcMat.delete();srcMat = null
+
+      }
+  }
   animate=()=> {
     if(store.canvasOutput){
       const scaleFactor = (store.canvasOutput.width/store.videoWidth)*store.videoHeight
@@ -237,8 +267,6 @@ class App extends Component {
               allContourImage = contourImage.clone()
             }
             contourImage.delete()
-          }else if(contourImage && store.calibrationMode){
-            contourImage.delete()
           }
         })
       }else{
@@ -249,34 +277,8 @@ class App extends Component {
       if(allContourImage && allContourImage.cols > 0 && store.calibrationMode){
         cv.imshow('hiddenCanvas',allContourImage)
       }
-      let srcWithContours
-      if(store.showContours && allContourImage && !store.calibrationMode){
-       
-        if(store.trailLength > 1 && store.showContours){
-          this.state.contourTrails.unshift(allContourImage.clone())
-        }
-        //console.log("new loop",store.trailLength)
-        this.state.contourTrails.forEach((contourImage,index)=>{
-          const opacity = .5 - (index/this.state.contourTrails.length)/5
-          if(index < store.trailLength && contourImage){
-            //console.log(opacity,this.state.contourTrails.length)
-              //cv.addWeighted(contourImage, opacity , allContourImage, 1-opacity, .8, allContourImage)
-              cv.add(contourImage, allContourImage, allContourImage)
-              //console.log(index,opacity,this.state.contourTrails.length)
-          }else if(index > store.trailLength-1 && contourImage){
-            this.state.contourTrails[index].delete()
-            this.state.contourTrails[index] = null
-          }
-        })
-        //console.log("before", this.state.contourTrails)
-        if(this.state.contourTrails.length > store.trailLength){
-          this.state.contourTrails = this.state.contourTrails.slice(0,store.trailLength-1)
-        }
-        //console.log("after", this.state.contourTrails)
-
-        srcWithContours = this.combineContoursWithSrc(allContourImage,srcMat)
-        cv.imshow('hiddenCanvas',srcWithContours)
-      }
+      this.addContourTrails(allContourImage, srcMat)
+      
       if(store.showAllConnections ){
         drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
       }
@@ -306,16 +308,7 @@ class App extends Component {
       //Trim histories to a value that is greater than trail length and ring history length
       this.state.positions = trackingUtils.trimHistories(this.state.positions, store.trailLength)
       preparedMat.delete();preparedMat = null
-      srcMat.delete();srcMat = null
-      if(srcWithContours){
-        srcWithContours.delete()
-        srcWithContours = null
-      }
-      if(allContourImage){
-        allContourImage.delete()
-        allContourImage = null
-      }
-
+      
       //Process next frame
       requestAnimationFrame(this.animate);
     }
