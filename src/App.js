@@ -116,12 +116,13 @@ class App extends Component {
     let color
     let contourImage
     let originalSize = preparedMat.size()
+    let colorFilteredImage
     // If colored balls are being used, use cvutils.colorfilter
-    if(store.imageScale > 1 && !store.showContours){  
-      preparedMat = cvutils.downSize(preparedMat)
+    if(store.imageScale > 1){  
+      tempMat = cvutils.downSize(preparedMat)
     }
     if(!store.usingWhite){
-      preparedMat = cvutils.colorFilter(preparedMat, tempMat, colorRange)
+      tempMat = cvutils.colorFilter(preparedMat, tempMat, colorRange)
       color = cvutils.calculateCurrentHSV(colorRange)
     // If white balls are being used, use cvutils.colorWhite
     }else{
@@ -129,9 +130,9 @@ class App extends Component {
       color = "hsl(175,0%,100%)"
     }
     // Get the ball locations
-    const ballLocations = cvutils.findBalls(preparedMat, color)
+    const ballLocations = cvutils.findBalls(tempMat, color)
     // Update the tracking history
-    this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions, color)
+    this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
   
 
     if(store.showBrushColor){
@@ -148,9 +149,8 @@ class App extends Component {
       }
     }
     if(store.showContours && !store.calibrationMode){
-      contourImage= cvutils.getContourImage(preparedMat, colorRange, color)
+      contourImage= cvutils.getContourImage(tempMat, colorRange, color)
     }
-
     if(store.imageScale > 1 && contourImage){
       contourImage = cvutils.upSize(contourImage, originalSize)
     }
