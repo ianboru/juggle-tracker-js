@@ -223,9 +223,9 @@ class App extends Component {
             this.state.contourTrails[index] = null
           }
         })
-        if(this.state.contourTrails.length > store.trailLength){
+        /*if(this.state.contourTrails.length > store.trailLength){
           this.state.contourTrails = this.state.contourTrails.slice(0,store.trailLength-1)
-        }
+        }*/
 
         srcWithContours = this.combineContoursWithSrc(allContourImage,srcMat)
         cv.imshow('hiddenCanvas',srcWithContours)
