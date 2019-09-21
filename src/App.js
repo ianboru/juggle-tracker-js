@@ -149,7 +149,7 @@ class App extends Component {
       }
     }
     if(store.showContours && !store.calibrationMode){
-      contourImage= cvutils.getContourImage(tempMat, colorRange, color)
+      contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
     }
     if(store.imageScale > 1 && contourImage){
       contourImage = cvutils.upSize(contourImage, originalSize)
