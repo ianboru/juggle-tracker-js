@@ -20,6 +20,7 @@ function prepareImage(dst){
         cv.blur(dst, dst, ksize, anchor, cv.BORDER_DEFAULT)
     }
     // Convert the RGB temporary image to HSV
+    //cv.convertScaleAbs(dst,dst,1.3,1.0)
     if(store.usingWhite){
         cv.cvtColor(dst, dst, cv.COLOR_RGBA2GRAY, 0);
     }else{

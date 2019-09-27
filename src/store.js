@@ -36,7 +36,7 @@ class Store {
   @observable discoMode           = false
   @observable canvasOutput        = null
   @observable blurAmount          = 0
-  @observable sizeThreshold       = 50
+  @observable sizeThreshold       = 5
   @observable brushColor          = 123
   @observable connectionThickness = 6
   @observable numStarsPerObject   = 12
@@ -59,7 +59,7 @@ class Store {
   @observable starSides           = 6
   @observable starPoint           = .5
   @observable hiddenCanvas        = null
-  @observable imageScale          = 1
+  @observable imageScale          = 2
   @observable showContours         = true
   @observable contourThickness     = 1
   @observable uploadedDimensionsExist = false
