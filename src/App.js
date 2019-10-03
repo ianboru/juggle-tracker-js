@@ -190,7 +190,6 @@ class App extends Component {
     if(store.showRings){
       drawingUtils.drawRings(context,this.state.positions[colorNum], color)
     }    
-
     // Draw Stars
     if(store.showStars){
       // Draw the stars. Get the updated stars' positions.
@@ -280,6 +279,11 @@ class App extends Component {
       if(store.showAllConnections ){
         drawingUtils.drawAllConnections(context, this.state.positions, store.allColors)
       }
+      // Draw squares
+      if(store.showSquares){
+        drawingUtils.drawSquares(context, this.state.positions,  store.allColors)
+      }    
+
       store.allColors.forEach((colorRange,colorNum)=>{
         let color
         if(!store.usingWhite){

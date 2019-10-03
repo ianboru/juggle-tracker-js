@@ -14,6 +14,7 @@ import connectAllInactive from "./assets/connect_all_inactive.png"
 import starsInactive from "./assets/stars_inactive.png"
 import rainbowInactive from "./assets/rainbow_inactive.png"
 import brushInactive from "./assets/brush_inactive.png"
+import squaresInactive from "./assets/squares_inactive.png"
 
 import trailsActive from "./assets/trails_active.png"
 import ringsActive from "./assets/rings_active.png"
@@ -24,7 +25,7 @@ import connectAllActive from "./assets/connect_all_active.png"
 import starsActive from "./assets/stars_active.png"
 import rainbowActive from "./assets/rainbow_active.png"
 import brushActive from "./assets/brush_active.png"
-
+import squaresActive from "./assets/squares_active.png"
 const Handle = Slider.Handle;
 const handle = (props) => {
   const { value, dragging, index, ...restProps } = props;
@@ -97,6 +98,8 @@ class AnimationControls extends Component {
 					<img className="icon" title="rings" onClick={store.toggleShowRings} src={store.showRings ? ringsActive : ringsInactive}/>
 					<img className="icon" title="connect same colors" onClick={store.toggleShowConnections} src={store.showConnections ? connectSameActive : connectSameInactive}/>
 					<img className="icon" title="connect all colors" onClick={store.toggleShowAllConnections} src={store.showAllConnections ? connectAllActive : connectAllInactive}/>
+					<img className="icon" title="squares" onClick={store.toggleShowSquares} src={store.showSquares? squaresActive : squaresInactive}/>
+
 					<img className="icon" title="stars" onClick={store.toggleShowStars} src={store.showStars ? starsActive : starsInactive}/>
 					<img className="icon" title="rainbow" onClick={store.toggleDiscoMode} src={store.discoMode ? rainbowActive : rainbowInactive}/>
 					<img className="icon" title="brush color" onClick={store.toggleShowBrushColor} src={store.showBrushColor ? brushActive : brushInactive}/>

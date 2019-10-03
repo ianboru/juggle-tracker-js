@@ -109,6 +109,64 @@ function drawRings(context, contourPositions, color){
     }
   }
 }
+function drawSquares(context,allPositions, allColors){
+console.log("drawing squares")
+  const flattenedPositions = []
+  const flattenedPositionColors = []
+  for(let i = 0; i < allPositions.length; ++i){
+    for(let j = 0; j < allPositions[i].length; ++j){
+      if(allPositions[i][j].x.slice(-1).pop() !== -1){
+        flattenedPositions.push(allPositions[i][j])
+        const color = addOpacityToColor(cvutils.calculateCurrentHSV(allColors[i]), store.opacity)
+        flattenedPositionColors.push(color)
+      }
+    }
+  }
+  let lastColor = {}
+  let curColor
+  let curObjectX ; let curObjectR ; let curObjectY ; let lastObjectX ; let lastObjectR; let lastObjectY;
+  for(let i = 0; i < flattenedPositions.length; ++i){
+    for(let j = i+1; j < flattenedPositions.length; ++j){
+        lastObjectX = flattenedPositions[i]['x'].slice(-1).pop()
+        lastObjectY = flattenedPositions[i]['y'].slice(-1).pop()
+        lastObjectR = flattenedPositions[i]['r'].slice(-1).pop()
+        lastColor = flattenedPositionColors[i] 
+        curObjectX = flattenedPositions[j]['x'].slice(-1).pop()
+        curObjectY = flattenedPositions[j]['y'].slice(-1).pop() 
+        curObjectR = flattenedPositions[j]['r'].slice(-1).pop()
+        curColor = flattenedPositionColors[j] 
+
+        context.beginPath()
+        context.lineWidth = "8";
+        context.strokeStyle =  curColor
+        drawSquarePerpendicular(context, curObjectX, curObjectY,lastObjectX, lastObjectY)
+    }
+  }
+}
+function calculateDistance(position1, position2){
+  const dxSquared = Math.pow(position1.x - position2.x,2)
+  const dySquared = Math.pow(position1.y - position2.y,2)
+  return Math.pow(dxSquared + dySquared, .5)
+}
+
+function drawSquarePerpendicular(context, x1,y1, x2,y2){
+  const cx = (x1+x2)/2 ; const cy = (y1+y2)/2
+  const vx = x1 - cx; const vy = y1 - cy; // vector c->(x1,y1)
+  const ux = vy; const uy = -vx;          // rotate through 90 degrees
+  const x3 = cx + ux; const y3 = cy + uy; // one of the endpoints of other diagonal
+  const x4 = cx - ux; const y4 = cy - uy; // the other endpoint
+
+  context.moveTo(x1, y1)
+  context.lineTo(x3, y3)
+  context.moveTo(x3, y3)
+  context.lineTo(x2, y2)
+  context.moveTo(x2, y2)
+  context.lineTo(x4, y4)
+  context.moveTo(x4, y4)
+  context.lineTo(x1, y1)
+  context.lineWidth = store.connectionThickness;
+  context.stroke();
+  }
 function drawConnections(context,positions, color){
   if(!positions){
     return
@@ -394,6 +452,7 @@ export default {
     drawRings,
     drawAllConnections,
     drawStars,
+    drawSquares,
     drawSelectColorText,
     fitVidToCanvas,
 }

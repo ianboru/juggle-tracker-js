@@ -33,6 +33,7 @@ class Store {
   @observable showRings           = false
   @observable showStars           = false
   @observable showBrushColor      = false
+  @observable showSquares         = false
   @observable discoMode           = false
   @observable canvasOutput        = null
   @observable blurAmount          = 0
@@ -59,13 +60,14 @@ class Store {
   @observable starSides           = 6
   @observable starPoint           = .5
   @observable hiddenCanvas        = null
-  @observable imageScale          = 2
+  @observable imageScale          = 1
   @observable showContours         = true
   @observable contourThickness     = 1
   @observable uploadedDimensionsExist = false
   @observable videoUploaded = false
   @observable recordMessageShown = false
   @observable rawOpacity = 1
+
   //
   // ACTIONS
   //
@@ -188,6 +190,9 @@ class Store {
   }
   @action toggleShowTrails = () => {
     this.showTrails = !this.showTrails
+  }
+  @action toggleShowSquares = () => {
+    this.showSquares = !this.showSquares
   }
   @action toggleShowContours = () => {
     this.showContours = !this.showContours
