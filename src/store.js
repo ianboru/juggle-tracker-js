@@ -34,10 +34,11 @@ class Store {
   @observable showStars           = false
   @observable showBrushColor      = false
   @observable showSquares         = false
+  @observable showCircles        = false
   @observable discoMode           = false
   @observable canvasOutput        = null
   @observable blurAmount          = 0
-  @observable sizeThreshold       = 5
+  @observable sizeThreshold       = 10
   @observable brushColor          = 123
   @observable connectionThickness = 6
   @observable numStarsPerObject   = 12
@@ -193,6 +194,9 @@ class Store {
   }
   @action toggleShowSquares = () => {
     this.showSquares = !this.showSquares
+  }
+  @action toggleShowCircles = () => {
+    this.showCircles = !this.showCircles
   }
   @action toggleShowContours = () => {
     this.showContours = !this.showContours

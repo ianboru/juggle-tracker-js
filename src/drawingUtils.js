@@ -66,9 +66,9 @@ function drawCircles(context, contourPositions,color){
             // Call the draw circle function to paint the canvas
             if(store.discoMode){
               const hue = (getHueFromColorString(color) - t*store.discoIncrement) % 360
-              drawCircle(context,lastX, lastY, thickness, 'hsl(' + hue + ', 100,100)', opacity)  
+              drawSphere(context,lastX, lastY, thickness, 'hsl(' + hue + ', 100,100)', opacity)  
             }else{
-              drawCircle(context,lastX, lastY, thickness, color, opacity)  
+              drawSphere(context,lastX, lastY, thickness, color, opacity)  
 
             }
           }
@@ -109,6 +109,49 @@ function drawRings(context, contourPositions, color){
     }
   }
 }
+function drawCircleThroughContours(context, x1,y1, x2,y2, color){
+  const midPoint = findMidpoint(x1,y1,x2,y2)
+  const diameter = calculateDistance({'x':x1,'y':y1},{'x':x2,'y':y2})
+  context.beginPath();
+  context.moveTo(x1, y1)
+  context.lineTo(x2, y2)
+  context.strokeStyle = color
+  drawCircle(context,midPoint[0],midPoint[1], diameter/2, color)
+}
+function drawCirclesThroughContours(context, allPositions, allColors){
+  const flattenedPositions = []
+  const flattenedPositionColors = []
+  for(let i = 0; i < allPositions.length; ++i){
+    for(let j = 0; j < allPositions[i].length; ++j){
+      if(allPositions[i][j].x.slice(-1).pop() !== -1){
+        flattenedPositions.push(allPositions[i][j])
+        const color = addOpacityToColor(cvutils.calculateCurrentHSV(allColors[i]), store.opacity)
+        flattenedPositionColors.push(color)
+      }
+    }
+  }
+  let lastColor = {}
+  let curColor
+  let curObjectX ; let curObjectR ; let curObjectY ; let lastObjectX ; let lastObjectR; let lastObjectY;
+  for(let i = 0; i < flattenedPositions.length; ++i){
+    for(let j = i+1; j < flattenedPositions.length; ++j){
+        lastObjectX = flattenedPositions[i]['x'].slice(-1).pop()
+        lastObjectY = flattenedPositions[i]['y'].slice(-1).pop()
+        lastObjectR = flattenedPositions[i]['r'].slice(-1).pop()
+        lastColor = flattenedPositionColors[i] 
+        curObjectX = flattenedPositions[j]['x'].slice(-1).pop()
+        curObjectY = flattenedPositions[j]['y'].slice(-1).pop() 
+        curObjectR = flattenedPositions[j]['r'].slice(-1).pop()
+        curColor = flattenedPositionColors[j] 
+        context.lineWidth = store.connectionThickness
+        const grad= context.createLinearGradient(curObjectX, curObjectY, lastObjectX, lastObjectY);
+        grad.addColorStop(0, curColor);
+        grad.addColorStop(1, lastColor);
+        drawCircleThroughContours(context, curObjectX, curObjectY,lastObjectX, lastObjectY, grad)
+    }
+  }
+}
+
 function drawSquares(context,allPositions, allColors){
 console.log("drawing squares")
   const flattenedPositions = []
@@ -136,10 +179,8 @@ console.log("drawing squares")
         curObjectR = flattenedPositions[j]['r'].slice(-1).pop()
         curColor = flattenedPositionColors[j] 
 
-        context.beginPath()
-        context.lineWidth = "8";
-        context.strokeStyle =  curColor
-        drawSquarePerpendicular(context, curObjectX, curObjectY,lastObjectX, lastObjectY)
+        context.lineWidth = store.connectionThickness
+        drawSquarePerpendicular(context, curObjectX, curObjectY,lastObjectX, lastObjectY, curColor,lastColor)
     }
   }
 }
@@ -149,24 +190,41 @@ function calculateDistance(position1, position2){
   return Math.pow(dxSquared + dySquared, .5)
 }
 
-function drawSquarePerpendicular(context, x1,y1, x2,y2){
+function drawSquarePerpendicular(context, x1,y1, x2,y2, curColor, lastColor){
   const cx = (x1+x2)/2 ; const cy = (y1+y2)/2
   const vx = x1 - cx; const vy = y1 - cy; // vector c->(x1,y1)
   const ux = vy; const uy = -vx;          // rotate through 90 degrees
   const x3 = cx + ux; const y3 = cy + uy; // one of the endpoints of other diagonal
   const x4 = cx - ux; const y4 = cy - uy; // the other endpoint
+  context.lineWidth = store.connectionThickness;
+        context.beginPath()
 
   context.moveTo(x1, y1)
+  context.strokeStyle = curColor
   context.lineTo(x3, y3)
+    context.stroke();
+        context.beginPath()
+
   context.moveTo(x3, y3)
+  context.strokeStyle = lastColor
   context.lineTo(x2, y2)
+    context.stroke();
+        context.beginPath()
+
   context.moveTo(x2, y2)
+  context.strokeStyle = lastColor
   context.lineTo(x4, y4)
+    context.stroke();
+        context.beginPath()
+
   context.moveTo(x4, y4)
+  context.strokeStyle = curColor
   context.lineTo(x1, y1)
-  context.lineWidth = store.connectionThickness;
+    context.stroke();
+
+
   context.stroke();
-  }
+}
 function drawConnections(context,positions, color){
   if(!positions){
     return
@@ -359,7 +417,7 @@ function drawStar(context,x, y, r, color, opacityBySize) {
   context.stroke();
   context.restore();
 }
-function drawCircle(context, x,y,r, color, opacity){
+function drawSphere(context, x,y,r, color, opacity){
     context.beginPath();
     // Radii of the white glow.
     const innerRadius = r*.2
@@ -379,6 +437,17 @@ function drawCircle(context, x,y,r, color, opacity){
     context.fillStyle = gradient;
     context.fill();
     context.stroke();
+}
+function drawCircle(context, x,y,r, color){
+  context.beginPath()
+  context.strokeStyle = color
+  context.arc(x, y, r, 0, 2 * Math.PI, false);
+  context.lineWidth = store.connectionThickness
+  context.stroke();
+}
+function findMidpoint(x1,y1,x2,y2){
+  return [x2 + (x1 - x2)/2, y2 + (y1 - y2)/2] 
+
 }
 function drawRing(context, x,y,r, color, opacity){
     context.beginPath();
@@ -448,6 +517,7 @@ function fitVidToCanvas(canvas, imageObj, opacity){
 
 export default {
     drawCircles,
+    drawCirclesThroughContours,
     drawConnections,
     drawRings,
     drawAllConnections,

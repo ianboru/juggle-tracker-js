@@ -15,11 +15,12 @@ import starsInactive from "./assets/stars_inactive.png"
 import rainbowInactive from "./assets/rainbow_inactive.png"
 import brushInactive from "./assets/brush_inactive.png"
 import squaresInactive from "./assets/squares_inactive.png"
+import circlesInactive from "./assets/circles_inactive.png"
 
+import circlesActive from "./assets/circles_active.png"
 import trailsActive from "./assets/trails_active.png"
 import ringsActive from "./assets/rings_active.png"
 import contoursActive from "./assets/contours_active.png"
-
 import connectSameActive from "./assets/connect_same_active.png"
 import connectAllActive from "./assets/connect_all_active.png"
 import starsActive from "./assets/stars_active.png"
@@ -48,7 +49,7 @@ class AnimationControls extends Component {
 		const buttonClass = (shown)=>{
 	      return shown ? "active small-button" : "inactive small-button"
 	    }
-		const connectionControls = store.showConnections || store.showAllConnections ? 
+		const connectionControls = store.showConnections || store.showAllConnections || store.showSquares ? 
 			<div>
 			  <div className="slider-label" >Line Thickness</div><Slider min={0} max={25} step={1} defaultValue={store.connectionThickness}  handle={handle} onChange={store.setConnectionThickness}/>
 			</div> : null
@@ -90,6 +91,8 @@ class AnimationControls extends Component {
 				<div className="slider-label" >Contour Trails</div><Slider min={1} max={50} step={1} defaultValue={store.trailLength}  handle={handle} onChange={store.setTrailLength}/>
 
 			</div> : null 
+
+
 		return (
 			<div>
 				<div>
@@ -99,6 +102,7 @@ class AnimationControls extends Component {
 					<img className="icon" title="connect same colors" onClick={store.toggleShowConnections} src={store.showConnections ? connectSameActive : connectSameInactive}/>
 					<img className="icon" title="connect all colors" onClick={store.toggleShowAllConnections} src={store.showAllConnections ? connectAllActive : connectAllInactive}/>
 					<img className="icon" title="squares" onClick={store.toggleShowSquares} src={store.showSquares? squaresActive : squaresInactive}/>
+					<img className="icon" title="circles" onClick={store.toggleShowCircles} src={store.showCircles? circlesActive : circlesInactive}/>
 
 					<img className="icon" title="stars" onClick={store.toggleShowStars} src={store.showStars ? starsActive : starsInactive}/>
 					<img className="icon" title="rainbow" onClick={store.toggleDiscoMode} src={store.discoMode ? rainbowActive : rainbowInactive}/>

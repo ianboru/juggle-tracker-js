@@ -283,7 +283,11 @@ class App extends Component {
       if(store.showSquares){
         drawingUtils.drawSquares(context, this.state.positions,  store.allColors)
       }    
+      if(store.showCircles){
+        //drawingUtils.drawSquares(context, this.state.positions,  store.allColors)
+        drawingUtils.drawCirclesThroughContours(context, this.state.positions,  store.allColors)
 
+      }    
       store.allColors.forEach((colorRange,colorNum)=>{
         let color
         if(!store.usingWhite){
