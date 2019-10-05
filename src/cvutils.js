@@ -118,7 +118,8 @@ function findContours(src){
         const contour = contours.get(i)
         const contourArea = cv.contourArea(contour)
         //Check if contour is big enough to be a real object
-        if(contourArea > store.sizeThreshold/store.imageScale && contourPositions.length < maxNumContours){
+        const threshold = store.shouldScaleImage ? store.sizeThreshold/store.imageScale : store.sizeThreshold
+        if(contourArea > threshold && contourPositions.length < maxNumContours){
           // Use circle to get x,y coordinates and radius
           for (let j = 0;j< contour.rows;j++){
             if(j%2 == 0){
@@ -164,8 +165,9 @@ function getContourImage(src,colorRange, drawColor){
     // Find the contour area
     const contour = contours.get(i)
     const contourArea = cv.contourArea(contour)
+    const threshold = store.shouldScaleImage ?  store.sizeThreshold/store.imageScale : store.sizeThreshold 
     //Check if contour is big enough to be a real object
-    if(contourArea > store.sizeThreshold/store.imageScale && contourPositions.length < maxNumContours){
+    if(contourArea > threshold && contourPositions.length < maxNumContours){
       // Use circle to get x,y coordinates and radius
       let color 
       let colorString

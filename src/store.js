@@ -27,6 +27,7 @@ class Store {
   @observable allColors           = [initialHSV]
   @observable colorNum            = 0
   @observable usingWhite          = false
+  @observable showContours = true
   @observable showConnections     = false
   @observable showAllConnections  = false
   @observable showTrails          = false
@@ -61,8 +62,7 @@ class Store {
   @observable starSides           = 6
   @observable starPoint           = .5
   @observable hiddenCanvas        = null
-  @observable imageScale          = 1
-  @observable showContours         = true
+  @observable imageScale          = 2  
   @observable contourThickness     = 1
   @observable uploadedDimensionsExist = false
   @observable videoUploaded = false
@@ -72,6 +72,9 @@ class Store {
   //
   // ACTIONS
   //
+  @computed get shouldScaleImage(){
+    return !this.showContours
+  }
   @computed get showBigUploadButton(){
     return (generalUtils.isFacebookApp() || !this.liveVideo) && !this.uploadedDimensionsExist 
   }
@@ -222,6 +225,9 @@ class Store {
   }
   @action setBlurAmount = (blurAmount) => {
     this.blurAmount = blurAmount
+  }
+  @action setImageScale = (imageScale) => {
+    this.imageScale = imageScale
   }
   @action setCloseAmount = (closeAmount) => {
     this.closeAmount = closeAmount

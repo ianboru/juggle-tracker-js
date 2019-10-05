@@ -118,7 +118,7 @@ class App extends Component {
     let originalSize = preparedMat.size()
     let colorFilteredImage
     // If colored balls are being used, use cvutils.colorfilter
-    if(store.imageScale > 1 && !store.showContours){  
+    if(store.shouldScaleImage){  
       preparedMat = cvutils.downSize(preparedMat)
     }
     if(!store.usingWhite){
@@ -151,7 +151,7 @@ class App extends Component {
     if(store.showContours && !store.calibrationMode){
       contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
     }
-    if(store.imageScale > 1 && contourImage && !store.showContours){
+    if(contourImage && store.shouldScaleImage){
       contourImage = cvutils.upSize(contourImage, originalSize)
     }
     if(contourImage){

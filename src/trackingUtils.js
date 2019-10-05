@@ -23,9 +23,10 @@ function updateBallHistories(contourPositions, colorNum, allPositions){
       }
       ++numContoursOverThreshold
       //Add latest coordinates to history
-      allPositions[colorNum][i]['x'].push(contourPositions[i].x*store.imageScale)
-      allPositions[colorNum][i]['y'].push(contourPositions[i].y*store.imageScale)
-      allPositions[colorNum][i]['r'].push(contourPositions[i].r*store.imageScale)
+      const multiplier = store.shouldScaleImage ? store.imageScale : 1
+      allPositions[colorNum][i]['x'].push(contourPositions[i].x*multiplier)
+      allPositions[colorNum][i]['y'].push(contourPositions[i].y*multiplier)
+      allPositions[colorNum][i]['r'].push(contourPositions[i].r*multiplier)
     }
     allPositions[colorNum]["currentNumContours"] = numContoursOverThreshold
   }
