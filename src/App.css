@@ -18,6 +18,11 @@ button {
   font-size: 17.5px;
   color : #181818;
  }
+ .record-message{
+  color : #A9A9A9;
+  font-weight: bold;
+  font-size : 12pt;
+ }
 .upload-only{
   position : absolute;
 }
@@ -39,7 +44,7 @@ button {
   position : relative;
   margin: 0 auto;
   text-align: center;
-  margin-top : 40px;
+  margin-top : 0px;
   margin-bottom : 40px;
 
 }
@@ -80,6 +85,7 @@ button {
 }
 .top-tabs{
   padding : 0;
+  margin-bottom: 30px;
 }
 ul { 
   padding: 0 ;

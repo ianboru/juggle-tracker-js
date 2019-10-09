@@ -119,6 +119,7 @@ class Store {
   @action setVideoUploaded(){
     console.log("video officially uploaded")
     this.videoUploaded = true
+    generalUtils.sendGA("video","uploaded")
   }
   @action setCanvasOutput(canvas){
     canvas.width = this.canvasDimensions.width
@@ -134,16 +135,19 @@ class Store {
   @action setCalibrationRect(rect){
     this.calibrationRect = rect
     this.showSelectColorText = false
+    generalUtils.sendGA("calibration","click drag")
   }
   @action setHSVValue(sliderName, value){
     console.log("HSV", sliderName, value)
     this.filterHSV[sliderName] = value
     this.setCurrentColorRange(this.filterHSV)
     this.showSelectColorText = false
+    generalUtils.sendGA('setHSV',JSON.stringify(this.filterHSV))
   }
   @action setBrightnessThreshold(value){
     this.brightnessThreshold = value
     this.showSelectColorText = false
+    generalUtils.sendGA("brightMode","set threshold")
   }
   @action setLiveVideo= (video) => {
     this.liveVideo = video
@@ -175,48 +179,62 @@ class Store {
     this.rawOpacity = opacity
   }
   @action setBrightnessMode = () => {
+    generalUtils.sendGA("brightMode", "toggle")
     this.usingWhite = true
   }
   @action setColorMode = () => {
+    generalUtils.sendGA("colorMode", "toggle")
+
     this.usingWhite = false
   }
   @action toggleShowConnections = () => {
+    generalUtils.sendGA("effects", "connections")
+
     this.showConnections = !this.showConnections
     if(this.showConnections){
       this.showAllConnections = false
     }
   }
   @action toggleShowAllConnections = () => {
+    generalUtils.sendGA("effects", "all connections")
     this.showAllConnections = !this.showAllConnections
     if(this.showAllConnections){
       this.showConnections = false
     }
   }
   @action toggleShowTrails = () => {
+    generalUtils.sendGA("effects", "trails")
     this.showTrails = !this.showTrails
   }
   @action toggleShowSquares = () => {
+    generalUtils.sendGA("effects", "squares")
     this.showSquares = !this.showSquares
   }
   @action toggleShowCircles = () => {
+    generalUtils.sendGA("effects", "circles")
     this.showCircles = !this.showCircles
   }
   @action toggleShowContours = () => {
+    generalUtils.sendGA("effects", "contours")
     this.showContours = !this.showContours
   }
   @action toggleShowRings = () => {
     this.showRings = !this.showRings
+    generalUtils.sendGA("effects", "rings")
   }
   @action toggleShowStars = () => {
+    generalUtils.sendGA("effects", "stars")
     this.showStars = !this.showStars
     if(this.showStars && this.showTrails){
       this.showTrails = false
     }
   }
   @action toggleDiscoMode = () => {
+    generalUtils.sendGA("effects", "rainbow")
     this.discoMode = !this.discoMode
   }
   @action toggleShowBrushColor = () => {
+    generalUtils.sendGA("effects", "brush")
     this.showBrushColor = !this.showBrushColor
   }
   @action setCurrentColorRange = (colorRange)=>{
@@ -224,18 +242,22 @@ class Store {
     this.allColors[this.colorNum] = colorRange
   }
   @action setBlurAmount = (blurAmount) => {
+    generalUtils.sendGA("advanced", "blur")
     this.blurAmount = blurAmount
   }
   @action setImageScale = (imageScale) => {
+    generalUtils.sendGA("advanced", "imageScale")
     this.imageScale = imageScale
   }
   @action setCloseAmount = (closeAmount) => {
+    generalUtils.sendGA("advanced", "closeAmount")
     this.closeAmount = closeAmount
   }
   @action setDiscoIncrement = (discoIncrement) => {
     this.discoIncrement = discoIncrement
   }
   @action setTrailLength = (trailLength) => {
+    generalUtils.sendGA("effects", "trailLength")
     this.trailLength = trailLength
     
   }
@@ -319,10 +341,6 @@ class Store {
       if(this.showAnimationControls){
         this.showDetectionControls = false
         this.showColorControls = false
-        if(!this.recordMessageShown){
-          alert("Record using your device's screen recording")
-          this.recordMessageShown = true
-        }
       }
     }
   }

@@ -17,6 +17,8 @@ import calibrationActive from "./assets/calibration_active.png"
 import UploadControls from './uploadControls'
 import BigUploadButton from './bigUploadButton'
 import generalUtils from './generalUtils'
+import ReactGA from 'react-ga'
+
 const calibrateHelp = `Calibration Process\n
   == Basic Calibration ==
   1: (optional) Click and drag a box over the prop 
@@ -62,6 +64,11 @@ class App extends Component {
     store.setHiddenCanvas(this.hiddenCanvas)
     if(isFacebookApp){
       alert("Visit website outside of instagram/facebook to use live video")
+    }
+    if(!(window.location.host.includes("localhost") || window.location.host.match(/(\.\d+){3}/))){
+      ReactGA.initialize('UA-135002762-1');
+      ReactGA.pageview(window.location.pathname + window.location.search);
+  
     }
   }
 
@@ -118,9 +125,7 @@ class App extends Component {
     let originalSize = preparedMat.size()
     let colorFilteredImage
     // If colored balls are being used, use cvutils.colorfilter
-    if(store.shouldScaleImage){  
-      preparedMat = cvutils.downSize(preparedMat)
-    }
+
     if(!store.usingWhite){
       colorFilteredImage = cvutils.colorFilter(preparedMat, tempMat, colorRange)
       color = cvutils.calculateCurrentHSV(colorRange)
@@ -130,11 +135,11 @@ class App extends Component {
       color = "hsl(175,0%,100%)"
     }
     // Get the ball locations
-    const ballLocations = cvutils.findBalls(colorFilteredImage, color)
+    const contourData = cvutils.findBalls(colorFilteredImage, color)
+    const ballLocations = contourData[0]
     // Update the tracking history
     this.state.positions = trackingUtils.updateBallHistories(ballLocations, colorNum, this.state.positions)
   
-
     if(store.showBrushColor){
       color = 'hsl(' + store.brushColor + ', 100,100)'
     }
@@ -148,11 +153,12 @@ class App extends Component {
         this.state.discoHue = 0
       }
     }
-    if(store.showContours && !store.calibrationMode){
-      contourImage= cvutils.getContourImage(colorFilteredImage, colorRange, color)
+    if(store.showContours){
+      contourImage= cvutils.getContourImage(colorFilteredImage, contourData[1],colorRange, color)
     }
-    if(contourImage && store.shouldScaleImage){
-      contourImage = cvutils.upSize(contourImage, originalSize)
+
+    if(contourData[1] && !contourImage){
+      contourData[1].delete()
     }
     if(contourImage){
       return contourImage
@@ -231,7 +237,9 @@ class App extends Component {
         }
 
       }
-      allContourImage.delete();allContourImage=null
+      if(allContourImage){
+        allContourImage.delete();allContourImage=null
+      }
       srcMat.delete();srcMat = null
 
   }
@@ -254,6 +262,9 @@ class App extends Component {
       // Iterate through each color being tracked
       let preparedMat = cvutils.prepareImage(srcMat.clone())
       let allContourImage = new cv.Mat();
+      if(store.shouldScaleImage){  
+        preparedMat = cvutils.downSize(preparedMat)
+      }
       if(!store.usingWhite){
         store.allColors.forEach((colorRange,colorNum)=>{
           const contourImage = this.processCurrentColor(colorRange, colorNum, context, preparedMat)
@@ -267,10 +278,12 @@ class App extends Component {
           }
         })
       }else{
-        allContourImage.delete()
         allContourImage = this.processCurrentColor(null, 0, context, preparedMat)
       }
-
+      if(store.calibrationMode){
+        context.fillStyle = "black";
+        context.fillRect(0, 0, store.canvasOutput.width, store.canvasOutput.height);
+      }
       if(allContourImage && allContourImage.cols > 0 && store.calibrationMode){
         cv.imshow('hiddenCanvas',allContourImage)
       }
@@ -415,7 +428,7 @@ class App extends Component {
       //Because getUserMedia doesn't work
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
-          <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.9</span>
+          <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.95</span>
           <a style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}} href="http://instagram.com/arflowarts">Contact</a>
           <button style={{'fontSize':'10px','marginLeft' : '10px', 'fontSize' : '12px'}} id="helpButton" onClick={this.showCalibrateHelp}>How to</button>
           <br/>
@@ -429,7 +442,7 @@ class App extends Component {
                   <li onClick={()=>{store.toggleShowControls("detection")}} className={tabClass(store.showDetectionControls) + " right-tab"}>Advanced</li>
               </ul>
           </div>
-          
+          <div className="record-message">Use device's screen recording to save video</div>
           <div className="video-container" id="videoContainer">
             {colorControls}
             {detectionControls}

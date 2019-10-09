@@ -49,7 +49,7 @@ class AnimationControls extends Component {
 		const buttonClass = (shown)=>{
 	      return shown ? "active small-button" : "inactive small-button"
 	    }
-		const connectionControls = store.showConnections || store.showAllConnections || store.showSquares ? 
+		const connectionControls = store.showConnections || store.showAllConnections || store.showSquares || store.showCircles? 
 			<div>
 			  <div className="slider-label" >Line Thickness</div><Slider min={0} max={25} step={1} defaultValue={store.connectionThickness}  handle={handle} onChange={store.setConnectionThickness}/>
 			</div> : null
