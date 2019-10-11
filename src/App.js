@@ -20,7 +20,12 @@ import generalUtils from './generalUtils'
 import ReactGA from 'react-ga'
 
 const calibrateHelp = `Calibration Process\n
-  == Basic Calibration ==
+  == PROP COLOR CALIBRATION == 
+
+  1: Use bright balls that have distinct colors relative to background, clothes, and skin
+  2: Make sure lighting is not washing out the colors on your props, unless you are using "bright" mode.
+
+  == PROP ==
   1: (optional) Click and drag a box over the prop 
   2: Adjust Hue sliders to capture the range of colors on your prop
   3: Raise Saturation minimum to cut out less colored background objects
@@ -28,16 +33,8 @@ const calibrateHelp = `Calibration Process\n
   4: Raise Brightness minimum to cut out darker background objects
   4: Lower Brightness minimum to include darker parts of the props
   5: Add another color and repeat if your props are multiple colors 
-
-  == Advanced Calibration ==
-  1: Click "Advanced Calibaion"
-  2: Click "Calibration View Icon (Eye)", this shows what is being detected for the current color
-  3: Repeat == Basic Calibration ==
   
-  == Tips== 
-  1: Use bright balls that are distinct colors from background and clothes.
-  2: Turn on all the lights.
-  3: Light yourself and props from the front not the back
+ 
 `
 let tempMat = new cv.Mat();
 @observer
@@ -434,7 +431,7 @@ class App extends Component {
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
           <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.95</span>
           <a style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}} href="http://instagram.com/arflowarts">Contact</a>
-          <button style={{'fontSize':'10px','marginLeft' : '10px', 'fontSize' : '12px'}} id="helpButton" onClick={this.showCalibrateHelp}>How to</button>
+          <button style={{'fontSize':'14px','marginLeft' : '10px', 'color' : 'white', 'backgroundColor' : 'hsl(251, 100%,50%)'}} id="helpButton" onClick={this.showCalibrateHelp}>Help</button>
           <br/>
           <div className="top-tabs">
               <ul>
@@ -442,7 +439,7 @@ class App extends Component {
                     <img title="Calibration View" onClick={store.toggleCalibrationMode} src={store.calibrationMode ? calibrationActive : calibrationInactive}/>
                   </span>
                   <li onClick={()=>{store.toggleShowControls("color")}} className={tabClass(store.showColorControls) + " left-tab" }>Calibration</li>
-                  <li onClick={()=>{store.toggleShowControls("animation")}} className={tabClass(store.showAnimationControls)}>Animations</li>
+                  <li onClick={()=>{store.toggleShowControls("animation")}} className={tabClass(store.showAnimationControls)}>Effects</li>
                   <li onClick={()=>{store.toggleShowControls("detection")}} className={tabClass(store.showDetectionControls) + " right-tab"}>Advanced</li>
               </ul>
           </div>

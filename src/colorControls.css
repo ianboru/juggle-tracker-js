@@ -10,8 +10,19 @@
 }
 .rc-slider-handle{
   height : 23px;
-  width : 23px;
+  width : 20px;
+  border : 2px solid gray;
+  box-shadow: 2px 4px 4px 0px gray;
   z-index: 102;
+}
+
+.rc-slider-handle-1{
+   border-top-left-radius: 70%;  /* 100px of height + 10px of border */
+    border-bottom-left-radius: 70%;
+}
+.rc-slider-handle-2{
+   border-top-right-radius: 70%;  /* 100px of height + 10px of border */
+    border-bottom-right-radius: 70%;
 }
 .rc-slider{
   user-select: none;

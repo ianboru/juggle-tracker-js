@@ -175,12 +175,7 @@ function drawPetals(ctx,x, y, count, r){
 function drawFlower(ctx, x,y ,r,color ) {
   ctx.lineWidth = store.connectionThickness;
   ctx.strokeStyle = addOpacityToColor(color, store.opacity)
-
-
   drawPetals(ctx, x, y, store.numFlowerPetals, r);
-  //ctx.beginPath();
-  //ctx.arc(x, y, r, 0, Math.PI * 2);
-  //ctx.fill();
 }
 function drawCircleThroughContours(context, x1,y1, x2,y2, color){
   const midPoint = findMidpoint(x1,y1,x2,y2)

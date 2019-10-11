@@ -55,10 +55,10 @@ class UploadControls extends Component {
   }
 
   render(){
-    const uploadFileButton = this.state.mounted && this.input ? <button style={{'margin-bottom':'10px','fontSize':'12pt'}} onClick={this.handleInputClick}>Upload Video</button> : null
+    const uploadFileButton = this.state.mounted && this.input ? <button style={{'margin-bottom':'10px','fontSize':'12pt', 'color' : 'white','backgroundColor': 'hsl(40, 100%,50%)'}} onClick={this.handleInputClick}>Upload Video</button> : null
     let playUploadedButton
     if(store.uploadedVideo){
-      playUploadedButton = this.state.fileUploaded ? <button style={{'margin-bottom':'10px','fontSize':'12pt'}} id="playUploadedButton" onClick={this.handlePlayUploaded}>Play Video</button> : null
+      playUploadedButton = this.state.fileUploaded ? <button style={{'margin-bottom':'10px','fontSize':'12pt', 'color' : 'white','backgroundColor': 'hsl(40, 100%,50%)'}} id="playUploadedButton" onClick={this.handlePlayUploaded}>Play Video</button> : null
     }
     const videoControls =
         <div style={{'marginBottom' :'10px'}}>

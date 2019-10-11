@@ -50,6 +50,7 @@ class Camera extends Component {
           if (!store.streaming) {
             let videoWidth = that.video.videoWidth;
             let videoHeight = that.video.videoHeight;
+            console.log("width height", videoWidth, videoHeight)
             that.video.setAttribute("width", videoWidth);
             that.video.setAttribute("height", videoHeight);
             that.state.streaming = true 
