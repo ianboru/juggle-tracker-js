@@ -35,6 +35,8 @@ class Store {
   @observable showStars           = false
   @observable showBrushColor      = false
   @observable showSquares         = false
+  @observable showFlowers        = false
+  @observable numFlowerPetals    = 6
   @observable showCircles        = false
   @observable discoMode           = false
   @observable canvasOutput        = null
@@ -68,7 +70,9 @@ class Store {
   @observable videoUploaded = false
   @observable recordMessageShown = false
   @observable rawOpacity = 1
-
+  @observable pulseSize = 100
+  @observable pulseDirection = -1
+  @observable pulseSpeed = 10
   //
   // ACTIONS
   //
@@ -114,6 +118,15 @@ class Store {
     return {
       height : height,
       width : width
+    }
+  }
+  @action incrementPulseSize=()=>{
+    this.pulseSize += this.pulseDirection * this.pulseSpeed
+    if(this.pulseSize <= 20){
+      this.pulseDirection = 1
+    }
+    if(this.pulseSize >= 100){
+      this.pulseDirection = -1
     }
   }
   @action setVideoUploaded(){
@@ -222,6 +235,10 @@ class Store {
     this.showRings = !this.showRings
     generalUtils.sendGA("effects", "rings")
   }
+   @action toggleShowFlowers = () => {
+    this.showFlowers = !this.showFlowers
+    generalUtils.sendGA("effects", "flowers")
+  }
   @action toggleShowStars = () => {
     generalUtils.sendGA("effects", "stars")
     this.showStars = !this.showStars
@@ -271,10 +288,15 @@ class Store {
   @action setRingLength = (ringLength) => {
     this.ringLength = ringLength
   }
+  @action setNumFlowerPetals = (numFlowerPetals) => {
+    this.numFlowerPetals = numFlowerPetals
+  }
+  @action setPulseSpeed = (pulseSpeed) => {
+    this.pulseSpeed = pulseSpeed
+  }
   @action setRingThickness = (ringThickness) => {
     this.ringThickness = ringThickness
   }
-
 
   @action setOpacity = (opacity) => {
     this.opacity = opacity

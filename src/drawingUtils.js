@@ -22,11 +22,11 @@ function drawSelectColorText(context, isMobile, usingWhite){
   if(isMobile && !usingWhite){
     text = "Hold finger on prop to set color"
   }else if(!isMobile && !usingWhite){
-    text = "Click and drag box over prop\n or use sliders to set color"
+    text = "Click and drag box over prop\n THEN use sliders refine prop color"
     context.textBaseline="bottom";
-    context.fillText("Click and drag box over prop or", x, y);
+    context.fillText("Click and drag box over prop THEN", x, y);
     context.textBaseline="top";
-    context.fillText("use sliders to set prop color", x, y);
+    context.fillText("use sliders to refine prop color", x, y);
   }else{
     text = "Adjust brightness threshold to find prop"
     context.fillText(
@@ -77,6 +77,38 @@ function drawCircles(context, contourPositions,color){
     }
   }
 }
+function drawFlowers(context, contourPositions, color){
+  // Check if tracking data exists
+  if(contourPositions){    
+    // Iterate through each color being tracked
+    for(let i = 0; i < contourPositions.length; ++i){
+      // Don't draw if x coordinate is -1
+      if(contourPositions[i] && contourPositions[i]['x'] !== -1 ){
+        //Rename for convenience
+        const xHistory = contourPositions[i]['x']
+        const yHistory = contourPositions[i]['y']
+        const rHistory = contourPositions[i]['r']
+
+        // Don't draw a trail longer than the window or the ring length     
+        let currentWindowSize  = Math.min(xHistory.length, store.ringLength)
+        // Draw the trail of rings, 't' represents # of frames in the past
+        for (let t=currentWindowSize; t > -1; --t){
+          // At least draw the ball itself
+          if(xHistory[xHistory.length - 1 - t] > -1 && xHistory[xHistory.length - 1 - t] !== -1 ){
+            // Get parameters for circle
+            const lastX = xHistory[xHistory.length - 1 - t]
+            const lastY = yHistory[yHistory.length - 1 - t]
+            const lastR = rHistory[rHistory.length - 1 - t]
+            const opacity = store.opacity*(1 - t/currentWindowSize)
+            const thickness = store.ringThickness*lastR*(1-(t/currentWindowSize))
+            // Call the draw circle function to paint the canvas
+            drawFlower(context,lastX, lastY, lastR, color, opacity)
+          }
+        }
+      }
+    }
+  }
+}
 function drawRings(context, contourPositions, color){
   // Check if tracking data exists
   if(contourPositions){    
@@ -108,6 +140,47 @@ function drawRings(context, contourPositions, color){
       }
     }
   }
+}
+function createPetal(length, width){
+    const path = new Path2D();
+    // draw outer line
+    path.moveTo(0,0);
+    path.lineTo(length * 0.3, -width);
+    path.lineTo(length * 0.8, -width);
+    path.lineTo(length, 0);
+    path.lineTo(length * 0.8, width);
+    path.lineTo(length * 0.3, width);
+    // close the path so that it goes back to start
+    path.closePath();
+
+    // create the line down the middle.
+    path.moveTo(0,0);
+    path.lineTo(length,0);
+
+    return path;
+}
+function drawPetals(ctx,x, y, count, r){
+    const step = (Math.PI * 2) / count;
+    //ctx.setTransform(1, 0, 0, 1, x, y); // set center
+    //ctx.rotate(0);  // set start angle
+    //ctx.fillStyle = "rgba(0, 0, 200, 0)";
+    for(var i = 0; i < count; i+= 1){
+        ctx.beginPath()
+        ctx.ellipse(x,y,(store.pulseSize/100)*r/4, (store.pulseSize/100)*r, step*i , 0, 2*Math.PI)
+        ctx.stroke()
+    }
+    //ctx.setTransform(1, 0, 0, 1, 0, 0);  // restore default
+}
+
+function drawFlower(ctx, x,y ,r,color ) {
+  ctx.lineWidth = store.connectionThickness;
+  ctx.strokeStyle = addOpacityToColor(color, store.opacity)
+
+
+  drawPetals(ctx, x, y, store.numFlowerPetals, r);
+  //ctx.beginPath();
+  //ctx.arc(x, y, r, 0, Math.PI * 2);
+  //ctx.fill();
 }
 function drawCircleThroughContours(context, x1,y1, x2,y2, color){
   const midPoint = findMidpoint(x1,y1,x2,y2)
@@ -524,5 +597,6 @@ export default {
     drawStars,
     drawSquares,
     drawSelectColorText,
+    drawFlowers,
     fitVidToCanvas,
 }

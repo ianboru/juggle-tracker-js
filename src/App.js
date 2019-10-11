@@ -144,7 +144,7 @@ class App extends Component {
       color = 'hsl(' + store.brushColor + ', 100,100)'
     }
     // If disco mode is on, use the current disco color
-    if(store.discoMode){
+    if(store.discoMode ){
       color = 'hsl(' +this.state.discoHue+', 100,100)'
       // Update the disco hue so that the color changes
       this.state.discoHue = this.state.discoHue + store.discoIncrement
@@ -153,6 +153,7 @@ class App extends Component {
         this.state.discoHue = 0
       }
     }
+
     if(store.showContours){
       contourImage= cvutils.getContourImage(colorFilteredImage, contourData[1],colorRange, color)
     }
@@ -172,7 +173,7 @@ class App extends Component {
       color = 'hsl(' + store.brushColor + ', 100%,65%)'
     }
     // If disco mode is on, use the current disco color
-    if(store.discoMode){
+    if(store.discoMode ){
       color = 'hsl(' +this.state.discoHue+', 100%,65%)'
       // Update the disco hue so that the color changes
       this.state.discoHue = this.state.discoHue + store.discoIncrement
@@ -181,7 +182,10 @@ class App extends Component {
         this.state.discoHue = 0
       }
     }
-    
+    if(store.showFlowers){
+      store.incrementPulseSize()
+      drawingUtils.drawFlowers(context,this.state.positions[colorNum], color)
+    }
     //Draw Connections
     if(store.showConnections){
       drawingUtils.drawConnections(context, this.state.positions[colorNum], color)

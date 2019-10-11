@@ -16,7 +16,9 @@ import rainbowInactive from "./assets/rainbow_inactive.png"
 import brushInactive from "./assets/brush_inactive.png"
 import squaresInactive from "./assets/squares_inactive.png"
 import circlesInactive from "./assets/circles_inactive.png"
+import flowersInactive from "./assets/flowers_inactive.png"
 
+import flowersActive from "./assets/flowers_active.png"
 import circlesActive from "./assets/circles_active.png"
 import trailsActive from "./assets/trails_active.png"
 import ringsActive from "./assets/rings_active.png"
@@ -79,6 +81,8 @@ class AnimationControls extends Component {
 				<div className="slider-label" >Rainbow Speed</div><Slider min={1} max={24} step={1} defaultValue={store.discoIncrement}  handle={handle} onChange={store.setDiscoIncrement}/>
 			</div> : null 
 
+
+
 		const brushColorControls = store.showBrushColor ? 
 			<div>
 				<div className="slider-label" >Brush Color</div><Slider className="hue-slider gradient-slider" min={0} max={360} step={1} defaultValue={store.brushColor} handle={handle} onChange={store.setBrushColor} />
@@ -90,8 +94,15 @@ class AnimationControls extends Component {
 				<div className="slider-label" >Contour Thickness</div><Slider min={1} max={24} step={1} defaultValue={store.contourThickness}  handle={handle} onChange={store.setContourThickness}/>
 				<div className="slider-label" >Contour Trails</div><Slider min={1} max={50} step={1} defaultValue={store.trailLength}  handle={handle} onChange={store.setTrailLength}/>
 
-			</div> : null 
+			</div> : null
 
+		const flowerControls = store.showFlowers ? 
+		<div>
+
+			<div className="slider-label" >Flower Petals</div><Slider min={3} max={15} step={1} defaultValue={store.numFlowerPetals}  handle={handle} onChange={store.setNumFlowerPetals}/>
+			<div className="slider-label" >Pulse Speed</div><Slider min={1} max={30} step={1} defaultValue={store.pulseSpeed}  handle={handle} onChange={store.setPulseSpeed}/>
+
+		</div> : null 
 
 		return (
 			<div>
@@ -103,6 +114,7 @@ class AnimationControls extends Component {
 					<img className="icon" title="connect all colors" onClick={store.toggleShowAllConnections} src={store.showAllConnections ? connectAllActive : connectAllInactive}/>
 					<img className="icon" title="squares" onClick={store.toggleShowSquares} src={store.showSquares? squaresActive : squaresInactive}/>
 					<img className="icon" title="circles" onClick={store.toggleShowCircles} src={store.showCircles? circlesActive : circlesInactive}/>
+					<img className="icon" title="flowers" onClick={store.toggleShowFlowers} src={store.showFlowers ? flowersActive : flowersInactive}/>
 
 					<img className="icon" title="stars" onClick={store.toggleShowStars} src={store.showStars ? starsActive : starsInactive}/>
 					<img className="icon" title="rainbow" onClick={store.toggleDiscoMode} src={store.discoMode ? rainbowActive : rainbowInactive}/>
@@ -116,6 +128,7 @@ class AnimationControls extends Component {
 				{starControls}
 				{rainbowControls}
 				{contourControls}
+				{flowerControls}
 			</div>
 		)
 	}
