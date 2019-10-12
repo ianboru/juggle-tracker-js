@@ -141,35 +141,21 @@ function drawRings(context, contourPositions, color){
     }
   }
 }
-function createPetal(length, width){
-    const path = new Path2D();
-    // draw outer line
-    path.moveTo(0,0);
-    path.lineTo(length * 0.3, -width);
-    path.lineTo(length * 0.8, -width);
-    path.lineTo(length, 0);
-    path.lineTo(length * 0.8, width);
-    path.lineTo(length * 0.3, width);
-    // close the path so that it goes back to start
-    path.closePath();
 
-    // create the line down the middle.
-    path.moveTo(0,0);
-    path.lineTo(length,0);
-
-    return path;
-}
 function drawPetals(ctx,x, y, count, r){
-    const step = (Math.PI * 2) / count;
-    //ctx.setTransform(1, 0, 0, 1, x, y); // set center
-    //ctx.rotate(0);  // set start angle
-    //ctx.fillStyle = "rgba(0, 0, 200, 0)";
+    r = r/2
+    const angleStep = (Math.PI * 2) / count;
+    const pistilSize = r/8
+    
     for(var i = 0; i < count; i+= 1){
-        ctx.beginPath()
-        ctx.ellipse(x,y,(store.pulseSize/100)*r/4, (store.pulseSize/100)*r, step*i , 0, 2*Math.PI)
-        ctx.stroke()
+      const angle = angleStep*i + store.flowerRotation * Math.PI / 180
+      const translateY = r * Math.sin(angle) *(store.pulseSize/100) /2 
+      const translateX = r * Math.cos(angle) *(store.pulseSize/100) /2
+      ctx.beginPath()
+      ctx.ellipse(x+ translateX,y + translateY,(store.pulseSize/100)*r/4 , (store.pulseSize/100)*r , angle, 0, 2*Math.PI)
+      ctx.stroke()
     }
-    //ctx.setTransform(1, 0, 0, 1, 0, 0);  // restore default
+
 }
 
 function drawFlower(ctx, x,y ,r,color ) {
@@ -246,7 +232,6 @@ console.log("drawing squares")
         curObjectY = flattenedPositions[j]['y'].slice(-1).pop() 
         curObjectR = flattenedPositions[j]['r'].slice(-1).pop()
         curColor = flattenedPositionColors[j] 
-
         context.lineWidth = store.connectionThickness
         drawSquarePerpendicular(context, curObjectX, curObjectY,lastObjectX, lastObjectY, curColor,lastColor)
     }
@@ -577,7 +562,6 @@ function fitVidToCanvas(canvas, imageObj, opacity){
     yStart = 0;
   }
   const context = canvas.getContext("2d")
-  //ontext.imageSmoothingQuality = "medium"
   context.globalAlpha = opacity
   context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
   context.globalAlpha = 1

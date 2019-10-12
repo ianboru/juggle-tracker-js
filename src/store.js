@@ -72,7 +72,9 @@ class Store {
   @observable rawOpacity = 1
   @observable pulseSize = 100
   @observable pulseDirection = -1
-  @observable pulseSpeed = 10
+  @observable pulseSpeed = 3
+  @observable flowerRotation = 0
+  @observable flowerRotationSpeed = 1
   //
   // ACTIONS
   //
@@ -122,12 +124,15 @@ class Store {
   }
   @action incrementPulseSize=()=>{
     this.pulseSize += this.pulseDirection * this.pulseSpeed
-    if(this.pulseSize <= 20){
+    if(this.pulseSize <= 50){
       this.pulseDirection = 1
     }
     if(this.pulseSize >= 100){
       this.pulseDirection = -1
     }
+  }
+  @action incrementFlowerRotation=()=>{
+    this.flowerRotation += this.flowerRotationSpeed % 360
   }
   @action setVideoUploaded(){
     console.log("video officially uploaded")
@@ -293,6 +298,9 @@ class Store {
   }
   @action setPulseSpeed = (pulseSpeed) => {
     this.pulseSpeed = pulseSpeed
+  }
+  @action setFlowerRotationSpeed = (flowerRotationSpeed) => {
+    this.flowerRotationSpeed = flowerRotationSpeed
   }
   @action setRingThickness = (ringThickness) => {
     this.ringThickness = ringThickness

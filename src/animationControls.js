@@ -51,7 +51,7 @@ class AnimationControls extends Component {
 		const buttonClass = (shown)=>{
 	      return shown ? "active small-button" : "inactive small-button"
 	    }
-		const connectionControls = store.showConnections || store.showAllConnections || store.showSquares || store.showCircles? 
+		const connectionControls = store.showConnections || store.showAllConnections || store.showSquares || store.showCircles || store.showFlowers ? 
 			<div>
 			  <div className="slider-label" >Line Thickness</div><Slider min={0} max={25} step={1} defaultValue={store.connectionThickness}  handle={handle} onChange={store.setConnectionThickness}/>
 			</div> : null
@@ -100,7 +100,8 @@ class AnimationControls extends Component {
 		<div>
 
 			<div className="slider-label" >Flower Petals</div><Slider min={3} max={15} step={1} defaultValue={store.numFlowerPetals}  handle={handle} onChange={store.setNumFlowerPetals}/>
-			<div className="slider-label" >Pulse Speed</div><Slider min={1} max={30} step={1} defaultValue={store.pulseSpeed}  handle={handle} onChange={store.setPulseSpeed}/>
+			<div className="slider-label" >Pulse Speed</div><Slider min={0} max={30} step={.5} defaultValue={store.pulseSpeed}  handle={handle} onChange={store.setPulseSpeed}/>
+			<div className="slider-label" >Flower Rotation Speed</div><Slider min={0} max={10} step={.5} defaultValue={store.flowerRotationSpeed}  handle={handle} onChange={store.setFlowerRotationSpeed}/>
 
 		</div> : null 
 

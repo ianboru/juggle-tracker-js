@@ -181,6 +181,7 @@ class App extends Component {
     }
     if(store.showFlowers){
       store.incrementPulseSize()
+      store.incrementFlowerRotation()
       drawingUtils.drawFlowers(context,this.state.positions[colorNum], color)
     }
     //Draw Connections
