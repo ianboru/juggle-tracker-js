@@ -430,7 +430,7 @@ class App extends Component {
       //Because getUserMedia doesn't work
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
-          <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.95</span>
+          <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.96</span>
           <a style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}} href="http://instagram.com/arflowarts">Contact</a>
           <button style={{'fontSize':'14px','marginLeft' : '10px', 'color' : 'white', 'backgroundColor' : 'hsl(251, 100%,50%)'}} id="helpButton" onClick={this.showCalibrateHelp}>Help</button>
           <br/>
