@@ -98,13 +98,20 @@ class AnimationControls extends Component {
 
 		const flowerControls = store.showFlowers ? 
 		<div>
-
+			<div className="slider-label" >Flower Size</div><Slider min={.2} max={2} step={.2} defaultValue={store.flowerSize}  handle={handle} onChange={store.setFlowerSize}/>
 			<div className="slider-label" >Flower Petals</div><Slider min={3} max={15} step={1} defaultValue={store.numFlowerPetals}  handle={handle} onChange={store.setNumFlowerPetals}/>
 			<div className="slider-label" >Pulse Speed</div><Slider min={0} max={30} step={.5} defaultValue={store.pulseSpeed}  handle={handle} onChange={store.setPulseSpeed}/>
 			<div className="slider-label" >Flower Rotation Speed</div><Slider min={0} max={10} step={.5} defaultValue={store.flowerRotationSpeed}  handle={handle} onChange={store.setFlowerRotationSpeed}/>
 
 		</div> : null 
 
+		const animationOpacity = store.showFlowers || store.showTrails || store.showConnections ||
+		store.showAllConnections ||store.showStars ||store.showCircles ||store.showSquares ||store.showRings || store.showSquares
+		?	
+						<div>
+							<div className="slider-label" >Animation Opacity</div><Slider min={0} max={1} step={.01} defaultValue={store.opacity}  handle={handle} onChange={store.setOpacity}/>
+						</div>
+						: null
 		return (
 			<div>
 				<div>
@@ -121,7 +128,7 @@ class AnimationControls extends Component {
 					<img className="icon" title="rainbow" onClick={store.toggleDiscoMode} src={store.discoMode ? rainbowActive : rainbowInactive}/>
 					<img className="icon" title="brush color" onClick={store.toggleShowBrushColor} src={store.showBrushColor ? brushActive : brushInactive}/>
 				</div>
-				<div className="slider-label" >Animation Opacity</div><Slider min={0} max={1} step={.01} defaultValue={store.opacity}  handle={handle} onChange={store.setOpacity}/>
+				{animationOpacity}
 				{brushColorControls}
 				{connectionControls}
 				{trailControls}

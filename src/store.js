@@ -75,6 +75,7 @@ class Store {
   @observable pulseSpeed = 3
   @observable flowerRotation = 0
   @observable flowerRotationSpeed = 1
+  @observable flowerSize   = 1
   //
   // ACTIONS
   //
@@ -301,6 +302,9 @@ class Store {
   }
   @action setFlowerRotationSpeed = (flowerRotationSpeed) => {
     this.flowerRotationSpeed = flowerRotationSpeed
+  }
+  @action setFlowerSize = (flowerSize) => {
+    this.flowerSize = flowerSize
   }
   @action setRingThickness = (ringThickness) => {
     this.ringThickness = ringThickness

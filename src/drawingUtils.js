@@ -143,7 +143,8 @@ function drawRings(context, contourPositions, color){
 }
 
 function drawPetals(ctx,x, y, count, r){
-    r = r/2
+    //r = r/2
+    r = r*store.flowerSize
     const angleStep = (Math.PI * 2) / count;
     const pistilSize = r/8
     
@@ -472,6 +473,7 @@ function drawStar(context,x, y, r, color, opacityBySize) {
 }
 function drawSphere(context, x,y,r, color, opacity){
     context.beginPath();
+    r = r*(store.pulseSize/100)
     // Radii of the white glow.
     const innerRadius = r*.2
     const outerRadius = r*1.1
