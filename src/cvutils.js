@@ -108,7 +108,7 @@ function getContourImage(src,contours, colorRange, drawColor){
     let hierarchy = new cv.Mat();
 
     // Maximum number of contours to interpret as objects
-    const maxNumContours = 10
+    const maxNumContours = 20
 
     let contourPositions = []
     // Catalogue the contour locations to draw later
