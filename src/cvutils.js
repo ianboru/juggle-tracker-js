@@ -107,39 +107,35 @@ function getContourImage(src,contours, colorRange, drawColor){
     const dst = cv.Mat.zeros( src.rows,src.cols, cv.CV_8UC3);
     let hierarchy = new cv.Mat();
 
-    // Maximum number of contours to interpret as objects
-    const maxNumContours = 20
-
-    let contourPositions = []
     // Catalogue the contour locations to draw later
     // Iterate though the largest contours
     for (let i = 0; i < contours.size(); ++i) {
-    // Find the contour area
-    const contour = contours.get(i)
-    const contourArea = cv.contourArea(contour)
-    const threshold = store.shouldScaleImage ?  store.sizeThreshold/store.imageScale : store.sizeThreshold 
-    //Check if contour is big enough to be a real object
-    if(contourArea > threshold && contourPositions.length < maxNumContours){
-      // Use circle to get x,y coordinates and radius
-      let color 
-      let colorString
-      if(colorRange||drawColor){
-        colorString = hsvToRgb(
-            drawColor, 100, 70
-        )
-        let rgbArray = colorString.split(',')
-        color = new cv.Scalar(
-            parseInt(rgbArray[0]),
-            parseInt(rgbArray[1]),
-            parseInt(rgbArray[2])
-        )
-      }else{
-        color = new cv.Scalar(255,255,255);
-      } 
-      const thickness = store.shouldScaleImage ? store.contourThickness/store.imageScale : store.contourThickness
-      cv.drawContours(dst, contours, i, color, thickness, cv.LINE_4, hierarchy, 100);
-    }
-    contour.delete(); 
+        // Find the contour area
+        const contour = contours.get(i)
+        const contourArea = cv.contourArea(contour)
+        const threshold = store.shouldScaleImage ?  store.sizeThreshold/store.imageScale : store.sizeThreshold 
+        //Check if contour is big enough to be a real object
+        if(contourArea > threshold){
+          // Use circle to get x,y coordinates and radius
+          let color 
+          let colorString
+          if(colorRange||drawColor){
+            colorString = hsvToRgb(
+                drawColor, 100, 70
+            )
+            let rgbArray = colorString.split(',')
+            color = new cv.Scalar(
+                parseInt(rgbArray[0]),
+                parseInt(rgbArray[1]),
+                parseInt(rgbArray[2])
+            )
+          }else{
+            color = new cv.Scalar(255,255,255);
+          } 
+          const thickness = store.shouldScaleImage ? store.contourThickness/store.imageScale : store.contourThickness
+          cv.drawContours(dst, contours, i, color, thickness, cv.LINE_4, hierarchy, 100);
+        }
+        contour.delete(); 
     }
     // Cleanup open cv objects
     contours.delete(); hierarchy.delete();
@@ -147,8 +143,7 @@ function getContourImage(src,contours, colorRange, drawColor){
     return dst
 }
 function findBalls(src,drawColor){
-    // Maximum number of contours to interpret as objects
-    const maxNumContours = 10
+
     // Initialize contour finding data
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
@@ -163,7 +158,7 @@ function findBalls(src,drawColor){
         const contour = contours.get(i)
         const contourArea = cv.contourArea(contour)
         //Check if contour is big enough to be a real object
-        if(contourArea > threshold && contourPositions.length < maxNumContours){
+        if(contourArea > threshold){
           // Use circle to get x,y coordinates and radius
           const circle = cv.minEnclosingCircle(contour)
           // Push the coordinates of the contour and the radius to the list of objects
