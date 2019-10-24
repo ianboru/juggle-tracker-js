@@ -70,9 +70,9 @@ class Store {
   @observable videoUploaded = false
   @observable recordMessageShown = false
   @observable rawOpacity = 1
-  @observable pulseSize = 100
+  @observable pulseSize = 20
   @observable pulseDirection = -1
-  @observable pulseSpeed = 3
+  @observable pulseSpeed = .1
   @observable flowerRotation = 0
   @observable flowerRotationSpeed = 1
   @observable flowerSize   = 1

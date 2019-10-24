@@ -65,6 +65,7 @@ class AnimationControls extends Component {
 		
 		const trailControls = store.showTrails ? 
 			<div>
+				<div className="slider-label" >Pulse Speed</div><Slider min={0} max={30} step={.5} defaultValue={store.pulseSpeed}  handle={handle} onChange={store.setPulseSpeed}/>
 				<div className="slider-label" >Sphere Trails</div><Slider min={1} max={50} step={1} defaultValue={store.trailLength}  handle={handle} onChange={store.setTrailLength}/>
 				<div className="slider-label" >Sphere Radius</div><Slider min={0} max={3} step={.01} defaultValue={store.trailThickness}  handle={handle} onChange={store.setTrailThickness}/>
 			</div> : null
@@ -98,10 +99,9 @@ class AnimationControls extends Component {
 
 		const flowerControls = store.showFlowers ? 
 		<div>
-			<div className="slider-label" >Flower Size</div><Slider min={.2} max={2} step={.2} defaultValue={store.flowerSize}  handle={handle} onChange={store.setFlowerSize}/>
+			<div className="slider-label" >Flower Size</div><Slider min={.2} max={3} step={.2} defaultValue={store.flowerSize}  handle={handle} onChange={store.setFlowerSize}/>
 			<div className="slider-label" >Flower Petals</div><Slider min={3} max={15} step={1} defaultValue={store.numFlowerPetals}  handle={handle} onChange={store.setNumFlowerPetals}/>
-			<div className="slider-label" >Pulse Speed</div><Slider min={0} max={30} step={.5} defaultValue={store.pulseSpeed}  handle={handle} onChange={store.setPulseSpeed}/>
-			<div className="slider-label" >Flower Rotation Speed</div><Slider min={0} max={10} step={.5} defaultValue={store.flowerRotationSpeed}  handle={handle} onChange={store.setFlowerRotationSpeed}/>
+			<div className="slider-label" >Flower Rotation Speed</div><Slider min={0} max={10} step={.2} defaultValue={store.flowerRotationSpeed}  handle={handle} onChange={store.setFlowerRotationSpeed}/>
 
 		</div> : null 
 

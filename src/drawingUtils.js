@@ -102,12 +102,32 @@ function drawFlowers(context, contourPositions, color){
             const opacity = store.opacity*(1 - t/currentWindowSize)
             const thickness = store.ringThickness*lastR*(1-(t/currentWindowSize))
             // Call the draw circle function to paint the canvas
-            drawFlower(context,lastX, lastY, lastR, color, opacity)
+            drawFlower(context,lastX, lastY, lastR,  color )
           }
         }
       }
     }
   }
+}
+function drawFlower(ctx, cx,cy ,radius1, color ) {
+   cx, cy, radius1, radius2, ratio
+  radius1 = radius1 * store.flowerSize
+  const radius2 = radius1 * store.flowerSize
+  const ratio = store.numFlowerPetals
+  var x, y, theta;
+  ctx.lineWidth = store.connectionThickness;
+  ctx.strokeStyle = addOpacityToColor(color, store.opacity)
+  // Move to starting point (theta = 0)
+  ctx.beginPath();
+  ctx.moveTo(cx + radius1 + radius2, cy);
+
+  // Draw segments from theta = 0 to theta = 2PI
+  for (theta = 0; theta <= Math.PI * 2; theta += 0.01) {
+    x = cx + radius1 * Math.cos(theta + store.flowerRotation*Math.PI/180) + radius2 * Math.cos( theta * ratio);
+    y = cy + radius1 * Math.sin(theta + store.flowerRotation*Math.PI/180) + radius2 * Math.sin(theta * ratio);
+    ctx.lineTo(x, y);
+  }
+  ctx.stroke()
 }
 function drawRings(context, contourPositions, color){
   // Check if tracking data exists
@@ -142,28 +162,10 @@ function drawRings(context, contourPositions, color){
   }
 }
 
-function drawPetals(ctx,x, y, count, r){
-    //r = r/2
-    r = r*store.flowerSize
-    const angleStep = (Math.PI * 2) / count;
-    const pistilSize = r/8
-    
-    for(var i = 0; i < count; i+= 1){
-      const angle = angleStep*i + store.flowerRotation * Math.PI / 180
-      const translateY = r * Math.sin(angle) *(store.pulseSize/100) /2 
-      const translateX = r * Math.cos(angle) *(store.pulseSize/100) /2
-      ctx.beginPath()
-      ctx.ellipse(x+ translateX,y + translateY,(store.pulseSize/100)*r/4 , (store.pulseSize/100)*r , angle, 0, 2*Math.PI)
-      ctx.stroke()
-    }
 
-}
 
-function drawFlower(ctx, x,y ,r,color ) {
-  ctx.lineWidth = store.connectionThickness;
-  ctx.strokeStyle = addOpacityToColor(color, store.opacity)
-  drawPetals(ctx, x, y, store.numFlowerPetals, r);
-}
+  
+
 function drawCircleThroughContours(context, x1,y1, x2,y2, color){
   const midPoint = findMidpoint(x1,y1,x2,y2)
   const diameter = calculateDistance({'x':x1,'y':y1},{'x':x2,'y':y2})
