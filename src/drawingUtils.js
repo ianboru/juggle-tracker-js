@@ -20,7 +20,7 @@ function drawSelectColorText(context, isMobile, usingWhite){
   const x = context.canvas.width*.5
   const y = context.canvas.height*.92
   if(isMobile && !usingWhite){
-    text = "Hold finger on prop to set color"
+    text = "Hold finger on prop to set color\n THEN use sliders refine prop color"
   }else if(!isMobile && !usingWhite){
     text = "Click and drag box over prop\n THEN use sliders refine prop color"
     context.textBaseline="bottom";
@@ -90,7 +90,7 @@ function drawFlowers(context, contourPositions, color){
         const rHistory = contourPositions[i]['r']
 
         // Don't draw a trail longer than the window or the ring length     
-        let currentWindowSize  = Math.min(xHistory.length, store.ringLength)
+        let currentWindowSize  = 1
         // Draw the trail of rings, 't' represents # of frames in the past
         for (let t=currentWindowSize; t > -1; --t){
           // At least draw the ball itself
@@ -112,7 +112,7 @@ function drawFlowers(context, contourPositions, color){
 function drawFlower(ctx, cx,cy ,radius1, color ) {
    cx, cy, radius1, radius2, ratio
   radius1 = radius1 * store.flowerSize
-  const radius2 = radius1 * store.flowerSize
+  const radius2 = radius1/2 * store.flowerSize
   const ratio = store.numFlowerPetals
   var x, y, theta;
   ctx.lineWidth = store.connectionThickness;
@@ -122,7 +122,7 @@ function drawFlower(ctx, cx,cy ,radius1, color ) {
   ctx.moveTo(cx + radius1 + radius2, cy);
 
   // Draw segments from theta = 0 to theta = 2PI
-  for (theta = 0; theta <= Math.PI * 2; theta += 0.01) {
+  for (theta = 0; theta < Math.PI * 2; theta += 0.01) {
     x = cx + radius1 * Math.cos(theta + store.flowerRotation*Math.PI/180) + radius2 * Math.cos( theta * ratio);
     y = cy + radius1 * Math.sin(theta + store.flowerRotation*Math.PI/180) + radius2 * Math.sin(theta * ratio);
     ctx.lineTo(x, y);
@@ -475,8 +475,8 @@ function drawStar(context,x, y, r, color, opacityBySize) {
 }
 function drawSphere(context, x,y,r, color, opacity){
     context.beginPath();
-    r = r*(store.pulseSize/100)
-    // Radii of the white glow.
+    r = store.pulseSpeed > 0 ? r*(store.pulseSize/100) : r
+    // Radii of the white glow. 
     const innerRadius = r*.2
     const outerRadius = r*1.1
     let editColor = color.replace("hsl(","")

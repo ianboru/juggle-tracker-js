@@ -60,7 +60,7 @@ class App extends Component {
     document.title = "AR Flow Arts"
     store.setHiddenCanvas(this.hiddenCanvas)
     if(isFacebookApp){
-      alert("Visit website outside of instagram/facebook to use live video")
+      alert("Visit website directly through browser for best experience")
     }
     if(!(window.location.host.includes("localhost") || window.location.host.match(/(\.\d+){3}/))){
       ReactGA.initialize('UA-135002762-1');
@@ -180,7 +180,7 @@ class App extends Component {
       }
     }
     if(store.showFlowers){
-      store.incrementPulseSize()
+      if(store.pulseSpeed > 0 ){store.incrementPulseSize()}
       store.incrementFlowerRotation()
       drawingUtils.drawFlowers(context,this.state.positions[colorNum], color)
     }
@@ -191,6 +191,7 @@ class App extends Component {
 
     //Draw trails
     if(store.showTrails){
+      if(store.pulseSpeed > 0 ){store.incrementPulseSize()}
       drawingUtils.drawCircles(context,this.state.positions[colorNum], color)
     }
 
@@ -392,14 +393,14 @@ class App extends Component {
               'fontSize':'11px',
               'margin' : '0 auto',
               'border' : '2px solid black',
-              'width' : '30px',
+              'width' : '60px',
               'height' : '22px',
               'padding-top' : '6px',
               'display' : 'inline-block',
               'vertical-align' : 'middle'
             }}
             onClick={store.addColor}
-          >Add</div>
+          >Add Color</div>
         </div>
         </div>) :
         null
@@ -430,9 +431,9 @@ class App extends Component {
       //Because getUserMedia doesn't work
       <div className="App" >
           <h3 style={{marginBottom : '5px'}} className="primary-header">AR Flow Arts</h3>
-          <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.96</span>
+          <span style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}}>Version 1.99</span>
           <a style={{marginBottom : '10px','marginLeft' : '10px', 'fontSize' : '12px'}} href="http://instagram.com/arflowarts">Contact</a>
-          <button style={{'fontSize':'14px','marginLeft' : '10px', 'color' : 'white', 'backgroundColor' : 'hsl(251, 100%,50%)'}} id="helpButton" onClick={this.showCalibrateHelp}>Help</button>
+          <button style={{'fontSize':'16px','marginLeft' : '10px', 'color' : 'white', 'backgroundColor' : 'hsl(300, 100%,40%)', 'borderRadius' : '6px'}} id="helpButton" onClick={this.showCalibrateHelp}>Help</button>
           <br/>
           <div className="top-tabs">
               <ul>

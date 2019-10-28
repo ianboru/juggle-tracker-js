@@ -36,14 +36,14 @@ class Store {
   @observable showBrushColor      = false
   @observable showSquares         = false
   @observable showFlowers        = false
-  @observable numFlowerPetals    = 6
+  @observable numFlowerPetals    = 20
   @observable showCircles        = false
   @observable discoMode           = false
   @observable canvasOutput        = null
   @observable blurAmount          = 0
   @observable sizeThreshold       = 10
   @observable brushColor          = 123
-  @observable connectionThickness = 6
+  @observable connectionThickness = 3
   @observable numStarsPerObject   = 12
   @observable starLife            = .5
   @observable starSize            = .2
@@ -72,7 +72,7 @@ class Store {
   @observable rawOpacity = 1
   @observable pulseSize = 20
   @observable pulseDirection = -1
-  @observable pulseSpeed = .1
+  @observable pulseSpeed = 0
   @observable flowerRotation = 0
   @observable flowerRotationSpeed = 1
   @observable flowerSize   = 1

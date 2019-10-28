@@ -99,9 +99,9 @@ class AnimationControls extends Component {
 
 		const flowerControls = store.showFlowers ? 
 		<div>
-			<div className="slider-label" >Flower Size</div><Slider min={.2} max={3} step={.2} defaultValue={store.flowerSize}  handle={handle} onChange={store.setFlowerSize}/>
-			<div className="slider-label" >Flower Petals</div><Slider min={3} max={15} step={1} defaultValue={store.numFlowerPetals}  handle={handle} onChange={store.setNumFlowerPetals}/>
-			<div className="slider-label" >Flower Rotation Speed</div><Slider min={0} max={10} step={.2} defaultValue={store.flowerRotationSpeed}  handle={handle} onChange={store.setFlowerRotationSpeed}/>
+			<div className="slider-label" >Flower Size</div><Slider min={.2} max={3} step={.1} defaultValue={store.flowerSize}  handle={handle} onChange={store.setFlowerSize}/>
+			<div className="slider-label" >Flower Petals</div><Slider min={3} max={50} step={1} defaultValue={store.numFlowerPetals}  handle={handle} onChange={store.setNumFlowerPetals}/>
+			<div className="slider-label" >Flower Rotation Speed</div><Slider min={0} max={10} step={.1} defaultValue={store.flowerRotationSpeed}  handle={handle} onChange={store.setFlowerRotationSpeed}/>
 
 		</div> : null 
 
