@@ -65,6 +65,7 @@ class Store {
   @observable starPoint           = .5
   @observable hiddenCanvas        = null
   @observable imageScale          = 2  
+  @observable numProps            = 20
   @observable contourThickness     = 1
   @observable uploadedDimensionsExist = false
   @observable videoUploaded = false
@@ -271,6 +272,10 @@ class Store {
   @action setImageScale = (imageScale) => {
     generalUtils.sendGA("advanced", "imageScale")
     this.imageScale = imageScale
+  }
+  @action setNumProps = (numProps) => {
+    generalUtils.sendGA("advanced", "numProps")
+    this.numProps = numProps
   }
   @action setCloseAmount = (closeAmount) => {
     generalUtils.sendGA("advanced", "closeAmount")

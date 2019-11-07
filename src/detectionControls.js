@@ -33,7 +33,7 @@ class DetectionControls extends Component {
 				<div className="slider-label">Blur</div><Slider min={0} max={30} step={1} defaultValue={store.blurAmount}  handle={handle} onChange={store.setBlurAmount}/>
 				<div className="slider-label">Minimum Size</div><Slider min={0} max={2000} step={20} defaultValue={store.sizeThreshold} handle={handle} onChange={store.setSizeThreshold}/>
         <div className="slider-label">Image Scale</div><Slider min={1} max={4} step={.1} defaultValue={store.imageScale} handle={handle} onChange={store.setImageScale}/>
-
+        <div className="slider-label">Number of Props</div><Slider min={1} max={20} step={1} defaultValue={store.numProps} handle={handle} onChange={store.setNumProps}/>
 			</div>
 		)
 	}

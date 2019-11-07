@@ -2,7 +2,7 @@ import store from './store';
 
 function updateBallHistories(contourPositions, colorNum, allPositions){
   // Maximum number of contours that will be interpreted as objects
-  const maxNumContours = 20
+  const maxNumContours = store.numProps
   //Used to know how many contours to connect later
   let numContoursOverThreshold = 0
   //Catalogue the contour locations to draw later
@@ -53,6 +53,7 @@ function trimHistories(positions, trailLength){
     histories[colorNum] = []
     let rejectedBalls = 0
     colorPositions.forEach((history,ballNum)=>{
+
       //check if object hasn't been detected in a while
       let keepBall = false
       for(let i=0; i < Math.min(trailLength,history['x'].length);++i){
@@ -62,7 +63,7 @@ function trimHistories(positions, trailLength){
         }
       }
       //exit if object hasn't been detected in a while
-      if(!keepBall){
+      if(!keepBall || ballNum > store.numProps){
         ++rejectedBalls
         return
       }

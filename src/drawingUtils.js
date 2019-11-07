@@ -44,7 +44,7 @@ function drawCircles(context, contourPositions,color){
   // Check if tracking data exists
   if(contourPositions){    
     // Iterate through each color being tracked
-    for(let i = 0; i < contourPositions.length; ++i){
+    for(let i = 0; i < Math.min(contourPositions.length,store.numProps); ++i){
       // Don't draw if x coordinate is -1
       if(contourPositions[i] && contourPositions[i]['x'] !== -1 ){
         // Rename for convenience
