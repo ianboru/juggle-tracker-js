@@ -22,13 +22,9 @@ function drawSelectColorText(context, isMobile, usingWhite){
   if(isMobile && !usingWhite){
     text = "Hold finger on prop to set color\n THEN use sliders refine prop color"
   }else if(!isMobile && !usingWhite){
-    text = "Click and drag box over prop\n THEN use sliders refine prop color"
-    context.textBaseline="bottom";
-    context.fillText("Click and drag box over prop THEN", x, y);
-    context.textBaseline="top";
-    context.fillText("use sliders to refine prop color", x, y);
+    text = "Use color sliders to detect props"
   }else{
-    text = "Adjust brightness threshold to find prop"
+    text = "Use brightness slider to detect props"
     context.fillText(
       text,
       x, 
