@@ -18,6 +18,7 @@ import UploadControls from './uploadControls'
 import BigUploadButton from './bigUploadButton'
 import generalUtils from './generalUtils'
 import ReactGA from 'react-ga'
+import poopEmoji from "./assets/poop_emoji.svg"
 
 const calibrateHelp = `Calibration Process\n
   == PROP COLOR CALIBRATION == 
@@ -190,8 +191,9 @@ class App extends Component {
 
     //Draw trails
     if(store.showTrails){
-      if(store.pulseSpeed > 0 ){store.incrementPulseSize()}
-      drawingUtils.drawCircles(context,this.state.positions[colorNum], color)
+      //drawingUtils.drawCircles(context,this.state.positions[colorNum], color)
+      drawingUtils.drawEmojis(context,this.state.positions[colorNum], this.emoji)
+
     }
 
     // Draw rings
@@ -450,6 +452,12 @@ class App extends Component {
             {detectionControls}
             {animationControls}
             <InteractiveCanvas className="center-block canvas"/>
+            <img 
+              style={{display: 'none'}}
+              title="emoji" 
+              src={poopEmoji} 
+              ref={ref => this.emoji = ref}
+            />
             <canvas 
               ref={ref => this.hiddenCanvas = ref}
               id="hiddenCanvas"

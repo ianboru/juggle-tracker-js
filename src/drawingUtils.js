@@ -1,7 +1,6 @@
 import cvutils from './cvutils';
 import drawingStore from './drawingStore'
 import store from './store'
-
 function addOpacityToColor(color,opacity){
   if(color.includes("rgb(")){
     color = color.replace("rgb","rgba")
@@ -36,6 +35,39 @@ function getHueFromColorString(string){
   const splitString = string.split(",")
   return splitString[0].replace("hsl(","")
 }
+function drawEmoji(context,x, y, emoji, height,width){
+  context.drawImage(emoji, x,y, height, width)
+}
+function drawEmojis(context, contourPositions,emoji){
+  // Check if tracking data exists
+  if(contourPositions){    
+    // Iterate through each color being tracked
+    for(let i = 0; i < Math.min(contourPositions.length,store.numProps); ++i){
+      // Don't draw if x coordinate is -1
+      if(contourPositions[i] && contourPositions[i]['x'] !== -1 ){
+        // Rename for convenience
+        const xHistory = contourPositions[i]['x']
+        const yHistory = contourPositions[i]['y']
+        const rHistory = contourPositions[i]['r']
+        // Don't draw a trail longer than the window or the trail length       
+        let currentWindowSize  = Math.min(xHistory.length, store.trailLength)
+        // Draw the trail of circles, 't' represents # of frames in the past
+        for (let t=currentWindowSize; t > -1; --t){
+          // At least draw the ball itself
+          if(xHistory[xHistory.length - 1 - t] > -1 && xHistory[xHistory.length - 1 - t] !== -1 ){
+            // Get parameters for circle
+            const lastX = xHistory[xHistory.length - 1 - t]
+            const lastY = yHistory[yHistory.length - 1 - t]
+            const lastR = rHistory[rHistory.length - 1 - t]
+ 
+              drawEmoji(context,lastX-lastR, lastY-lastR, emoji, lastR*2, lastR*2)
+
+          }
+        }
+      }
+    }
+  }
+}
 function drawCircles(context, contourPositions,color){
   // Check if tracking data exists
   if(contourPositions){    
@@ -62,9 +94,11 @@ function drawCircles(context, contourPositions,color){
             // Call the draw circle function to paint the canvas
             if(store.discoMode){
               const hue = (getHueFromColorString(color) - t*store.discoIncrement) % 360
+
               drawSphere(context,lastX, lastY, thickness, 'hsl(' + hue + ', 100,100)', opacity)  
             }else{
-              drawSphere(context,lastX, lastY, thickness, color, opacity)  
+              //drawSphere(context,lastX, lastY, thickness, color, opacity)  
+              drawEmoji(context,lastX, lastY, thickness)
 
             }
           }
@@ -577,5 +611,6 @@ export default {
     drawSquares,
     drawSelectColorText,
     drawFlowers,
+    drawEmojis,
     fitVidToCanvas,
 }
